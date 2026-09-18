@@ -20,3 +20,76 @@ je-root:has(.public-topbar) .public-footer{margin-top:auto;flex:none;width:100%;
 }
 
 .team-picker-choice.team-picker-all{display:grid;place-items:center;text-align:center;}
+
+
+/* Ajustes mobile da réplica oficial */
+@media (max-width:699px){
+  /* Tela inicial: quadro centralizado e logo maior */
+  .welcome-screen{
+    min-height:calc(100svh - 6px)!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:.7rem .45rem!important;
+  }
+  .welcome-content{
+    width:min(100%,460px)!important;
+    max-height:none!important;
+    min-height:0!important;
+    overflow:visible!important;
+    justify-content:center!important;
+    margin:auto!important;
+    padding:.8rem .7rem 1rem!important;
+  }
+  .welcome-logo{
+    width:min(72vw,300px,39svh)!important;
+    margin:0 auto .45rem!important;
+  }
+
+  /* O cabeçalho público é fixo: reserva o espaço real antes do conteúdo. */
+  je-root:has(.public-topbar) .scoreboard-shell{
+    box-sizing:border-box;
+    padding-top:calc(132px + .8rem)!important;
+  }
+
+  /* Filtro de equipes: mascote acima do nome, cinza quando inativo. */
+  .mobile-team-filter-options{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:.4rem!important;
+  }
+  .mobile-team-filter-options button{
+    min-height:82px!important;
+    display:grid!important;
+    place-items:center!important;
+    align-content:center!important;
+    gap:.25rem!important;
+    padding:.4rem .2rem!important;
+    text-align:center!important;
+  }
+  .mobile-team-filter-choice .team-emblem{
+    width:42px!important;
+    height:42px!important;
+    flex-basis:42px!important;
+    filter:grayscale(1)!important;
+    opacity:.48!important;
+    transition:filter .15s ease,opacity .15s ease!important;
+  }
+  .mobile-team-filter-choice strong{
+    display:block;
+    max-width:100%;
+    overflow:hidden;
+    color:#708196;
+    font-size:.68rem;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .mobile-team-filter-choice.active .team-emblem{
+    filter:none!important;
+    opacity:1!important;
+  }
+  .mobile-team-filter-choice.active strong{
+    color:#fff!important;
+  }
+  .mobile-team-filter-all{
+    min-height:82px!important;
+  }
+}
