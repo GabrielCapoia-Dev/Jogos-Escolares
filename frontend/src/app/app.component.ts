@@ -75,6 +75,9 @@ export class AppComponent implements OnDestroy {
   adminLoading = false;
   toast = '';
   scoreDrafts: Record<string, { a: number; b: number }> = {};
+  saveConfirmOpen = false;
+  pendingSaveMatch: Match | null = null;
+  pendingSaveCorrection = false;
 
   constructor() {
     this.api.periods().subscribe({ next: value => this.periods = value, error: () => undefined });
@@ -89,7 +92,7 @@ export class AppComponent implements OnDestroy {
       if (this.screen === 'PUBLIC' && this.period && document.visibilityState === 'visible') {
         this.loadPublic(false);
       }
-    }, 3000);
+    }, 2000);
   }
 
   ngOnDestroy(): void {
@@ -313,6 +316,34 @@ export class AppComponent implements OnDestroy {
     if (side === 'A') draft.a = Math.max(0, draft.a + delta);
     else draft.b = Math.max(0, draft.b + delta);
     this.scoreDrafts[match.id] = { ...draft };
+  }
+
+  requestSave(match: Match, correction = false): void {
+    this.pendingSaveMatch = match;
+    this.pendingSaveCorrection = correction;
+    this.saveConfirmOpen = true;
+  }
+
+  cancelSave(): void {
+    this.saveConfirmOpen = false;
+    this.pendingSaveMatch = null;
+    this.pendingSaveCorrection = false;
+  }
+
+  confirmSave(): void {
+    if (!this.pendingSaveMatch) return;
+    const match = this.pendingSaveMatch;
+    const correction = this.pendingSaveCorrection;
+    this.saveConfirmOpen = false;
+    this.pendingSaveMatch = null;
+    this.pendingSaveCorrection = false;
+    this.saveResult(match, correction);
+  }
+
+  pendingDraft(): { a: number; b: number } {
+    const match = this.pendingSaveMatch;
+    if (!match) return { a: 0, b: 0 };
+    return this.scoreDrafts[match.id] ?? { a: match.scoreA, b: match.scoreB };
   }
 
   saveResult(match: Match, correction = false): void {
