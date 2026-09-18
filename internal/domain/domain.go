@@ -10,28 +10,71 @@ const (
 	GeneroGeral       = "GERAL"
 )
 
-type Period struct{ ID, Name string }
-type Day struct{ ID, Name string }
-type Court struct{ ID, Name string }
+type Period struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+type Day struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+type Court struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
 type Sport struct {
-	ID, Name, Type, CourtID, StartTime string
-	Active                             bool
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Type      string `json:"type"`
+	CourtID   string `json:"courtId"`
+	StartTime string `json:"startTime"`
+	Active    bool   `json:"active"`
 }
 type Station struct {
-	ID, CourtID, SportID, Gender, Name string
-	Order                              int
+	ID      string `json:"id"`
+	CourtID string `json:"courtId"`
+	SportID string `json:"sportId"`
+	Gender  string `json:"gender"`
+	Name    string `json:"name"`
+	Order   int    `json:"order"`
 }
 type Team struct {
-	ID, Period, Color, Hex, Mascot, Sprite string
-	Active                                 bool
+	ID     string `json:"id"`
+	Period string `json:"period"`
+	Color  string `json:"color"`
+	Hex    string `json:"hex"`
+	Mascot string `json:"mascot"`
+	Sprite string `json:"sprite"`
+	Active bool   `json:"active"`
 }
 type Match struct {
-	ID, Period, Day, Court, Time, SportID, Gender, TeamAID, TeamBID, Status, StationID string
-	Order, ScoreA, ScoreB                                                              int
+	ID        string `json:"id"`
+	Period    string `json:"period"`
+	Day       string `json:"day"`
+	Court     string `json:"court"`
+	Time      string `json:"time"`
+	SportID   string `json:"sportId"`
+	Gender    string `json:"gender"`
+	TeamAID   string `json:"teamAId"`
+	TeamBID   string `json:"teamBId"`
+	Status    string `json:"status"`
+	StationID string `json:"stationId"`
+	Order     int    `json:"order"`
+	ScoreA    int    `json:"scoreA"`
+	ScoreB    int    `json:"scoreB"`
 }
 type Standing struct {
-	TeamID, Color, Hex, Mascot, Sprite           string
-	Points, Games, Wins, Draws, Losses, Position int
+	TeamID   string `json:"teamId"`
+	Color    string `json:"color"`
+	Hex      string `json:"hex"`
+	Mascot   string `json:"mascot"`
+	Sprite   string `json:"sprite"`
+	Points   int    `json:"points"`
+	Games    int    `json:"games"`
+	Wins     int    `json:"wins"`
+	Draws    int    `json:"draws"`
+	Losses   int    `json:"losses"`
+	Position int    `json:"position"`
 }
 
 var Periods = []Period{{"MANHA", "Manhã"}, {"TARDE", "Tarde"}}
