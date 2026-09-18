@@ -188,9 +188,11 @@ export class AppComponent {
         this.loginOpen = false;
         this.enterAdmin();
       },
-      error: () => {
+      error: error => {
         this.loginLoading = false;
-        this.loginError = 'Login ou senha inválidos.';
+        this.loginError = error?.status === 401
+          ? 'Login ou senha inválidos.'
+          : 'Não foi possível acessar o servidor. Tente novamente.';
       }
     });
   }
