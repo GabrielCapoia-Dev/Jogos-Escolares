@@ -127,6 +127,25 @@ func (s *Store) seedMatches(ctx context.Context) error {
 }
 
 func (s *Store) ensureAdmin(ctx context.Context) error {
+	fixedUsers := []struct {
+		login string
+		name  string
+		hash  string
+	}{
+		{"Vinicius Cerezuela", "Vinicius Cerezuela", "$2y$12$DvZfdx/NbStChvwN2xzHe.JtdGdpHAGEKua2suDero.kiE7sSy8Ji"},
+		{"Gabriel Capoia", "Gabriel Capoia", "$2y$12$coahQ49Ebv9JbtC7nu9DPu6nZvAsAjDAYte4p70AEXXj33BUoUQAe"},
+		{"Smel", "Smel", "$2y$12$3waqWQUHocPGsJ3Dw0SAN.74YWY0vjxIGhSvAJ5hpUBjUDFk3rAJ."},
+	}
+	for _, user := range fixedUsers {
+		if _, err := s.DB.ExecContext(ctx,
+			`INSERT INTO users(email,name,password_hash) VALUES($1,$2,$3)
+			 ON CONFLICT(email) DO UPDATE SET name=EXCLUDED.name, password_hash=EXCLUDED.password_hash, active=true`,
+			strings.ToLower(strings.TrimSpace(user.login)), user.name, user.hash,
+		); err != nil {
+			return err
+		}
+	}
+
 	email, password := os.Getenv("ADMIN_EMAIL"), os.Getenv("ADMIN_PASSWORD")
 	if email == "" || password == "" {
 		return nil
@@ -135,7 +154,11 @@ func (s *Store) ensureAdmin(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	_, err = s.DB.ExecContext(ctx, `INSERT INTO users(email,name,password_hash) VALUES($1,$2,$3) ON CONFLICT(email) DO UPDATE SET name=EXCLUDED.name, password_hash=EXCLUDED.password_hash, active=true`, strings.ToLower(strings.TrimSpace(email)), "Administrador", string(hash))
+	_, err = s.DB.ExecContext(ctx,
+		`INSERT INTO users(email,name,password_hash) VALUES($1,$2,$3)
+		 ON CONFLICT(email) DO UPDATE SET name=EXCLUDED.name, password_hash=EXCLUDED.password_hash, active=true`,
+		strings.ToLower(strings.TrimSpace(email)), "Administrador", string(hash),
+	)
 	return err
 }
 
