@@ -2,3 +2,19 @@
 html:has(.welcome-screen),body:has(.welcome-screen){overflow:hidden!important;height:100%;}
 .welcome-screen .choice-grid{display:grid!important;visibility:visible!important;opacity:1!important;}
 .welcome-screen .choice-button{display:block!important;visibility:visible!important;opacity:1!important;color:#003b82!important;background:#eef4fb!important;}
+
+html,body{min-height:100%;}
+je-root{display:block;min-height:100dvh;}
+je-root:has(.public-topbar){display:flex;flex-direction:column;min-height:100dvh;}
+je-root:has(.public-topbar) .scoreboard-shell{flex:1 0 auto;width:100%;}
+je-root:has(.public-topbar) .public-footer{margin-top:auto;flex:none;width:100%;}
+
+@media (max-width:699px){
+  je-root:has(.public-topbar){min-height:100svh;}
+  je-root:has(.public-topbar) .public-topbar>div,
+  je-root:has(.public-topbar) .header-inner,
+  je-root:has(.public-topbar) .scoreboard-shell{width:100%;}
+  je-root:has(.public-topbar) .public-main-nav{display:flex;overflow-x:auto;}
+  je-root:has(.public-topbar) .public-main-nav button{flex:1 0 auto;}
+  je-root:has(.public-topbar) .public-footer{margin-top:1rem;}
+}

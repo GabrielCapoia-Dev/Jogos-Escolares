@@ -17,12 +17,22 @@ export class AppComponent {
   setView(view: View): void { this.view = view; this.selectedTeam = ''; this.load(); }
   load(): void {
     if (!this.period) return; this.loading = true; this.error = ''; this.lastUpdated = new Date().toLocaleTimeString('pt-BR');
-    this.api.teams(this.period).subscribe(teams => this.teams = teams);
+    this.api.teams(this.period).subscribe({
+      next: teams => {
+        this.teams = teams;
+        if (this.view === 'CLASSIFICACAO') {
+          this.standings = this.zeroStandings(teams);
+          this.loading = false;
+        }
+      },
+      error: () => this.fail()
+    });
     if (this.view === 'CLASSIFICACAO') { this.api.standings(this.period, this.gender).subscribe({ next: value => { this.standings = value; this.loading = false; }, error: () => this.fail() }); return; }
     const day = this.view === 'CRONOGRAMA_EQUIPE' || this.view === 'CRONOGRAMA' ? this.day : '';
     this.api.matches(this.period, day, this.view === 'CRONOGRAMA_EQUIPE' ? '' : this.court, this.sport, this.gender === 'GERAL' ? '' : this.gender).subscribe({ next: value => { this.matches = this.view === 'RESULTADOS' ? value.filter(match => match.status === 'FINALIZADO') : value; this.loading = false; }, error: () => this.fail() });
   }
   private fail(): void { this.error = 'Não foi possível carregar os dados.'; this.loading = false; }
+  private zeroStandings(teams: Team[]): Standing[] { return teams.map((team, index) => ({ teamId: team.id, color: team.color, hex: team.hex, mascot: team.mascot, sprite: team.sprite, points: 0, games: 0, wins: 0, draws: 0, losses: 0, position: index + 1 })); }
   periodName(): string { return this.periods.find(item => item.id === this.period)?.name ?? ''; }
   team(id: string): Team | undefined { return this.teams.find(item => item.id === id); }
   sportName(id: string): string { return this.sports.find(item => item.id === id)?.name ?? id; }
