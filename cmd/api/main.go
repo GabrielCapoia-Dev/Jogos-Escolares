@@ -8,12 +8,56 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
+	"time"
 
 	"jogos-escolares/internal/domain"
 	"jogos-escolares/internal/store"
 )
 
-type server struct{ store *store.Store }
+type server struct {
+	store *store.Store
+	events *eventHub
+}
+
+type eventHub struct {
+	mu      sync.RWMutex
+	clients map[chan []byte]struct{}
+}
+
+func newEventHub() *eventHub {
+	return &eventHub{clients: make(map[chan []byte]struct{})}
+}
+
+func (h *eventHub) subscribe() (chan []byte, func()) {
+	ch := make(chan []byte, 8)
+	h.mu.Lock()
+	h.clients[ch] = struct{}{}
+	h.mu.Unlock()
+	return ch, func() {
+		h.mu.Lock()
+		if _, ok := h.clients[ch]; ok {
+			delete(h.clients, ch)
+			close(ch)
+		}
+		h.mu.Unlock()
+	}
+}
+
+func (h *eventHub) publish(value any) {
+	payload, err := json.Marshal(value)
+	if err != nil {
+		return
+	}
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	for ch := range h.clients {
+		select {
+		case ch <- payload:
+		default:
+		}
+	}
+}
 type loginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -34,10 +78,11 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.DB.Close()
-	s := &server{store: db}
+	s := &server{store: db, events: newEventHub()}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", s.health)
 	mux.HandleFunc("/api/v1/config", s.config)
+	mux.HandleFunc("/api/v1/events", s.eventsStream)
 	mux.HandleFunc("/api/v1/auth/login", s.login)
 	mux.HandleFunc("/api/v1/periods", jsonHandler(domain.Periods))
 	mux.HandleFunc("/api/v1/days", jsonHandler(domain.Days))
@@ -60,6 +105,49 @@ func (s *server) health(w http.ResponseWriter, _ *http.Request) {
 func (s *server) config(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, 200, map[string]any{"year": 2026, "points": map[string]int{"win": 3, "draw": 1, "loss": 0}, "refreshSeconds": 10})
 }
+func (s *server) eventsStream(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "streaming unsupported", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("X-Accel-Buffering", "no")
+
+	ch, unsubscribe := s.events.subscribe()
+	defer unsubscribe()
+
+	_, _ = w.Write([]byte(": connected\n\n"))
+	flusher.Flush()
+
+	keepAlive := time.NewTicker(20 * time.Second)
+	defer keepAlive.Stop()
+
+	for {
+		select {
+		case <-r.Context().Done():
+			return
+		case payload, ok := <-ch:
+			if !ok {
+				return
+			}
+			_, _ = w.Write([]byte("data: "))
+			_, _ = w.Write(payload)
+			_, _ = w.Write([]byte("\n\n"))
+			flusher.Flush()
+		case <-keepAlive.C:
+			_, _ = w.Write([]byte(": keep-alive\n\n"))
+			flusher.Flush()
+		}
+	}
+}
+
 func (s *server) login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", 405)
@@ -147,6 +235,18 @@ func (s *server) result(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), status)
 		return
 	}
+	s.events.publish(map[string]any{
+		"type":    "RESULT_UPDATED",
+		"matchId": match.ID,
+		"period":  match.Period,
+		"day":     match.Day,
+		"court":   match.Court,
+		"sportId": match.SportID,
+		"gender":  match.Gender,
+		"scoreA":  match.ScoreA,
+		"scoreB":  match.ScoreB,
+		"status":  match.Status,
+	})
 	writeJSON(w, 200, match)
 }
 func jsonHandler(value any) http.HandlerFunc {
