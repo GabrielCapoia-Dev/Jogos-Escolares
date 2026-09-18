@@ -12,6 +12,7 @@ services:
       timeout: 3s
       retries: 10
   api:
+    restart: on-failure
     build:
       context: .
       dockerfile: backend/Dockerfile
