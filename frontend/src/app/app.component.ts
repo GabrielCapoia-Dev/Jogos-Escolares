@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
-import { retry } from 'rxjs/operators';
+import { finalize, retry } from 'rxjs/operators';
 import { ApiService, Court, Day, LoginResponse, Match, Period, RealtimeEvent, Sport, Standing, Team } from './api.service';
 
 type PublicView = 'CLASSIFICACAO' | 'CRONOGRAMA' | 'CRONOGRAMA_EQUIPE' | 'RESULTADOS';
@@ -18,7 +18,7 @@ export class AppComponent implements OnDestroy {
   private readonly api = inject(ApiService);
   private touchStartX: number | null = null;
   private publicRefreshTimer = 0;
-  private publicLoadSeq = 0;
+  private publicRefreshBusy = false;
 
   private readonly legacyTeams = [
     ['AMARELO', 'Amarelo', '#F3C515', 'Onça', 'mascote-amarelo'],
@@ -127,9 +127,9 @@ export class AppComponent implements OnDestroy {
   }
 
   loadPublic(showLoading = true): void {
-    if (!this.period) return;
+    if (!this.period || this.publicRefreshBusy) return;
 
-    const seq = ++this.publicLoadSeq;
+    this.publicRefreshBusy = true;
     if (showLoading) this.loading = true;
     this.error = '';
 
@@ -141,25 +141,28 @@ export class AppComponent implements OnDestroy {
     const requestSport = this.sport;
 
     if (requestView === 'CLASSIFICACAO') {
-      this.api.snapshot(requestPeriod, requestGender).subscribe({
-        next: snapshot => {
-          if (seq !== this.publicLoadSeq || this.period !== requestPeriod || this.view !== requestView) return;
-          this.teams = snapshot.teams;
-          this.standings = snapshot.standings;
-          this.matches = snapshot.matches;
-          this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-          this.loading = false;
-        },
-        error: () => {
-          if (seq !== this.publicLoadSeq) return;
-          if (!this.teams.length) this.teams = this.fallbackTeams(requestPeriod);
-          if (!this.standings.length) this.standings = this.zeroStandings(this.teams);
-          this.failPublic();
-          window.setTimeout(() => {
-            if (this.screen === 'PUBLIC' && this.period === requestPeriod && this.view === requestView) this.loadPublic(false);
-          }, 1200);
-        }
-      });
+      this.api.snapshot(requestPeriod, requestGender)
+        .pipe(finalize(() => { this.publicRefreshBusy = false; }))
+        .subscribe({
+          next: snapshot => {
+            if (this.period !== requestPeriod || this.view !== requestView) return;
+            this.teams = snapshot.teams;
+            this.standings = snapshot.standings;
+            this.matches = snapshot.matches;
+            this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            this.loading = false;
+          },
+          error: () => {
+            if (!this.teams.length) this.teams = this.fallbackTeams(requestPeriod);
+            if (!this.standings.length) this.standings = this.zeroStandings(this.teams);
+            this.failPublic();
+            window.setTimeout(() => {
+              if (this.screen === 'PUBLIC' && this.period === requestPeriod && this.view === requestView) {
+                this.loadPublic(false);
+              }
+            }, 600);
+          }
+        });
       return;
     }
 
@@ -170,21 +173,20 @@ export class AppComponent implements OnDestroy {
     forkJoin({
       teams: this.api.teams(requestPeriod).pipe(retry({ count: 1, delay: 300 })),
       matches: this.api.matches(requestPeriod, day, court, requestSport, gender).pipe(retry({ count: 1, delay: 300 }))
-    }).subscribe({
-      next: ({ teams, matches }) => {
-        if (seq !== this.publicLoadSeq || this.period !== requestPeriod || this.view !== requestView) return;
-        this.teams = teams;
-        this.matches = requestView === 'RESULTADOS'
-          ? matches.filter(item => item.status === 'FINALIZADO')
-          : matches;
-        this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        this.loading = false;
-      },
-      error: () => {
-        if (seq !== this.publicLoadSeq) return;
-        this.failPublic();
-      }
-    });
+    })
+      .pipe(finalize(() => { this.publicRefreshBusy = false; }))
+      .subscribe({
+        next: ({ teams, matches }) => {
+          if (this.period !== requestPeriod || this.view !== requestView) return;
+          this.teams = teams;
+          this.matches = requestView === 'RESULTADOS'
+            ? matches.filter(item => item.status === 'FINALIZADO')
+            : matches;
+          this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+          this.loading = false;
+        },
+        error: () => this.failPublic()
+      });
   }
 
 
