@@ -57,8 +57,6 @@ export class AppComponent {
   rememberLogin = !!localStorage.getItem('jogos-admin-token');
   loginError = '';
   loginLoading = false;
-  adminPreviewMode = sessionStorage.getItem('jogos-admin-preview') === '1';
-
   adminToken = localStorage.getItem('jogos-admin-token') ?? sessionStorage.getItem('jogos-admin-token') ?? '';
   adminMatches: Match[] = [];
   adminStandings: Standing[] = [];
@@ -167,7 +165,7 @@ export class AppComponent {
 
   login(): void {
     if (!this.loginEmail.trim() || !this.loginPassword) {
-      this.loginError = 'Informe o e-mail e a senha.';
+      this.loginError = 'Informe o login e a senha.';
       return;
     }
     this.loginLoading = true;
@@ -191,16 +189,6 @@ export class AppComponent {
       },
       error: () => {
         this.loginLoading = false;
-        if (this.isPreviewHost()) {
-          this.adminPreviewMode = true;
-          sessionStorage.setItem('jogos-admin-preview', '1');
-          if (this.rememberLogin) localStorage.setItem('jogos-admin-email', this.loginEmail.trim());
-          this.loginPassword = '';
-          this.loginOpen = false;
-          this.enterAdmin();
-          this.showToast('Modo de visualização administrativa no Codespaces.');
-          return;
-        }
         this.loginError = 'Login ou senha inválidos.';
       }
     });
@@ -219,10 +207,8 @@ export class AppComponent {
 
   logout(): void {
     this.adminToken = '';
-    this.adminPreviewMode = false;
     localStorage.removeItem('jogos-admin-token');
     sessionStorage.removeItem('jogos-admin-token');
-    sessionStorage.removeItem('jogos-admin-preview');
     this.backHome();
   }
 
@@ -269,10 +255,6 @@ export class AppComponent {
   }
 
   saveResult(match: Match, correction = false): void {
-    if (this.adminPreviewMode && !this.adminToken) {
-      this.showToast('Modo visual: configure ADMIN_EMAIL e ADMIN_PASSWORD para gravar resultados.');
-      return;
-    }
     if (!this.adminToken) {
       this.logout();
       return;
@@ -373,11 +355,6 @@ export class AppComponent {
   resultPoints(match: Match, side: 'A' | 'B'): number {
     if (match.scoreA === match.scoreB) return 1;
     return this.winner(match, side) ? 3 : 0;
-  }
-
-  private isPreviewHost(): boolean {
-    const host = window.location.hostname;
-    return host === 'localhost' || host === '127.0.0.1' || host.endsWith('.app.github.dev');
   }
 
   private failPublic(): void {
