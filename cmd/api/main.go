@@ -91,6 +91,7 @@ func main() {
 	mux.HandleFunc("/api/v1/teams", s.teams)
 	mux.HandleFunc("/api/v1/matches", s.matches)
 	mux.HandleFunc("/api/v1/standings", s.standings)
+	mux.HandleFunc("/api/v1/snapshot", s.snapshot)
 	mux.HandleFunc("/api/v1/admin/matches/", s.result)
 	addr := os.Getenv("HTTP_ADDR")
 	if addr == "" {
@@ -200,6 +201,37 @@ func (s *server) standings(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, 200, domain.CalculateStandings(teams, matches, period, r.URL.Query().Get("gender")))
 }
+func (s *server) snapshot(w http.ResponseWriter, r *http.Request) {
+	period := r.URL.Query().Get("period")
+	if period == "" {
+		http.Error(w, "period is required", 400)
+		return
+	}
+	gender := r.URL.Query().Get("gender")
+	teams, err := s.store.Teams(r.Context(), period)
+	if err != nil {
+		serverError(w, err)
+		return
+	}
+	matches, err := s.store.Matches(r.Context(), period, "", "", "", "")
+	if err != nil {
+		serverError(w, err)
+		return
+	}
+	finished := make([]domain.Match, 0)
+	for _, match := range matches {
+		if match.Status == domain.StatusFinalizado {
+			finished = append(finished, match)
+		}
+	}
+	writeJSON(w, 200, map[string]any{
+		"teams":     teams,
+		"standings": domain.CalculateStandings(teams, matches, period, gender),
+		"matches":   finished,
+		"updatedAt": time.Now().UTC().Format(time.RFC3339),
+	})
+}
+
 func (s *server) result(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost && r.Method != http.MethodPut {
 		http.Error(w, "method not allowed", 405)
