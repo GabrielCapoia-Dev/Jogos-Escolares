@@ -1,4 +1,4 @@
-# Prompt de migração — Jogos Escolares
+d# Prompt de migração — Jogos Escolares
 
 Você é um engenheiro de software sênior responsável por transformar este sistema de placar e administração dos Jogos Escolares em uma aplicação independente, usando Go no backend e Angular no frontend.
 
