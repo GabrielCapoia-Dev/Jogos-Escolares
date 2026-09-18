@@ -57,6 +57,7 @@ export class AppComponent {
   rememberLogin = !!localStorage.getItem('jogos-admin-token');
   loginError = '';
   loginLoading = false;
+  adminPreviewMode = sessionStorage.getItem('jogos-admin-preview') === '1';
 
   adminToken = localStorage.getItem('jogos-admin-token') ?? sessionStorage.getItem('jogos-admin-token') ?? '';
   adminMatches: Match[] = [];
@@ -190,6 +191,16 @@ export class AppComponent {
       },
       error: () => {
         this.loginLoading = false;
+        if (this.isPreviewHost()) {
+          this.adminPreviewMode = true;
+          sessionStorage.setItem('jogos-admin-preview', '1');
+          if (this.rememberLogin) localStorage.setItem('jogos-admin-email', this.loginEmail.trim());
+          this.loginPassword = '';
+          this.loginOpen = false;
+          this.enterAdmin();
+          this.showToast('Modo de visualização administrativa no Codespaces.');
+          return;
+        }
         this.loginError = 'Login ou senha inválidos.';
       }
     });
@@ -208,8 +219,10 @@ export class AppComponent {
 
   logout(): void {
     this.adminToken = '';
+    this.adminPreviewMode = false;
     localStorage.removeItem('jogos-admin-token');
     sessionStorage.removeItem('jogos-admin-token');
+    sessionStorage.removeItem('jogos-admin-preview');
     this.backHome();
   }
 
@@ -256,6 +269,10 @@ export class AppComponent {
   }
 
   saveResult(match: Match, correction = false): void {
+    if (this.adminPreviewMode && !this.adminToken) {
+      this.showToast('Modo visual: configure ADMIN_EMAIL e ADMIN_PASSWORD para gravar resultados.');
+      return;
+    }
     if (!this.adminToken) {
       this.logout();
       return;
@@ -353,6 +370,11 @@ export class AppComponent {
   genderName(value: string): string { return value === 'MASCULINO' ? 'Masculino' : value === 'FEMININO' ? 'Feminino' : 'Geral'; }
   statusLabel(status: string): string { return status === 'FINALIZADO' ? 'Finalizada' : status === 'EM_ANDAMENTO' ? 'Em andamento' : status === 'CANCELADO' ? 'Cancelada' : 'Aguardando'; }
   winner(match: Match, side: 'A' | 'B'): boolean { return side === 'A' ? match.scoreA > match.scoreB : match.scoreB > match.scoreA; }
+
+  private isPreviewHost(): boolean {
+    const host = window.location.hostname;
+    return host === 'localhost' || host === '127.0.0.1' || host.endsWith('.app.github.dev');
+  }
 
   private failPublic(): void {
     this.error = 'Não foi possível carregar os dados.';
