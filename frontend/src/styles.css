@@ -18,3 +18,5 @@ je-root:has(.public-topbar) .public-footer{margin-top:auto;flex:none;width:100%;
   je-root:has(.public-topbar) .public-main-nav button{flex:1 0 auto;}
   je-root:has(.public-topbar) .public-footer{margin-top:1rem;}
 }
+
+.team-picker-choice.team-picker-all{display:grid;place-items:center;text-align:center;}
