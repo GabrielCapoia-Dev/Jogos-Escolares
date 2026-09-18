@@ -7,7 +7,7 @@ export interface Day { id: string; name: string; }
 export interface Court { id: string; name: string; }
 export interface Sport { id: string; name: string; courtId: string; }
 export interface Team { id: string; period: string; color: string; hex: string; mascot: string; sprite: string; }
-export interface Match { id: string; period: string; day: string; court: string; time: string; sportId: string; gender: string; teamAId: string; teamBId: string; status: string; scoreA: number; scoreB: number; }
+export interface Match { id: string; period: string; day: string; court: string; time: string; sportId: string; gender: string; teamAId: string; teamBId: string; status: string; order: number; scoreA: number; scoreB: number; }
 export interface Standing { teamId: string; color: string; hex: string; mascot: string; sprite: string; points: number; games: number; wins: number; draws: number; losses: number; position: number; }
 
 @Injectable({ providedIn: 'root' })
