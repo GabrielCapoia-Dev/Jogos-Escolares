@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
+import { retry } from 'rxjs/operators';
 import { ApiService, Court, Day, LoginResponse, Match, Period, RealtimeEvent, Sport, Standing, Team } from './api.service';
 
 type PublicView = 'CLASSIFICACAO' | 'CRONOGRAMA' | 'CRONOGRAMA_EQUIPE' | 'RESULTADOS';
@@ -12,9 +14,11 @@ type Screen = 'PUBLIC' | 'ADMIN';
   imports: [CommonModule, FormsModule],
   templateUrl: './app.component.html'
 })
-export class AppComponent {
+export class AppComponent implements OnDestroy {
   private readonly api = inject(ApiService);
   private touchStartX: number | null = null;
+  private publicRefreshTimer = 0;
+  private publicRefreshBusy = false;
 
   private readonly legacyTeams = [
     ['AMARELO', 'Amarelo', '#F3C515', 'Onça', 'mascote-amarelo'],
@@ -78,6 +82,18 @@ export class AppComponent {
     this.api.courts().subscribe({ next: value => this.courts = value, error: () => undefined });
     this.api.sports().subscribe({ next: value => this.sports = value, error: () => undefined });
     this.api.events().subscribe({ next: event => this.handleRealtimeEvent(event) });
+
+    // SSE atualiza imediatamente; este ciclo é a rede de segurança para navegadores
+    // e proxies que suspendem streams longos (ex.: preview/Codespaces).
+    this.publicRefreshTimer = window.setInterval(() => {
+      if (this.screen === 'PUBLIC' && this.period && document.visibilityState === 'visible') {
+        this.loadPublic(false);
+      }
+    }, 3000);
+  }
+
+  ngOnDestroy(): void {
+    window.clearInterval(this.publicRefreshTimer);
   }
 
   choosePeriod(period: Period): void {
@@ -108,34 +124,72 @@ export class AppComponent {
   }
 
   loadPublic(showLoading = true): void {
-    if (!this.period) return;
+    if (!this.period || this.publicRefreshBusy) return;
+
+    this.publicRefreshBusy = true;
     if (showLoading) this.loading = true;
     this.error = '';
-    this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-    this.api.teams(this.period).subscribe({
-      next: teams => this.teams = teams,
-      error: () => this.teams = this.fallbackTeams(this.period)
-    });
-    if (this.view === 'CLASSIFICACAO') {
-      this.api.standings(this.period, this.gender).subscribe({
-        next: value => { this.standings = value; this.loading = false; },
-        error: () => { this.standings = this.zeroStandings(this.teams); this.failPublic(); }
-      });
-      this.api.matches(this.period).subscribe({
-        next: value => this.matches = value.filter(item => item.status === 'FINALIZADO'),
-        error: () => this.matches = []
+
+    const requestPeriod = this.period;
+    const requestView = this.view;
+    const requestGender = this.gender;
+    const requestDay = this.day;
+    const requestCourt = this.court;
+    const requestSport = this.sport;
+
+    if (requestView === 'CLASSIFICACAO') {
+      forkJoin({
+        teams: this.api.teams(requestPeriod).pipe(retry({ count: 2, delay: 400 })),
+        standings: this.api.standings(requestPeriod, requestGender).pipe(retry({ count: 2, delay: 400 })),
+        matches: this.api.matches(requestPeriod).pipe(retry({ count: 2, delay: 400 }))
+      }).subscribe({
+        next: ({ teams, standings, matches }) => {
+          if (this.period !== requestPeriod || this.view !== requestView) {
+            this.publicRefreshBusy = false;
+            return;
+          }
+          this.teams = teams;
+          this.standings = standings;
+          this.matches = matches.filter(item => item.status === 'FINALIZADO');
+          this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+          this.loading = false;
+          this.publicRefreshBusy = false;
+        },
+        error: () => {
+          if (!this.teams.length) this.teams = this.fallbackTeams(requestPeriod);
+          if (!this.standings.length) this.standings = this.zeroStandings(this.teams);
+          this.failPublic();
+          this.publicRefreshBusy = false;
+        }
       });
       return;
     }
-    const day = this.view === 'CRONOGRAMA' || this.view === 'CRONOGRAMA_EQUIPE' ? this.day : '';
-    const court = this.view === 'CRONOGRAMA_EQUIPE' || this.view === 'RESULTADOS' ? '' : this.court;
-    const gender = this.gender === 'GERAL' ? '' : this.gender;
-    this.api.matches(this.period, day, court, this.sport, gender).subscribe({
-      next: value => {
-        this.matches = this.view === 'RESULTADOS' ? value.filter(item => item.status === 'FINALIZADO') : value;
+
+    const day = requestView === 'CRONOGRAMA' || requestView === 'CRONOGRAMA_EQUIPE' ? requestDay : '';
+    const court = requestView === 'CRONOGRAMA_EQUIPE' || requestView === 'RESULTADOS' ? '' : requestCourt;
+    const gender = requestGender === 'GERAL' ? '' : requestGender;
+
+    forkJoin({
+      teams: this.api.teams(requestPeriod).pipe(retry({ count: 2, delay: 400 })),
+      matches: this.api.matches(requestPeriod, day, court, requestSport, gender).pipe(retry({ count: 2, delay: 400 }))
+    }).subscribe({
+      next: ({ teams, matches }) => {
+        if (this.period !== requestPeriod || this.view !== requestView) {
+          this.publicRefreshBusy = false;
+          return;
+        }
+        this.teams = teams;
+        this.matches = requestView === 'RESULTADOS'
+          ? matches.filter(item => item.status === 'FINALIZADO')
+          : matches;
+        this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         this.loading = false;
+        this.publicRefreshBusy = false;
       },
-      error: () => this.failPublic()
+      error: () => {
+        this.failPublic();
+        this.publicRefreshBusy = false;
+      }
     });
   }
 
