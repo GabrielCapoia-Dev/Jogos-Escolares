@@ -1,0 +1,12 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE TABLE periods (id text PRIMARY KEY, name text NOT NULL);
+CREATE TABLE competition_days (id text PRIMARY KEY, name text NOT NULL);
+CREATE TABLE courts (id text PRIMARY KEY, name text NOT NULL);
+CREATE TABLE sports (id text PRIMARY KEY, name text NOT NULL, type text NOT NULL, court_id text NOT NULL REFERENCES courts(id), start_time time NOT NULL, active boolean NOT NULL DEFAULT true);
+CREATE TABLE stations (id text PRIMARY KEY, court_id text NOT NULL REFERENCES courts(id), sport_id text NOT NULL REFERENCES sports(id), gender text NOT NULL, name text NOT NULL, sort_order integer NOT NULL);
+CREATE TABLE teams (id text PRIMARY KEY, period_id text NOT NULL REFERENCES periods(id), color text NOT NULL, hex text NOT NULL, mascot text NOT NULL, sprite text NOT NULL, active boolean NOT NULL DEFAULT true);
+CREATE TABLE matches (id text PRIMARY KEY, period_id text NOT NULL REFERENCES periods(id), day_id text NOT NULL REFERENCES competition_days(id), court_id text NOT NULL REFERENCES courts(id), scheduled_time time NOT NULL, sport_id text NOT NULL REFERENCES sports(id), gender text NOT NULL, team_a_id text NOT NULL REFERENCES teams(id), team_b_id text NOT NULL REFERENCES teams(id), status text NOT NULL CHECK (status IN ('AGUARDANDO','EM_ANDAMENTO','FINALIZADO','CANCELADO')), sort_order integer NOT NULL, score_a integer NOT NULL DEFAULT 0 CHECK (score_a >= 0), score_b integer NOT NULL DEFAULT 0 CHECK (score_b >= 0), updated_at timestamptz);
+CREATE TABLE users (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), email text UNIQUE NOT NULL, name text NOT NULL, password_hash text NOT NULL, role text NOT NULL DEFAULT 'ADMIN', active boolean NOT NULL DEFAULT true, created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE audit_logs (id bigserial PRIMARY KEY, user_id uuid REFERENCES users(id), action text NOT NULL, match_id text NOT NULL REFERENCES matches(id), before_state jsonb NOT NULL, after_state jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now());
+CREATE INDEX matches_filters_idx ON matches (period_id, day_id, court_id, sport_id, gender, status);
+CREATE INDEX audit_logs_match_idx ON audit_logs (match_id, created_at DESC);
