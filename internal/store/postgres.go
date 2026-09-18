@@ -68,7 +68,10 @@ func (s *Store) initialize(ctx context.Context) error {
 	if err := s.ensureAdmin(ctx); err != nil {
 		return err
 	}
-	return s.seedMatches(ctx)
+	if err := s.seedMatches(ctx); err != nil {
+		return err
+	}
+	return s.seedDemoResults(ctx)
 }
 
 func (s *Store) seedReferenceData(ctx context.Context) error {
@@ -124,6 +127,43 @@ func (s *Store) seedMatches(ctx context.Context) error {
 		}
 	}
 	return tx.Commit()
+}
+
+func (s *Store) seedDemoResults(ctx context.Context) error {
+	if strings.ToLower(strings.TrimSpace(os.Getenv("DEMO_RESULTS"))) != "true" {
+		return nil
+	}
+
+	var finalized int
+	if err := s.DB.QueryRowContext(ctx, `SELECT count(*) FROM matches WHERE status=$1`, domain.StatusFinalizado).Scan(&finalized); err != nil {
+		return err
+	}
+	if finalized > 0 {
+		return nil
+	}
+
+	// Replica a variedade visual do protótipo antigo: vitórias dos dois lados e empates.
+	// Os três primeiros confrontos de cada estação/dia ficam finalizados; os demais
+	// permanecem aguardando para permitir testar o lançamento pela área administrativa.
+	_, err := s.DB.ExecContext(ctx, `
+		UPDATE matches
+		   SET status = $1,
+		       score_a = CASE sort_order
+		                   WHEN 1 THEN 4
+		                   WHEN 2 THEN 1
+		                   WHEN 3 THEN 2
+		                   ELSE score_a
+		                 END,
+		       score_b = CASE sort_order
+		                   WHEN 1 THEN 2
+		                   WHEN 2 THEN 3
+		                   WHEN 3 THEN 2
+		                   ELSE score_b
+		                 END,
+		       updated_at = now()
+		 WHERE sort_order BETWEEN 1 AND 3
+	`, domain.StatusFinalizado)
+	return err
 }
 
 func (s *Store) ensureAdmin(ctx context.Context) error {
