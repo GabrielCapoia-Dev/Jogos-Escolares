@@ -132,9 +132,9 @@ func (s *Store) ensureAdmin(ctx context.Context) error {
 		name  string
 		hash  string
 	}{
-		{"Vinicius Cerezuela", "Vinicius Cerezuela", "$2y$12$DvZfdx/NbStChvwN2xzHe.JtdGdpHAGEKua2suDero.kiE7sSy8Ji"},
-		{"Gabriel Capoia", "Gabriel Capoia", "$2y$12$coahQ49Ebv9JbtC7nu9DPu6nZvAsAjDAYte4p70AEXXj33BUoUQAe"},
-		{"Smel", "Smel", "$2y$12$3waqWQUHocPGsJ3Dw0SAN.74YWY0vjxIGhSvAJ5hpUBjUDFk3rAJ."},
+		{"Vinicius Cerezuela", "Vinicius Cerezuela", "$2a$12$NZjYTTJfbxa4MHqEXfaAheXJlYmMe8m4KB65bEHgtiZqACvQt2jHq"},
+		{"Gabriel Capoia", "Gabriel Capoia", "$2a$12$652SH4tRcU06Nhde3hcVFuwa.ThKL1FHXb6xYab6yKEBqwlneDKX6"},
+		{"Smel", "Smel", "$2a$12$tjYSjDXiTFBRTDnIamefBuVs1/LeBKxF5OVz4hV0F5OfHju6w7cj2"},
 	}
 	for _, user := range fixedUsers {
 		if _, err := s.DB.ExecContext(ctx,
