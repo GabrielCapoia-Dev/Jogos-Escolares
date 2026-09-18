@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { timeout } from 'rxjs/operators';
 
 export interface Period { id: string; name: string; }
 export interface Day { id: string; name: string; }
@@ -36,7 +37,7 @@ export class ApiService {
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.base}/auth/login`, { email, password });
+    return this.http.post<LoginResponse>(`${this.base}/auth/login`, { email, password }).pipe(timeout(8000));
   }
 
   saveResult(id: string, scoreA: number, scoreB: number, token: string, correction = false): Observable<Match> {
