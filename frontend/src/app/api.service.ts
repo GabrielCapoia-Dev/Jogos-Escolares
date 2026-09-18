@@ -11,6 +11,7 @@ export interface Team { id: string; period: string; color: string; hex: string; 
 export interface Match { id: string; period: string; day: string; court: string; time: string; sportId: string; gender: string; teamAId: string; teamBId: string; status: string; order: number; scoreA: number; scoreB: number; }
 export interface Standing { teamId: string; color: string; hex: string; mascot: string; sprite: string; points: number; games: number; wins: number; draws: number; losses: number; position: number; }
 export interface LoginResponse { accessToken: string; tokenType: string; expiresIn: string; }
+export interface RealtimeEvent { type: 'RESULT_UPDATED'; matchId: string; period: string; day: string; court: string; sportId: string; gender: string; scoreA: number; scoreB: number; status: string; }
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -38,6 +39,20 @@ export class ApiService {
 
   login(email: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.base}/auth/login`, { email, password }).pipe(timeout(8000));
+  }
+
+  events(): Observable<RealtimeEvent> {
+    return new Observable<RealtimeEvent>(subscriber => {
+      const source = new EventSource(`${this.base}/events`);
+      source.onmessage = event => {
+        try {
+          subscriber.next(JSON.parse(event.data) as RealtimeEvent);
+        } catch {
+          // Ignora mensagens inválidas; o stream continua conectado.
+        }
+      };
+      return () => source.close();
+    });
   }
 
   saveResult(id: string, scoreA: number, scoreB: number, token: string, correction = false): Observable<Match> {
