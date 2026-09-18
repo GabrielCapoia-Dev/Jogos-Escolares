@@ -69,13 +69,22 @@
         <section class="results-section">
           <div class="section-heading editorial-heading"><div><p class="eyebrow blue">Acompanhe em tempo real</p><h2>Últimos resultados</h2><p>Resultados lançados recentemente</p></div><span class="live-badge">Ao vivo</span></div>
           <div class="results-list">
-            <article class="result-card" *ngFor="let match of latestResults()">
-              <div class="result-meta"><strong>{{ dayName(match.day) }} · {{ match.time }}</strong><span>{{ sportName(match.sportId) }} · {{ genderName(match.gender) }}</span></div>
+            <article class="result-card fixture-card" *ngFor="let match of latestResults()">
+              <div class="result-meta"><span class="sport-pill">{{ sportName(match.sportId) }}</span><span>{{ genderName(match.gender) }}</span></div>
               <div class="fixture-row">
-                <span class="fixture-team home"><span class="fixture-team-copy"><strong>{{ team(match.teamAId)?.color }}</strong><small>{{ team(match.teamAId)?.mascot }}</small></span><span class="team-emblem mascot-image" [ngClass]="team(match.teamAId)?.sprite"></span></span>
-                <span class="fixture-score"><b>{{ match.scoreA }}</b><small>:</small><b>{{ match.scoreB }}</b></span>
-                <span class="fixture-team away"><span class="team-emblem mascot-image" [ngClass]="team(match.teamBId)?.sprite"></span><span class="fixture-team-copy"><strong>{{ team(match.teamBId)?.color }}</strong><small>{{ team(match.teamBId)?.mascot }}</small></span></span>
+                <span class="fixture-team home" [class.result-winner]="winner(match,'A')">
+                  <span class="fixture-team-copy"><strong>{{ team(match.teamAId)?.color }}</strong><small>{{ team(match.teamAId)?.mascot }}</small></span>
+                  <span class="team-emblem mascot-image" [ngClass]="team(match.teamAId)?.sprite"></span>
+                </span>
+                <span class="fixture-score">
+                  <b [class.winner-score]="winner(match,'A')">{{ match.scoreA }}</b><small>:</small><b [class.winner-score]="winner(match,'B')">{{ match.scoreB }}</b>
+                </span>
+                <span class="fixture-team away" [class.result-winner]="winner(match,'B')">
+                  <span class="team-emblem mascot-image" [ngClass]="team(match.teamBId)?.sprite"></span>
+                  <span class="fixture-team-copy"><strong>{{ team(match.teamBId)?.color }}</strong><small>{{ team(match.teamBId)?.mascot }}</small></span>
+                </span>
               </div>
+              <p>{{ team(match.teamAId)?.color }} {{ resultPoints(match,'A') }} {{ resultPoints(match,'A') === 1 ? 'pt' : 'pts' }} · {{ team(match.teamBId)?.color }} {{ resultPoints(match,'B') }} {{ resultPoints(match,'B') === 1 ? 'pt' : 'pts' }}</p>
             </article>
             <div class="empty-state" *ngIf="!latestResults().length">Nenhum resultado lançado neste período.</div>
           </div>
