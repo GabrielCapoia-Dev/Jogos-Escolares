@@ -109,20 +109,21 @@ func (s *Store) seedReferenceData(ctx context.Context) error {
 }
 
 func (s *Store) seedMatches(ctx context.Context) error {
-	var count int
-	if err := s.DB.QueryRowContext(ctx, "SELECT count(*) FROM matches").Scan(&count); err != nil {
-		return err
-	}
-	if count > 0 {
-		return nil
-	}
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
+
 	for _, m := range domain.SeedMatches() {
-		if _, err = tx.ExecContext(ctx, `INSERT INTO matches(id,period_id,day_id,court_id,scheduled_time,sport_id,gender,team_a_id,team_b_id,status,sort_order,score_a,score_b) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`, m.ID, m.Period, m.Day, m.Court, m.Time, m.SportID, m.Gender, m.TeamAID, m.TeamBID, m.Status, m.Order, m.ScoreA, m.ScoreB); err != nil {
+		if _, err = tx.ExecContext(ctx, `
+			INSERT INTO matches(
+				id,period_id,day_id,court_id,scheduled_time,sport_id,gender,
+				team_a_id,team_b_id,status,sort_order,score_a,score_b
+			)
+			VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+			ON CONFLICT(id) DO NOTHING
+		`, m.ID, m.Period, m.Day, m.Court, m.Time, m.SportID, m.Gender, m.TeamAID, m.TeamBID, m.Status, m.Order, m.ScoreA, m.ScoreB); err != nil {
 			return err
 		}
 	}
