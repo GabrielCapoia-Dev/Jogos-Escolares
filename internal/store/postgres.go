@@ -31,9 +31,21 @@ func Open(ctx context.Context, url string) (*Store, error) {
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(30 * time.Minute)
-	if err = db.PingContext(ctx); err != nil {
+	var pingErr error
+	for attempt := 1; attempt <= 30; attempt++ {
+		pingCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+		pingErr = db.PingContext(pingCtx)
+		cancel()
+		if pingErr == nil {
+			break
+		}
+		if attempt < 30 {
+			time.Sleep(2 * time.Second)
+		}
+	}
+	if pingErr != nil {
 		_ = db.Close()
-		return nil, err
+		return nil, pingErr
 	}
 	s := &Store{DB: db}
 	if err = s.initialize(ctx); err != nil {
