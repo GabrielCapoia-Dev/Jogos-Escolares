@@ -18,7 +18,7 @@ export class AppComponent implements OnDestroy {
   private readonly api = inject(ApiService);
   private touchStartX: number | null = null;
   private publicRefreshTimer = 0;
-  private publicRefreshBusy = false;
+  private publicLoadSeq = 0;
 
   private readonly legacyTeams = [
     ['AMARELO', 'Amarelo', '#F3C515', 'Onça', 'mascote-amarelo'],
@@ -103,6 +103,7 @@ export class AppComponent implements OnDestroy {
     this.period = period.id;
     this.view = 'CLASSIFICACAO';
     this.day = this.days[0]?.id ?? 'DIA_1';
+    this.selectedTeam = sessionStorage.getItem(this.teamFilterKey(period.id)) ?? '';
     this.teams = this.fallbackTeams(period.id);
     this.standings = this.zeroStandings(this.teams);
     this.loadPublic();
@@ -120,16 +121,15 @@ export class AppComponent implements OnDestroy {
 
   setView(view: PublicView): void {
     this.view = view;
-    this.selectedTeam = '';
     this.publicFiltersOpen = false;
     this.loadPublic();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   loadPublic(showLoading = true): void {
-    if (!this.period || this.publicRefreshBusy) return;
+    if (!this.period) return;
 
-    this.publicRefreshBusy = true;
+    const seq = ++this.publicLoadSeq;
     if (showLoading) this.loading = true;
     this.error = '';
 
@@ -141,28 +141,23 @@ export class AppComponent implements OnDestroy {
     const requestSport = this.sport;
 
     if (requestView === 'CLASSIFICACAO') {
-      forkJoin({
-        teams: this.api.teams(requestPeriod).pipe(retry({ count: 2, delay: 400 })),
-        standings: this.api.standings(requestPeriod, requestGender).pipe(retry({ count: 2, delay: 400 })),
-        matches: this.api.matches(requestPeriod).pipe(retry({ count: 2, delay: 400 }))
-      }).subscribe({
-        next: ({ teams, standings, matches }) => {
-          if (this.period !== requestPeriod || this.view !== requestView) {
-            this.publicRefreshBusy = false;
-            return;
-          }
-          this.teams = teams;
-          this.standings = standings;
-          this.matches = matches.filter(item => item.status === 'FINALIZADO');
+      this.api.snapshot(requestPeriod, requestGender).subscribe({
+        next: snapshot => {
+          if (seq !== this.publicLoadSeq || this.period !== requestPeriod || this.view !== requestView) return;
+          this.teams = snapshot.teams;
+          this.standings = snapshot.standings;
+          this.matches = snapshot.matches;
           this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
           this.loading = false;
-          this.publicRefreshBusy = false;
         },
         error: () => {
+          if (seq !== this.publicLoadSeq) return;
           if (!this.teams.length) this.teams = this.fallbackTeams(requestPeriod);
           if (!this.standings.length) this.standings = this.zeroStandings(this.teams);
           this.failPublic();
-          this.publicRefreshBusy = false;
+          window.setTimeout(() => {
+            if (this.screen === 'PUBLIC' && this.period === requestPeriod && this.view === requestView) this.loadPublic(false);
+          }, 1200);
         }
       });
       return;
@@ -173,28 +168,25 @@ export class AppComponent implements OnDestroy {
     const gender = requestGender === 'GERAL' ? '' : requestGender;
 
     forkJoin({
-      teams: this.api.teams(requestPeriod).pipe(retry({ count: 2, delay: 400 })),
-      matches: this.api.matches(requestPeriod, day, court, requestSport, gender).pipe(retry({ count: 2, delay: 400 }))
+      teams: this.api.teams(requestPeriod).pipe(retry({ count: 1, delay: 300 })),
+      matches: this.api.matches(requestPeriod, day, court, requestSport, gender).pipe(retry({ count: 1, delay: 300 }))
     }).subscribe({
       next: ({ teams, matches }) => {
-        if (this.period !== requestPeriod || this.view !== requestView) {
-          this.publicRefreshBusy = false;
-          return;
-        }
+        if (seq !== this.publicLoadSeq || this.period !== requestPeriod || this.view !== requestView) return;
         this.teams = teams;
         this.matches = requestView === 'RESULTADOS'
           ? matches.filter(item => item.status === 'FINALIZADO')
           : matches;
         this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         this.loading = false;
-        this.publicRefreshBusy = false;
       },
       error: () => {
+        if (seq !== this.publicLoadSeq) return;
         this.failPublic();
-        this.publicRefreshBusy = false;
       }
     });
   }
+
 
   applyPublicFilter(kind: 'day' | 'court' | 'sport' | 'gender' | 'team', value: string): void {
     if (kind === 'day') this.day = value;
@@ -204,12 +196,20 @@ export class AppComponent implements OnDestroy {
     }
     if (kind === 'sport') this.sport = value;
     if (kind === 'gender') this.gender = value;
-    if (kind === 'team') this.selectedTeam = value;
+    if (kind === 'team') this.selectTeam(value);
   }
 
   confirmPublicFilters(): void {
     this.publicFiltersOpen = false;
     this.loadPublic();
+  }
+
+  selectTeam(value: string): void {
+    this.selectedTeam = value;
+    const key = this.teamFilterKey();
+    if (!key) return;
+    if (value) sessionStorage.setItem(key, value);
+    else sessionStorage.removeItem(key);
   }
 
   openLogin(): void {
@@ -465,6 +465,10 @@ export class AppComponent implements OnDestroy {
   private failPublic(): void {
     this.error = 'Não foi possível carregar os dados.';
     this.loading = false;
+  }
+
+  private teamFilterKey(period = this.period): string {
+    return period ? 'jogos-team-filter-' + period : '';
   }
 
   private fallbackTeams(period: string): Team[] {
