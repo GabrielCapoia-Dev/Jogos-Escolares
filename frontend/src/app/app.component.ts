@@ -370,6 +370,10 @@ export class AppComponent {
   genderName(value: string): string { return value === 'MASCULINO' ? 'Masculino' : value === 'FEMININO' ? 'Feminino' : 'Geral'; }
   statusLabel(status: string): string { return status === 'FINALIZADO' ? 'Finalizada' : status === 'EM_ANDAMENTO' ? 'Em andamento' : status === 'CANCELADO' ? 'Cancelada' : 'Aguardando'; }
   winner(match: Match, side: 'A' | 'B'): boolean { return side === 'A' ? match.scoreA > match.scoreB : match.scoreB > match.scoreA; }
+  resultPoints(match: Match, side: 'A' | 'B'): number {
+    if (match.scoreA === match.scoreB) return 1;
+    return this.winner(match, side) ? 3 : 0;
+  }
 
   private isPreviewHost(): boolean {
     const host = window.location.hostname;
