@@ -171,3 +171,181 @@ je-root:has(.public-topbar) .public-footer{margin-top:auto;flex:none;width:100%;
     margin:.45rem 0 .7rem;
   }
 }
+
+
+/* Confirmação do placar antes de salvar. */
+.save-confirm-modal{
+  position:fixed;
+  z-index:170;
+  inset:0;
+  display:grid;
+  place-items:center;
+  padding:1rem;
+}
+.save-confirm-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,24,60,.58);
+}
+.save-confirm-sheet{
+  position:relative;
+  z-index:1;
+  width:min(560px,100%);
+  padding:1.15rem;
+  background:#fff;
+  box-shadow:0 18px 55px rgba(0,24,60,.32);
+}
+.save-confirm-sheet h2{
+  margin:.15rem 0 .9rem;
+  color:#003b82;
+  font-size:1.15rem;
+}
+.save-confirm-game{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  align-items:center;
+  gap:.7rem;
+  padding:1rem .4rem;
+  border-block:1px solid #d7e2ef;
+}
+.save-confirm-team{
+  display:grid;
+  justify-items:center;
+  gap:.35rem;
+  min-width:0;
+  color:#003b82;
+  text-align:center;
+}
+.save-confirm-team .team-emblem{
+  width:58px;
+  height:58px;
+  flex-basis:58px;
+}
+.save-confirm-team strong{
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.save-confirm-score{
+  display:grid;
+  grid-template-columns:auto auto auto;
+  align-items:center;
+  gap:.45rem;
+  color:#003b82;
+}
+.save-confirm-score strong{
+  display:grid;
+  place-items:center;
+  min-width:52px;
+  min-height:52px;
+  border:2px solid #9db5ce;
+  background:#f6faff;
+  font-size:1.65rem;
+}
+.save-confirm-score span{
+  font-weight:900;
+}
+.save-confirm-meta{
+  margin:.75rem 0 0;
+  color:#61748b;
+  text-align:center;
+  font-size:.8rem;
+}
+.save-confirm-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:.55rem;
+  margin-top:1rem;
+}
+.save-confirm-actions button{
+  min-height:46px;
+  border:0;
+  font-weight:850;
+}
+.save-confirm-primary{
+  color:#fff;
+  background:#0056ad;
+}
+.save-confirm-secondary{
+  color:#003b82;
+  background:#e9eef4;
+}
+
+/* Editor finalizado usa a mesma leitura horizontal do lançamento. */
+.admin-edit-sheet{
+  width:min(1080px,100%);
+}
+.admin-edit-list .match-card.editing{
+  padding:.85rem 1rem;
+}
+.admin-edit-list .edit-score-row{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:1rem!important;
+}
+.admin-edit-list .edit-score-row .admin-team{
+  min-width:0;
+}
+.admin-edit-list .edit-score-row .admin-team:first-child{
+  justify-items:end;
+}
+.admin-edit-list .edit-score-row .admin-team:last-child{
+  justify-items:start;
+}
+.admin-edit-list .edit-score-row .admin-team-name{
+  max-width:100%;
+}
+
+@media (max-width:699px){
+  .save-confirm-modal{
+    align-items:end;
+    padding:0;
+  }
+  .save-confirm-sheet{
+    width:100%;
+    padding:1rem .8rem calc(1rem + env(safe-area-inset-bottom));
+    border-radius:18px 18px 0 0!important;
+  }
+  .save-confirm-team .team-emblem{
+    width:48px;
+    height:48px;
+    flex-basis:48px;
+  }
+  .save-confirm-score strong{
+    min-width:42px;
+    min-height:46px;
+    font-size:1.35rem;
+  }
+  .admin-edit-list .match-card.editing{
+    padding:.65rem .55rem;
+  }
+  .admin-edit-list .edit-score-row{
+    grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr)!important;
+    gap:.3rem!important;
+  }
+  .admin-edit-list .edit-score-row .admin-team{
+    display:grid!important;
+    justify-items:center!important;
+    gap:.4rem!important;
+    text-align:center;
+  }
+  .admin-edit-list .edit-score-row .admin-team-name{
+    display:grid!important;
+    justify-items:center!important;
+    gap:.2rem!important;
+    text-align:center!important;
+  }
+  .admin-edit-list .edit-score-row .admin-team-name .team-emblem{
+    width:46px!important;
+    height:46px!important;
+    flex-basis:46px!important;
+  }
+  .admin-edit-list .edit-score-row .score-control{
+    grid-template-columns:30px 34px 30px!important;
+  }
+  .admin-edit-list .edit-score-row .score-control button{
+    width:30px!important;
+    height:34px!important;
+  }
+}
