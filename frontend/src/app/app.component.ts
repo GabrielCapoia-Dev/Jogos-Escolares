@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ApiService, Court, Day, LoginResponse, Match, Period, Sport, Standing, Team } from './api.service';
+import { ApiService, Court, Day, LoginResponse, Match, Period, RealtimeEvent, Sport, Standing, Team } from './api.service';
 
 type PublicView = 'CLASSIFICACAO' | 'CRONOGRAMA' | 'CRONOGRAMA_EQUIPE' | 'RESULTADOS';
 type Screen = 'PUBLIC' | 'ADMIN';
@@ -77,6 +77,7 @@ export class AppComponent {
     this.api.days().subscribe({ next: value => this.days = value, error: () => undefined });
     this.api.courts().subscribe({ next: value => this.courts = value, error: () => undefined });
     this.api.sports().subscribe({ next: value => this.sports = value, error: () => undefined });
+    this.api.events().subscribe({ next: event => this.handleRealtimeEvent(event) });
   }
 
   choosePeriod(period: Period): void {
@@ -106,9 +107,9 @@ export class AppComponent {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  loadPublic(): void {
+  loadPublic(showLoading = true): void {
     if (!this.period) return;
-    this.loading = true;
+    if (showLoading) this.loading = true;
     this.error = '';
     this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     this.api.teams(this.period).subscribe({
@@ -355,6 +356,19 @@ export class AppComponent {
   resultPoints(match: Match, side: 'A' | 'B'): number {
     if (match.scoreA === match.scoreB) return 1;
     return this.winner(match, side) ? 3 : 0;
+  }
+
+  private handleRealtimeEvent(event: RealtimeEvent): void {
+    if (event.type !== 'RESULT_UPDATED') return;
+
+    if (this.screen === 'PUBLIC' && this.period === event.period) {
+      this.loadPublic(false);
+      return;
+    }
+
+    if (this.screen === 'ADMIN' && this.adminPeriod === event.period) {
+      this.loadAdmin();
+    }
   }
 
   private failPublic(): void {
