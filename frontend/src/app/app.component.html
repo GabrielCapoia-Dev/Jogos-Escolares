@@ -110,46 +110,108 @@
 
 <ng-container *ngIf="screen === 'ADMIN'">
   <div class="public-topbar"><div><strong>JOGOS INFANTIS DE UMUARAMA 2026</strong></div></div>
-  <header class="site-header public-header admin-header"><div class="header-inner"><div class="public-brand"><button type="button" class="header-home" (click)="backHome()">Início</button></div><button type="button" class="admin-button" (click)="logout()">Sair</button></div></header>
-  <nav class="public-main-nav admin-registration-nav" aria-label="Menu administrativo"><button type="button" [class.active]="adminFiltersOpen" (click)="adminFiltersOpen=true"><span class="nav-icon">⚙</span><span>Filtros</span></button><button type="button" (click)="adminRankingOpen=true"><span class="nav-icon">▥</span><span>Placar</span></button><button type="button" (click)="correctionOpen=true"><span class="nav-icon">✎</span><span>Editar</span></button></nav>
+  <header class="site-header public-header admin-header">
+    <div class="header-inner">
+      <div class="public-brand"><button type="button" class="header-home" (click)="backHome()">Início</button></div>
+      <button type="button" class="admin-button">Área administrativa</button>
+    </div>
+  </header>
 
-  <main id="admin-app" class="page-shell admin-page">
-    <section class="admin-intro"><h2>Registro de Resultados</h2><p>Selecione os filtros e registre o placar de cada confronto.</p></section>
+  <nav class="public-main-nav admin-registration-nav" aria-label="Menu administrativo">
+    <button type="button" [class.active]="adminFiltersOpen" (click)="adminFiltersOpen=true"><span class="nav-icon">⚙</span><span>Filtros</span></button>
+    <button type="button" (click)="adminRankingOpen=true"><span class="nav-icon">▥</span><span>Placar</span></button>
+    <button type="button" (click)="correctionOpen=true"><span class="nav-icon">✎</span><span>Editar</span></button>
+  </nav>
+
+  <main id="admin-app" class="page-shell">
+    <section class="admin-intro"><h2>Registro de Resultados</h2></section>
+
     <section class="panel filters-panel">
-      <div class="admin-filter-grid">
-        <fieldset class="filter-group"><legend>Período</legend><div class="segmented"><button *ngFor="let item of periods" type="button" class="segment" [class.active]="adminPeriod===item.id" (click)="setAdminFilter('period',item.id)">{{ item.name }}</button></div></fieldset>
-        <fieldset class="filter-group"><legend>Dia</legend><div class="segmented"><button *ngFor="let item of days" type="button" class="segment" [class.active]="adminDay===item.id" (click)="setAdminFilter('day',item.id)">{{ item.name }}</button></div></fieldset>
-        <fieldset class="filter-group"><legend>Quadra</legend><div class="segmented"><button *ngFor="let item of courts" type="button" class="segment" [class.active]="adminCourt===item.id" (click)="setAdminFilter('court',item.id)">{{ item.name }}</button></div></fieldset>
-        <fieldset class="filter-group"><legend>Modalidade</legend><div class="segmented"><button type="button" class="segment" [class.active]="!adminSport" (click)="setAdminFilter('sport','')">Todas</button><button *ngFor="let item of adminVisibleSports()" type="button" class="segment" [class.active]="adminSport===item.id" (click)="setAdminFilter('sport',item.id)">{{ item.name }}</button></div></fieldset>
-        <fieldset class="filter-group"><legend>Gênero</legend><div class="segmented"><button type="button" class="segment" [class.active]="!adminGender" (click)="setAdminFilter('gender','')">Todos</button><button type="button" class="segment" [class.active]="adminGender==='FEMININO'" (click)="setAdminFilter('gender','FEMININO')">Feminino</button><button type="button" class="segment" [class.active]="adminGender==='MASCULINO'" (click)="setAdminFilter('gender','MASCULINO')">Masculino</button></div></fieldset>
-      </div>
+      <fieldset class="filter-group"><legend>Período</legend><div class="segmented"><button *ngFor="let item of periods" type="button" class="segment" [class.active]="adminPeriod===item.id" (click)="setAdminFilter('period',item.id)">{{ item.name }}</button></div></fieldset>
+      <fieldset class="filter-group"><legend>Dia</legend><div class="segmented"><button *ngFor="let item of days" type="button" class="segment" [class.active]="adminDay===item.id" (click)="setAdminFilter('day',item.id)">{{ item.name }}</button></div></fieldset>
+      <fieldset class="filter-group"><legend>Quadra</legend><div class="segmented"><button *ngFor="let item of courts" type="button" class="segment" [class.active]="adminCourt===item.id" (click)="setAdminFilter('court',item.id)">{{ item.name }}</button></div></fieldset>
+      <fieldset class="filter-group"><legend>Modalidade</legend><div class="segmented"><button type="button" class="segment" [class.active]="!adminSport" (click)="setAdminFilter('sport','')">Todas</button><button *ngFor="let item of adminVisibleSports()" type="button" class="segment" [class.active]="adminSport===item.id" (click)="setAdminFilter('sport',item.id)">{{ item.name }}</button></div></fieldset>
+      <fieldset class="filter-group"><legend>Gênero</legend><div class="segmented"><button type="button" class="segment" [class.active]="!adminGender" (click)="setAdminFilter('gender','')">Todos</button><button type="button" class="segment" [class.active]="adminGender==='FEMININO'" (click)="setAdminFilter('gender','FEMININO')">Feminino</button><button type="button" class="segment" [class.active]="adminGender==='MASCULINO'" (click)="setAdminFilter('gender','MASCULINO')">Masculino</button></div></fieldset>
       <div class="admin-filter-actions"><button type="button" class="admin-filter-confirm" (click)="confirmAdminFilters()">Confirmar</button></div>
     </section>
 
-    <div class="admin-tools-row"><button class="secondary-action" type="button" (click)="correctionOpen=true">Editar finalizados</button><button class="secondary-action" type="button" (click)="exportBackup()">Exportar backup</button></div>
-    <div class="selection-summary"><span>Período: {{ periodName(adminPeriod) }}</span><span>{{ dayName(adminDay) }}</span><span>{{ courtName(adminCourt) }}</span><span>{{ adminSport ? sportName(adminSport) : 'Todas as modalidades' }}</span><span>{{ adminGender ? genderName(adminGender) : 'Todos os gêneros' }}</span><span>{{ adminMatches.length }} partidas</span></div>
+    <section id="matches-area" class="matches-area">
+      <div class="matches-heading">
+        <div class="selected-court-title"><p class="eyebrow blue">Quadra selecionada</p><h2>{{ courtName(adminCourt) }}</h2></div>
+        <div class="selection-summary"><span>Período: {{ periodName(adminPeriod) }}</span><span>{{ dayName(adminDay) }}</span><span>{{ adminSport ? sportName(adminSport) : 'Todas as modalidades' }}</span><span>{{ adminGender ? genderName(adminGender) : 'Todos os gêneros' }}</span><span>{{ adminMatches.length }} partidas</span></div>
+      </div>
 
-    <section class="matches-section"><div class="matches-heading"><div><p class="eyebrow blue">Lançamento de placar</p><h2>{{ courtName(adminCourt) }}</h2></div><span *ngIf="adminLoading">Carregando…</span></div>
       <div class="matches-list">
-        <article class="match-card" *ngFor="let match of adminMatches" [class.current-match]="match.id===currentMatchId()" [class.next-match]="match.id===nextMatchId()" [class.finished]="match.status==='FINALIZADO'">
-          <div class="match-top"><div><time>{{ match.time }}</time><span class="sport-pill">{{ sportName(match.sportId) }}</span></div><div class="match-labels"><span *ngIf="match.id===currentMatchId()" class="current-badge">Jogo Acontecendo</span><span *ngIf="match.id===nextMatchId()" class="current-badge next-badge">Próximo jogo</span><span class="gender-label">{{ genderName(match.gender) }}</span></div></div>
-          <div class="admin-team"><span class="admin-team-name" [class.winner]="match.status==='FINALIZADO' && winner(match,'A')"><span class="team-emblem mascot-image" [ngClass]="team(match.teamAId)?.sprite"></span><span><strong>{{ team(match.teamAId)?.color }}</strong><small>{{ team(match.teamAId)?.mascot }}</small></span></span><div class="score-control"><button type="button" [disabled]="match.status==='FINALIZADO'" (click)="adjustScore(match,'A',-1)">−</button><output>{{ scoreDrafts[match.id]?.a ?? match.scoreA }}</output><button type="button" [disabled]="match.status==='FINALIZADO'" (click)="adjustScore(match,'A',1)">+</button></div></div>
-          <div class="admin-team"><span class="admin-team-name" [class.winner]="match.status==='FINALIZADO' && winner(match,'B')"><span class="team-emblem mascot-image" [ngClass]="team(match.teamBId)?.sprite"></span><span><strong>{{ team(match.teamBId)?.color }}</strong><small>{{ team(match.teamBId)?.mascot }}</small></span></span><div class="score-control"><button type="button" [disabled]="match.status==='FINALIZADO'" (click)="adjustScore(match,'B',-1)">−</button><output>{{ scoreDrafts[match.id]?.b ?? match.scoreB }}</output><button type="button" [disabled]="match.status==='FINALIZADO'" (click)="adjustScore(match,'B',1)">+</button></div></div>
-          <div class="match-actions"><button *ngIf="match.status!=='FINALIZADO'" type="button" class="save-result" (click)="saveResult(match)">Salvar resultado</button><button *ngIf="match.status==='FINALIZADO'" type="button" class="locked-result" (click)="correctionOpen=true">Finalizado · editar</button></div>
+        <article class="match-card" *ngFor="let match of adminMatches"
+          [class.current-match]="match.id===currentMatchId()"
+          [class.next-match]="match.id===nextMatchId()"
+          [class.finished]="match.status==='FINALIZADO'">
+          <div class="match-top">
+            <div><time>{{ match.time }}</time><span class="sport-pill">{{ sportName(match.sportId) }}</span></div>
+            <div class="match-labels">
+              <span *ngIf="match.id===currentMatchId()" class="current-badge">Jogo Acontecendo</span>
+              <span *ngIf="match.id===nextMatchId()" class="current-badge next-badge">Próximo jogo</span>
+              <span class="gender-label">{{ genderName(match.gender) }}</span>
+            </div>
+          </div>
+
+          <div class="match-score-row">
+            <div class="admin-team">
+              <span class="admin-team-name" [class.winner]="match.status==='FINALIZADO' && winner(match,'A')">
+                <span class="team-emblem mascot-image" [ngClass]="team(match.teamAId)?.sprite"></span>
+                <span><strong>{{ team(match.teamAId)?.color }}</strong><small>{{ team(match.teamAId)?.mascot }}</small></span>
+              </span>
+              <div class="score-control">
+                <button type="button" [disabled]="match.status==='FINALIZADO'" (click)="adjustScore(match,'A',-1)">−</button>
+                <output>{{ scoreDrafts[match.id]?.a ?? match.scoreA }}</output>
+                <button type="button" [disabled]="match.status==='FINALIZADO'" (click)="adjustScore(match,'A',1)">+</button>
+              </div>
+            </div>
+
+            <span class="versus">×</span>
+
+            <div class="admin-team">
+              <span class="admin-team-name" [class.winner]="match.status==='FINALIZADO' && winner(match,'B')">
+                <span class="team-emblem mascot-image" [ngClass]="team(match.teamBId)?.sprite"></span>
+                <span><strong>{{ team(match.teamBId)?.color }}</strong><small>{{ team(match.teamBId)?.mascot }}</small></span>
+              </span>
+              <div class="score-control">
+                <button type="button" [disabled]="match.status==='FINALIZADO'" (click)="adjustScore(match,'B',-1)">−</button>
+                <output>{{ scoreDrafts[match.id]?.b ?? match.scoreB }}</output>
+                <button type="button" [disabled]="match.status==='FINALIZADO'" (click)="adjustScore(match,'B',1)">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="match-actions">
+            <span class="status" [class.done]="match.status==='FINALIZADO'" [class.live]="match.id===currentMatchId() || match.status==='EM_ANDAMENTO'" [class.waiting]="match.status==='AGUARDANDO'">{{ statusLabel(match.status) }}</span>
+            <button class="save-button" type="button" [disabled]="match.status==='FINALIZADO'" (click)="saveResult(match)">{{ match.status==='FINALIZADO' ? 'Salvo' : 'Salvar' }}</button>
+          </div>
         </article>
+
         <div class="empty-state" *ngIf="!adminLoading && !adminMatches.length">Nenhuma partida para estes filtros.</div>
       </div>
     </section>
-    <section id="admin-ranking" class="admin-ranking-section"><div class="admin-ranking-heading"><p class="eyebrow blue">Placar geral do período</p><h2>Classificação {{ periodName(adminPeriod) }}</h2></div></section>
+
+    <section id="admin-ranking" class="admin-ranking-section" aria-label="Placar geral do período">
+      <div class="admin-ranking-heading"><div><p class="eyebrow blue">Acompanhamento</p><h2>Placar geral</h2></div><span class="period-badge">Período: {{ periodName(adminPeriod) }}</span></div>
+      <div class="panel ranking-panel"><div class="table-wrap"><table class="ranking-table"><thead><tr><th>Posição</th><th>Cor</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead><tbody><tr *ngFor="let row of adminStandings"><td class="position"><strong>{{ row.position }}º</strong></td><td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small></span></span></td><td><strong>{{ row.points }}</strong></td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td></tr></tbody></table></div></div>
+    </section>
+
+    <section class="correction-panel">
+      <div><p class="eyebrow">Acesso restrito</p><h2>Correção de resultados</h2><p>{{ adminPreviewMode ? 'Visualização no Codespaces' : 'Resultados finalizados protegidos' }}</p></div>
+      <button class="correction-button" type="button" (click)="correctionOpen=true">Editar resultados finalizados</button>
+    </section>
   </main>
-  <div class="toast" [class.show]="toast">{{ toast }}</div>
+
+  <div id="toast" class="toast" [class.show]="toast" role="status" aria-live="polite">{{ toast }}</div>
 </ng-container>
 
 <div *ngIf="loginOpen" class="jogos-login-modal mobile-filter-modal">
   <div class="mobile-filter-backdrop" (click)="loginOpen=false"></div>
   <section class="mobile-filter-sheet" role="dialog" aria-modal="true" aria-label="Acesso administrativo">
     <div class="mobile-filter-sheet-head"><h2>Acesso administrativo</h2></div>
-    <div class="mobile-filter-body login-form"><input [(ngModel)]="loginEmail" type="email" placeholder="E-mail" autocomplete="username"><input [(ngModel)]="loginPassword" type="password" placeholder="Senha" autocomplete="current-password" (keyup.enter)="login()"><label class="login-remember"><input [(ngModel)]="rememberLogin" type="checkbox"><span>Lembrar de mim neste navegador</span></label><p class="login-error">{{ loginError }}</p></div>
+    <div class="mobile-filter-body login-form"><input [(ngModel)]="loginEmail" type="text" placeholder="Login" autocomplete="username"><input [(ngModel)]="loginPassword" type="password" placeholder="Senha" autocomplete="current-password" (keyup.enter)="login()"><label class="login-remember"><input [(ngModel)]="rememberLogin" type="checkbox"><span>Lembrar de mim neste navegador</span></label><p class="login-error">{{ loginError }}</p></div>
     <div class="mobile-filter-actions login-actions"><button class="mobile-filter-close" type="button" [disabled]="loginLoading" (click)="login()">{{ loginLoading ? 'Entrando...' : 'Entrar' }}</button><button class="login-cancel" type="button" (click)="loginOpen=false">Cancelar</button></div>
   </section>
 </div>
