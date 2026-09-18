@@ -93,3 +93,81 @@ je-root:has(.public-topbar) .public-footer{margin-top:auto;flex:none;width:100%;
     min-height:82px!important;
   }
 }
+
+
+/* Correção de resultados: modal funcional em desktop e celular. */
+.admin-edit-modal{
+  position:fixed;
+  z-index:140;
+  inset:0;
+  display:grid;
+  align-items:center;
+  justify-items:center;
+  padding:1rem;
+}
+.admin-edit-modal .admin-ranking-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,24,60,.56);
+}
+.admin-edit-sheet{
+  position:relative;
+  z-index:1;
+  width:min(920px,100%);
+  max-height:min(88dvh,900px);
+  overflow:auto;
+  padding:1rem;
+  background:#fff;
+  box-shadow:0 16px 50px rgba(0,24,60,.28);
+}
+.admin-edit-sheet>h2{
+  margin:0 0 .8rem;
+  color:#003b82;
+}
+.admin-edit-list{
+  display:grid;
+  gap:.65rem;
+}
+.admin-edit-actions{
+  position:sticky;
+  bottom:0;
+  margin-top:.8rem;
+  padding-top:.65rem;
+  background:#fff;
+}
+.admin-edit-confirm{
+  width:100%;
+  min-height:44px;
+  border:0;
+  color:#fff;
+  background:#0056ad;
+  font-weight:800;
+}
+.results-selected-team{
+  margin:.55rem 0 .9rem;
+}
+
+@media (max-width:699px){
+  .admin-edit-modal{
+    align-items:end;
+    padding:0;
+  }
+  .admin-edit-sheet{
+    width:100%;
+    max-height:88dvh;
+    padding:.85rem .7rem calc(1rem + env(safe-area-inset-bottom));
+    border-radius:18px 18px 0 0!important;
+  }
+  .admin-edit-list .match-card{
+    min-width:0;
+  }
+  .admin-edit-list .admin-team{
+    min-width:0;
+  }
+  .admin-edit-list .admin-team-name{
+    min-width:0;
+  }
+  .results-selected-team{
+    margin:.45rem 0 .7rem;
+  }
+}
