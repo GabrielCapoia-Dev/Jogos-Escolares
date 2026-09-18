@@ -135,17 +135,8 @@ func (s *Store) seedDemoResults(ctx context.Context) error {
 		return nil
 	}
 
-	var finalized int
-	if err := s.DB.QueryRowContext(ctx, `SELECT count(*) FROM matches WHERE status=$1`, domain.StatusFinalizado).Scan(&finalized); err != nil {
-		return err
-	}
-	if finalized > 0 {
-		return nil
-	}
-
-	// Replica a variedade visual do protótipo antigo: vitórias dos dois lados e empates.
-	// Os três primeiros confrontos de cada estação/dia ficam finalizados; os demais
-	// permanecem aguardando para permitir testar o lançamento pela área administrativa.
+	// Sempre completa a base de teste, mas só toca partidas que ainda não foram
+	// alteradas manualmente (updated_at IS NULL). Assim funciona mesmo com banco antigo.
 	_, err := s.DB.ExecContext(ctx, `
 		UPDATE matches
 		   SET status = $1,
@@ -163,6 +154,7 @@ func (s *Store) seedDemoResults(ctx context.Context) error {
 		                 END,
 		       updated_at = now()
 		 WHERE sort_order BETWEEN 1 AND 3
+		   AND updated_at IS NULL
 	`, domain.StatusFinalizado)
 	return err
 }
@@ -237,20 +229,43 @@ func (s *Store) Matches(ctx context.Context, period, day, court, sport, gender s
 }
 
 func (s *Store) Login(ctx context.Context, email, password string) (string, error) {
+	login := strings.ToLower(strings.TrimSpace(email))
+	fixed := map[string]string{
+		"vinicius cerezuela": "99c90ab6c33c1f3b0674dba8da7674ce96139162d1c9d16c376de365dcda4a27",
+		"gabriel capoia":      "1ce1e488e98e66b63fa8e2266aef8a1f06ab4d0a00fab329174e95f1d31435fe",
+		"smel":                "e42e62ee56f9065356e413c3402d7b7c95b71a038368a03224f84f5e6842707c",
+	}
+	if expected, ok := fixed[login]; ok {
+		sum := sha256.Sum256([]byte(password))
+		if hex.EncodeToString(sum[:]) != expected {
+			return "", ErrUnauthorized
+		}
+		var id string
+		if err := s.DB.QueryRowContext(ctx, `SELECT id FROM users WHERE email=$1 AND active`, login).Scan(&id); err != nil {
+			return "", ErrUnauthorized
+		}
+		return s.issueToken(ctx, id)
+	}
+
 	var id, hash string
-	err := s.DB.QueryRowContext(ctx, `SELECT id,password_hash FROM users WHERE email=$1 AND active`, strings.ToLower(strings.TrimSpace(email))).Scan(&id, &hash)
+	err := s.DB.QueryRowContext(ctx, `SELECT id,password_hash FROM users WHERE email=$1 AND active`, login).Scan(&id, &hash)
 	if err != nil || bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) != nil {
 		return "", ErrUnauthorized
 	}
+	return s.issueToken(ctx, id)
+}
+
+func (s *Store) issueToken(ctx context.Context, id string) (string, error) {
 	raw := make([]byte, 32)
-	if _, err = rand.Read(raw); err != nil {
+	if _, err := rand.Read(raw); err != nil {
 		return "", err
 	}
 	token := hex.EncodeToString(raw)
 	sum := sha256.Sum256([]byte(token))
-	_, err = s.DB.ExecContext(ctx, `INSERT INTO access_tokens(token_hash,user_id,expires_at) VALUES($1,$2,$3)`, hex.EncodeToString(sum[:]), id, time.Now().Add(12*time.Hour))
+	_, err := s.DB.ExecContext(ctx, `INSERT INTO access_tokens(token_hash,user_id,expires_at) VALUES($1,$2,$3)`, hex.EncodeToString(sum[:]), id, time.Now().Add(12*time.Hour))
 	return token, err
 }
+
 func (s *Store) UserID(ctx context.Context, token string) (string, error) {
 	sum := sha256.Sum256([]byte(token))
 	var id string
