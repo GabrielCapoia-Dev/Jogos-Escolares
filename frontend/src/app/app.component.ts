@@ -19,6 +19,7 @@ export class AppComponent implements OnDestroy {
   private touchStartX: number | null = null;
   private publicRefreshTimer = 0;
   private publicRefreshBusy = false;
+  private publicRequestVersion = 0;
 
   private readonly legacyTeams = [
     ['AMARELO', 'Amarelo', '#F3C515', 'Onça', 'mascote-amarelo'],
@@ -126,8 +127,11 @@ export class AppComponent implements OnDestroy {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  loadPublic(showLoading = true): void {
-    if (!this.period || this.publicRefreshBusy) return;
+  loadPublic(showLoading = true, force = false): void {
+    if (!this.period) return;
+
+    const requestVersion = ++this.publicRequestVersion;
+    if (this.publicRefreshBusy && !force) return;
 
     this.publicRefreshBusy = true;
     if (showLoading) this.loading = true;
@@ -140,11 +144,16 @@ export class AppComponent implements OnDestroy {
     const requestCourt = this.court;
     const requestSport = this.sport;
 
+    const complete = () => {
+      if (requestVersion === this.publicRequestVersion) this.publicRefreshBusy = false;
+    };
+
     if (requestView === 'CLASSIFICACAO') {
       this.api.snapshot(requestPeriod, requestGender)
-        .pipe(finalize(() => { this.publicRefreshBusy = false; }))
+        .pipe(finalize(complete))
         .subscribe({
           next: snapshot => {
+            if (requestVersion !== this.publicRequestVersion) return;
             if (this.period !== requestPeriod || this.view !== requestView) return;
             this.teams = snapshot.teams;
             this.standings = snapshot.standings;
@@ -153,14 +162,10 @@ export class AppComponent implements OnDestroy {
             this.loading = false;
           },
           error: () => {
+            if (requestVersion !== this.publicRequestVersion) return;
             if (!this.teams.length) this.teams = this.fallbackTeams(requestPeriod);
             if (!this.standings.length) this.standings = this.zeroStandings(this.teams);
             this.failPublic();
-            window.setTimeout(() => {
-              if (this.screen === 'PUBLIC' && this.period === requestPeriod && this.view === requestView) {
-                this.loadPublic(false);
-              }
-            }, 600);
           }
         });
       return;
@@ -174,10 +179,19 @@ export class AppComponent implements OnDestroy {
       teams: this.api.teams(requestPeriod).pipe(retry({ count: 1, delay: 300 })),
       matches: this.api.matches(requestPeriod, day, court, requestSport, gender).pipe(retry({ count: 1, delay: 300 }))
     })
-      .pipe(finalize(() => { this.publicRefreshBusy = false; }))
+      .pipe(finalize(complete))
       .subscribe({
         next: ({ teams, matches }) => {
-          if (this.period !== requestPeriod || this.view !== requestView) return;
+          if (requestVersion !== this.publicRequestVersion) return;
+          if (
+            this.period !== requestPeriod ||
+            this.view !== requestView ||
+            this.day !== requestDay ||
+            this.court !== requestCourt ||
+            this.sport !== requestSport ||
+            this.gender !== requestGender
+          ) return;
+
           this.teams = teams;
           this.matches = requestView === 'RESULTADOS'
             ? matches.filter(item => item.status === 'FINALIZADO')
@@ -185,7 +199,10 @@ export class AppComponent implements OnDestroy {
           this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
           this.loading = false;
         },
-        error: () => this.failPublic()
+        error: () => {
+          if (requestVersion !== this.publicRequestVersion) return;
+          this.failPublic();
+        }
       });
   }
 
@@ -198,12 +215,16 @@ export class AppComponent implements OnDestroy {
     }
     if (kind === 'sport') this.sport = value;
     if (kind === 'gender') this.gender = value;
-    if (kind === 'team') this.selectTeam(value);
+    if (kind === 'team') {
+      this.selectTeam(value);
+      return;
+    }
+    this.loadPublic(true, true);
   }
 
   confirmPublicFilters(): void {
     this.publicFiltersOpen = false;
-    this.loadPublic();
+    this.loadPublic(true, true);
   }
 
   selectTeam(value: string): void {
