@@ -221,8 +221,12 @@ export class AppComponent {
     this.api.standings(this.adminPeriod, 'GERAL').subscribe({ next: value => this.adminStandings = value, error: () => this.adminStandings = [] });
     this.api.matches(this.adminPeriod, this.adminDay, this.adminCourt, this.adminSport, this.adminGender).subscribe({
       next: value => {
-        this.adminMatches = value;
-        for (const item of value) {
+        this.adminMatches = [...value].sort((a, b) => {
+          const aFinished = a.status === 'FINALIZADO' ? 1 : 0;
+          const bFinished = b.status === 'FINALIZADO' ? 1 : 0;
+          return aFinished - bFinished || a.time.localeCompare(b.time) || a.order - b.order;
+        });
+        for (const item of this.adminMatches) {
           this.scoreDrafts[item.id] = { a: item.scoreA, b: item.scoreB };
         }
         this.adminLoading = false;
