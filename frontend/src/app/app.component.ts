@@ -8,7 +8,7 @@ type View = 'CLASSIFICACAO' | 'CRONOGRAMA' | 'CRONOGRAMA_EQUIPE' | 'RESULTADOS';
 @Component({ selector: 'je-root', standalone: true, imports: [CommonModule, FormsModule], templateUrl: './app.component.html' })
 export class AppComponent {
   private readonly api = inject(ApiService);
-  periods: Period[] = []; days: Day[] = []; courts: Court[] = []; sports: Sport[] = []; teams: Team[] = [];
+  periods: Period[] = [{ id: 'MANHA', name: 'Manhã' }, { id: 'TARDE', name: 'Tarde' }]; days: Day[] = [{ id: 'DIA_1', name: 'Dia 1' }, { id: 'DIA_2', name: 'Dia 2' }, { id: 'DIA_3', name: 'Dia 3' }]; courts: Court[] = [{ id: 'QUADRA_1', name: 'Amário Vieira' }, { id: 'QUADRA_2', name: 'Mario Onken' }]; sports: Sport[] = []; teams: Team[] = [];
   standings: Standing[] = []; matches: Match[] = []; period = ''; view: View = 'CLASSIFICACAO'; gender = 'GERAL'; day = ''; court = 'QUADRA_1'; sport = ''; selectedTeam = ''; loading = false; error = ''; lastUpdated = '';
 
   constructor() { this.api.periods().subscribe({ next: periods => this.periods = periods, error: () => this.error = 'Não foi possível carregar os períodos.' }); this.api.days().subscribe(days => this.days = days); this.api.courts().subscribe(courts => this.courts = courts); this.api.sports().subscribe(sports => this.sports = sports); }

@@ -1,1 +1,4 @@
 .team-emblem{display:inline-block}.legacy-error{padding:1rem;color:#a12632}
+html:has(.welcome-screen),body:has(.welcome-screen){overflow:hidden!important;height:100%;}
+.welcome-screen .choice-grid{display:grid!important;visibility:visible!important;opacity:1!important;}
+.welcome-screen .choice-button{display:block!important;visibility:visible!important;opacity:1!important;color:#003b82!important;background:#eef4fb!important;}
