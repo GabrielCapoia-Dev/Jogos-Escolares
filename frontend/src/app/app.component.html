@@ -198,7 +198,7 @@
 
           <div class="match-actions">
             <span class="status" [class.done]="match.status==='FINALIZADO'" [class.live]="match.id===currentMatchId() || match.status==='EM_ANDAMENTO'" [class.waiting]="match.status==='AGUARDANDO'">{{ statusLabel(match.status) }}</span>
-            <button class="save-button" type="button" [disabled]="match.status==='FINALIZADO'" (click)="saveResult(match)">{{ match.status==='FINALIZADO' ? 'Salvo' : 'Salvar' }}</button>
+            <button class="save-button" type="button" [disabled]="match.status==='FINALIZADO'" (click)="requestSave(match)">{{ match.status==='FINALIZADO' ? 'Salvo' : 'Salvar' }}</button>
           </div>
         </article>
 
@@ -267,16 +267,74 @@
   </section>
 </div>
 
+<div *ngIf="saveConfirmOpen && pendingSaveMatch" class="save-confirm-modal">
+  <div class="save-confirm-backdrop" (click)="cancelSave()"></div>
+  <section class="save-confirm-sheet" role="dialog" aria-modal="true" aria-label="Confirmar resultado">
+    <p class="eyebrow blue">{{ pendingSaveCorrection ? 'Confirmar correção' : 'Confirmar resultado' }}</p>
+    <h2>{{ sportName(pendingSaveMatch.sportId) }} · {{ genderName(pendingSaveMatch.gender) }}</h2>
+    <div class="save-confirm-game">
+      <div class="save-confirm-team">
+        <span class="team-emblem mascot-image" [ngClass]="team(pendingSaveMatch.teamAId)?.sprite"></span>
+        <strong>{{ team(pendingSaveMatch.teamAId)?.color }}</strong>
+      </div>
+      <div class="save-confirm-score">
+        <strong>{{ pendingDraft().a }}</strong><span>×</span><strong>{{ pendingDraft().b }}</strong>
+      </div>
+      <div class="save-confirm-team">
+        <span class="team-emblem mascot-image" [ngClass]="team(pendingSaveMatch.teamBId)?.sprite"></span>
+        <strong>{{ team(pendingSaveMatch.teamBId)?.color }}</strong>
+      </div>
+    </div>
+    <p class="save-confirm-meta">{{ dayName(pendingSaveMatch.day) }} · {{ pendingSaveMatch.time }} · {{ courtName(pendingSaveMatch.court) }}</p>
+    <div class="save-confirm-actions">
+      <button type="button" class="save-confirm-primary" (click)="confirmSave()">Confirmar</button>
+      <button type="button" class="save-confirm-secondary" (click)="cancelSave()">Cancelar</button>
+    </div>
+  </section>
+</div>
+
 <div *ngIf="correctionOpen && screen==='ADMIN'" class="admin-edit-modal">
   <div class="admin-ranking-backdrop" (click)="correctionOpen=false"></div>
   <section class="admin-edit-sheet" role="dialog" aria-modal="true" aria-label="Editar resultados finalizados">
     <h2>Editar resultados finalizados</h2>
     <div class="admin-edit-list">
       <article class="match-card editing" *ngFor="let match of filteredFinishedMatches()">
-        <div class="match-top"><div><time>{{ match.time }}</time><span class="sport-pill">{{ sportName(match.sportId) }}</span></div><span class="gender-label">{{ genderName(match.gender) }}</span></div>
-        <div class="admin-team"><span class="admin-team-name"><span class="team-emblem mascot-image" [ngClass]="team(match.teamAId)?.sprite"></span><span><strong>{{ team(match.teamAId)?.color }}</strong></span></span><div class="score-control"><button type="button" (click)="adjustScore(match,'A',-1)">−</button><output>{{ scoreDrafts[match.id]?.a ?? match.scoreA }}</output><button type="button" (click)="adjustScore(match,'A',1)">+</button></div></div>
-        <div class="admin-team"><span class="admin-team-name"><span class="team-emblem mascot-image" [ngClass]="team(match.teamBId)?.sprite"></span><span><strong>{{ team(match.teamBId)?.color }}</strong></span></span><div class="score-control"><button type="button" (click)="adjustScore(match,'B',-1)">−</button><output>{{ scoreDrafts[match.id]?.b ?? match.scoreB }}</output><button type="button" (click)="adjustScore(match,'B',1)">+</button></div></div>
-        <div class="match-actions"><button class="save-result" type="button" (click)="saveResult(match,true)">Salvar correção</button></div>
+        <div class="match-top">
+          <div><time>{{ match.time }}</time><span class="sport-pill">{{ sportName(match.sportId) }}</span></div>
+          <span class="gender-label">{{ genderName(match.gender) }}</span>
+        </div>
+
+        <div class="match-score-row edit-score-row">
+          <div class="admin-team">
+            <span class="admin-team-name">
+              <span class="team-emblem mascot-image" [ngClass]="team(match.teamAId)?.sprite"></span>
+              <span><strong>{{ team(match.teamAId)?.color }}</strong><small>{{ team(match.teamAId)?.mascot }}</small></span>
+            </span>
+            <div class="score-control">
+              <button type="button" (click)="adjustScore(match,'A',-1)">−</button>
+              <output>{{ scoreDrafts[match.id]?.a ?? match.scoreA }}</output>
+              <button type="button" (click)="adjustScore(match,'A',1)">+</button>
+            </div>
+          </div>
+
+          <span class="versus">×</span>
+
+          <div class="admin-team">
+            <span class="admin-team-name">
+              <span class="team-emblem mascot-image" [ngClass]="team(match.teamBId)?.sprite"></span>
+              <span><strong>{{ team(match.teamBId)?.color }}</strong><small>{{ team(match.teamBId)?.mascot }}</small></span>
+            </span>
+            <div class="score-control">
+              <button type="button" (click)="adjustScore(match,'B',-1)">−</button>
+              <output>{{ scoreDrafts[match.id]?.b ?? match.scoreB }}</output>
+              <button type="button" (click)="adjustScore(match,'B',1)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="match-actions">
+          <button class="save-button" type="button" (click)="requestSave(match,true)">Salvar correção</button>
+        </div>
       </article>
       <div class="empty-state" *ngIf="!filteredFinishedMatches().length">Nenhum resultado finalizado neste filtro.</div>
     </div>
