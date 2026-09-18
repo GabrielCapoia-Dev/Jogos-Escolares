@@ -12,6 +12,7 @@ export interface Match { id: string; period: string; day: string; court: string;
 export interface Standing { teamId: string; color: string; hex: string; mascot: string; sprite: string; points: number; games: number; wins: number; draws: number; losses: number; position: number; }
 export interface LoginResponse { accessToken: string; tokenType: string; expiresIn: string; }
 export interface RealtimeEvent { type: 'RESULT_UPDATED'; matchId: string; period: string; day: string; court: string; sportId: string; gender: string; scoreA: number; scoreB: number; status: string; }
+export interface PublicSnapshot { teams: Team[]; standings: Standing[]; matches: Match[]; updatedAt: string; }
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -35,6 +36,10 @@ export class ApiService {
 
   standings(period: string, gender: string): Observable<Standing[]> {
     return this.http.get<Standing[]>(`${this.base}/standings`, { params: { period, gender } }).pipe(timeout(4000));
+  }
+
+  snapshot(period: string, gender: string): Observable<PublicSnapshot> {
+    return this.http.get<PublicSnapshot>(`${this.base}/snapshot`, { params: { period, gender } }).pipe(timeout(4000));
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
