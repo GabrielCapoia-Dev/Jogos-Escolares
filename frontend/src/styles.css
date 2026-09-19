@@ -468,3 +468,22 @@ je-root:has(.public-topbar) .public-footer{margin-top:auto;flex:none;width:100%;
     font-size:.62rem;
   }
 }
+
+/* Classificação: cor e mascote em linhas separadas para melhorar leitura. */
+.ranking-table .team-name{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  gap:.12rem!important;
+  line-height:1.05!important;
+}
+.ranking-table .team-name strong{
+  display:block!important;
+  margin:0!important;
+}
+.ranking-table .team-name small{
+  display:block!important;
+  margin:0!important;
+  opacity:.82;
+  line-height:1.1!important;
+}
