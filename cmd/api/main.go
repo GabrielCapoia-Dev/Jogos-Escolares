@@ -98,7 +98,7 @@ func main() {
 	mux.HandleFunc("/api/v1/courts", jsonHandler(domain.Courts))
 	mux.HandleFunc("/api/v1/sports", jsonHandler(domain.Sports))
 	mux.HandleFunc("/api/v1/teams", s.teams)
-	mux.HandleFunc("/api/v1/matches", s.matchCache)
+	mux.HandleFunc("/api/v1/matches", s.matches)
 	mux.HandleFunc("/api/v1/standings", s.standings)
 	mux.HandleFunc("/api/v1/snapshot", s.snapshot)
 	mux.HandleFunc("/api/v1/admin-state", s.adminState)
