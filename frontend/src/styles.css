@@ -429,3 +429,42 @@ je-root:has(.public-topbar) .public-footer{margin-top:auto;flex:none;width:100%;
     min-height:38px;
   }
 }
+
+/* Aviso da partida imediatamente anterior na tela Por time. */
+.team-before-notice{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.45rem;
+  margin:-.15rem -.15rem .65rem;
+  padding:.45rem .6rem;
+  border:1px solid #bfd2e8;
+  background:#edf5ff;
+  color:#0a4b91;
+  font-size:.78rem;
+  font-weight:800;
+}
+.team-before-notice span{
+  padding:.12rem .4rem;
+  background:#0a55a7;
+  color:#fff;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  font-size:.68rem;
+}
+.team-before-notice strong{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+@media (max-width:699px){
+  .team-before-notice{
+    gap:.3rem;
+    padding:.4rem .45rem;
+    font-size:.7rem;
+  }
+  .team-before-notice span{
+    font-size:.62rem;
+  }
+}
