@@ -11,7 +11,7 @@ export interface Team { id: string; period: string; color: string; hex: string; 
 export interface Match { id: string; period: string; day: string; court: string; time: string; sportId: string; gender: string; teamAId: string; teamBId: string; status: string; order: number; scoreA: number; scoreB: number; }
 export interface Standing { teamId: string; color: string; hex: string; mascot: string; sprite: string; points: number; games: number; wins: number; draws: number; losses: number; position: number; }
 export interface LoginResponse { accessToken: string; tokenType: string; expiresIn: string; }
-export interface RealtimeEvent { type: 'RESULT_UPDATED'; matchId: string; period: string; day: string; court: string; sportId: string; gender: string; scoreA: number; scoreB: number; status: string; }
+export interface RealtimeEvent { type: 'RESULT_UPDATED' | 'SCOREBOARD_UPDATED'; period: string; matchId?: string; day?: string; court?: string; sportId?: string; gender?: string; scoreA?: number; scoreB?: number; status?: string; teams?: Team[]; standings?: Standing[]; matches?: Match[]; updatedAt?: string; }
 export interface PublicSnapshot { teams: Team[]; standings: Standing[]; matches: Match[]; updatedAt: string; }
 
 @Injectable({ providedIn: 'root' })
@@ -59,7 +59,7 @@ export class ApiService {
         socket.onmessage = message => {
           try {
             const event = JSON.parse(String(message.data)) as { type?: string } & Partial<RealtimeEvent>;
-            if (event.type === 'RESULT_UPDATED') subscriber.next(event as RealtimeEvent);
+            if (event.type === 'RESULT_UPDATED' || event.type === 'SCOREBOARD_UPDATED') subscriber.next(event as RealtimeEvent);
           } catch {
             // Mensagens de heartbeat/controle não alteram a interface.
           }
