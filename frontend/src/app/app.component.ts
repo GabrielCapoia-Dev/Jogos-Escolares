@@ -79,6 +79,8 @@ export class AppComponent implements OnDestroy {
   saveConfirmOpen = false;
   pendingSaveMatch: Match | null = null;
   pendingSaveCorrection = false;
+  saveLoading = false;
+  saveError = '';
 
   constructor() {
     this.api.periods().subscribe({ next: value => this.periods = value, error: () => undefined });
@@ -326,23 +328,60 @@ export class AppComponent implements OnDestroy {
   requestSave(match: Match, correction = false): void {
     this.pendingSaveMatch = match;
     this.pendingSaveCorrection = correction;
+    this.saveLoading = false;
+    this.saveError = '';
     this.saveConfirmOpen = true;
   }
 
   cancelSave(): void {
+    if (this.saveLoading) return;
     this.saveConfirmOpen = false;
     this.pendingSaveMatch = null;
     this.pendingSaveCorrection = false;
+    this.saveError = '';
   }
 
   confirmSave(): void {
-    if (!this.pendingSaveMatch) return;
+    if (!this.pendingSaveMatch || this.saveLoading) return;
+    if (!this.adminToken) {
+      this.logout();
+      return;
+    }
+
     const match = this.pendingSaveMatch;
     const correction = this.pendingSaveCorrection;
-    this.saveConfirmOpen = false;
-    this.pendingSaveMatch = null;
-    this.pendingSaveCorrection = false;
-    this.saveResult(match, correction);
+    const draft = this.scoreDrafts[match.id] ?? { a: match.scoreA, b: match.scoreB };
+
+    this.saveLoading = true;
+    this.saveError = '';
+
+    this.api.saveResult(match.id, draft.a, draft.b, this.adminToken, correction).subscribe({
+      next: saved => {
+        this.applySavedMatchToAdmin(saved);
+        this.saveLoading = false;
+        this.saveConfirmOpen = false;
+        this.pendingSaveMatch = null;
+        this.pendingSaveCorrection = false;
+        this.saveError = '';
+        this.showToast(correction ? 'Resultado atualizado e registrado.' : 'Resultado salvo com sucesso.');
+
+        // Confere ranking e banco em segundo plano, sem segurar a interface.
+        this.api.standings(this.adminPeriod, 'GERAL').subscribe({
+          next: value => this.adminStandings = value,
+          error: () => undefined
+        });
+      },
+      error: error => {
+        this.saveLoading = false;
+        if (error?.status === 401) {
+          this.saveError = 'Sua sessão expirou. Entre novamente.';
+          return;
+        }
+        this.saveError = correction
+          ? 'Não foi possível salvar a correção.'
+          : 'Não foi possível salvar o resultado. Tente novamente.';
+      }
+    });
   }
 
   pendingDraft(): { a: number; b: number } {
@@ -358,9 +397,9 @@ export class AppComponent implements OnDestroy {
     }
     const draft = this.scoreDrafts[match.id] ?? { a: match.scoreA, b: match.scoreB };
     this.api.saveResult(match.id, draft.a, draft.b, this.adminToken, correction).subscribe({
-      next: () => {
+      next: saved => {
+        this.applySavedMatchToAdmin(saved);
         this.showToast(correction ? 'Resultado atualizado e registrado.' : 'Resultado salvo com sucesso.');
-        this.loadAdmin();
       },
       error: error => {
         if (error?.status === 401) {
@@ -456,6 +495,15 @@ export class AppComponent implements OnDestroy {
 
   private handleRealtimeEvent(event: RealtimeEvent): void {
     if (this.screen === 'PUBLIC' && this.period === event.period) {
+      if (event.type === 'RESULT_UPDATED' && event.match && this.view === 'CLASSIFICACAO') {
+        this.upsertPublicFinishedMatch(event.match);
+        this.standings = this.calculateLocalStandings(this.teams, this.matches);
+        this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        this.loading = false;
+        this.error = '';
+        return;
+      }
+
       if (
         event.type === 'SCOREBOARD_UPDATED' &&
         this.view === 'CLASSIFICACAO' &&
@@ -476,9 +524,73 @@ export class AppComponent implements OnDestroy {
       return;
     }
 
-    if (this.screen === 'ADMIN' && this.adminPeriod === event.period) {
-      this.loadAdmin();
+    // No admin, a confirmação HTTP já atualiza o card imediatamente.
+    // O WebSocket não precisa forçar uma recarga pesada da lista.
+  }
+
+  private applySavedMatchToAdmin(saved: Match): void {
+    this.scoreDrafts[saved.id] = { a: saved.scoreA, b: saved.scoreB };
+    this.adminMatches = this.adminMatches
+      .map(item => item.id === saved.id ? { ...item, ...saved } : item)
+      .sort((a, b) => {
+        const aFinished = a.status === 'FINALIZADO' ? 1 : 0;
+        const bFinished = b.status === 'FINALIZADO' ? 1 : 0;
+        return aFinished - bFinished || a.time.localeCompare(b.time) || a.order - b.order;
+      });
+  }
+
+  private upsertPublicFinishedMatch(saved: Match): void {
+    const without = this.matches.filter(item => item.id !== saved.id);
+    this.matches = [...without, saved];
+  }
+
+  private calculateLocalStandings(teams: Team[], matches: Match[]): Standing[] {
+    const rows = teams.map((team, index) => ({
+      teamId: team.id,
+      color: team.color,
+      hex: team.hex,
+      mascot: team.mascot,
+      sprite: team.sprite,
+      points: 0,
+      games: 0,
+      wins: 0,
+      draws: 0,
+      losses: 0,
+      position: index + 1
+    }));
+
+    const byId = new Map(rows.map(row => [row.teamId, row]));
+
+    for (const match of matches) {
+      if (match.status !== 'FINALIZADO') continue;
+      if (this.gender !== 'GERAL' && match.gender !== this.gender) continue;
+
+      const a = byId.get(match.teamAId);
+      const b = byId.get(match.teamBId);
+      if (!a || !b) continue;
+
+      a.games++;
+      b.games++;
+
+      if (match.scoreA === match.scoreB) {
+        a.draws++;
+        b.draws++;
+        a.points++;
+        b.points++;
+      } else if (match.scoreA > match.scoreB) {
+        a.wins++;
+        b.losses++;
+        a.points += 3;
+      } else {
+        b.wins++;
+        a.losses++;
+        b.points += 3;
+      }
     }
+
+    rows.sort((a, b) => b.points - a.points || b.wins - a.wins || a.color.localeCompare(b.color));
+    rows.forEach((row, index) => row.position = index + 1);
+    return rows;
   }
 
   private failPublic(): void {
