@@ -102,6 +102,11 @@ export class AppComponent implements OnDestroy {
     window.clearInterval(this.publicRefreshTimer);
   }
 
+  enterPublicFromLogo(): void {
+    const initial = this.periods.find(item => item.id === 'MANHA') ?? this.periods[0] ?? { id: 'MANHA', name: 'Manhã' };
+    this.choosePeriod(initial);
+  }
+
   choosePeriod(period: Period): void {
     this.period = period.id;
     this.view = 'CLASSIFICACAO';
