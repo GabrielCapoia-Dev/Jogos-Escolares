@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"os"
 	"strings"
@@ -279,16 +278,25 @@ func (s *Store) issueToken(ctx context.Context, id string) (string, error) {
 	token := hex.EncodeToString(raw)
 	sum := sha256.Sum256([]byte(token))
 	_, err := s.DB.ExecContext(ctx, `INSERT INTO access_tokens(token_hash,user_id,expires_at) VALUES($1,$2,$3)`, hex.EncodeToString(sum[:]), id, time.Now().Add(12*time.Hour))
+	if err == nil {
+		s.tokenUsers.Store(token, id)
+	}
 	return token, err
 }
 
 func (s *Store) UserID(ctx context.Context, token string) (string, error) {
+	if cached, ok := s.tokenUsers.Load(token); ok {
+		if id, ok := cached.(string); ok && id != "" {
+			return id, nil
+		}
+	}
 	sum := sha256.Sum256([]byte(token))
 	var id string
 	err := s.DB.QueryRowContext(ctx, `SELECT user_id FROM access_tokens WHERE token_hash=$1 AND expires_at>now()`, hex.EncodeToString(sum[:])).Scan(&id)
 	if err != nil {
 		return "", ErrUnauthorized
 	}
+	s.tokenUsers.Store(token, id)
 	return id, nil
 }
 func (s *Store) SaveResult(ctx context.Context, id string, a, b int, user string, correction bool) (domain.Match, error) {
