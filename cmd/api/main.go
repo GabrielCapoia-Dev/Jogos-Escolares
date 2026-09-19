@@ -20,7 +20,7 @@ type server struct {
 	store     *store.Store
 	events    *eventHub
 	matchesMu sync.RWMutex
-	matches   []domain.Match
+	matchCache []domain.Match
 }
 
 type eventHub struct {
@@ -85,7 +85,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	s := &server{store: db, events: newEventHub(), matches: initialMatches}
+	s := &server{store: db, events: newEventHub(), matchCache: initialMatches}
 	go keepDatabaseWarm(db)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", s.health)
@@ -98,7 +98,7 @@ func main() {
 	mux.HandleFunc("/api/v1/courts", jsonHandler(domain.Courts))
 	mux.HandleFunc("/api/v1/sports", jsonHandler(domain.Sports))
 	mux.HandleFunc("/api/v1/teams", s.teams)
-	mux.HandleFunc("/api/v1/matches", s.matches)
+	mux.HandleFunc("/api/v1/matches", s.matchCache)
 	mux.HandleFunc("/api/v1/standings", s.standings)
 	mux.HandleFunc("/api/v1/snapshot", s.snapshot)
 	mux.HandleFunc("/api/v1/admin-state", s.adminState)
@@ -244,7 +244,7 @@ func (s *server) cachedMatches(period, day, court, sport, gender string) []domai
 	s.matchesMu.RLock()
 	defer s.matchesMu.RUnlock()
 	out := make([]domain.Match, 0)
-	for _, match := range s.matches {
+	for _, match := range s.matchCache {
 		if period != "" && match.Period != period { continue }
 		if day != "" && match.Day != day { continue }
 		if court != "" && match.Court != court { continue }
@@ -258,13 +258,13 @@ func (s *server) cachedMatches(period, day, court, sport, gender string) []domai
 func (s *server) upsertCachedMatch(saved domain.Match) {
 	s.matchesMu.Lock()
 	defer s.matchesMu.Unlock()
-	for i := range s.matches {
-		if s.matches[i].ID == saved.ID {
-			s.matches[i] = saved
+	for i := range s.matchCache {
+		if s.matchCache[i].ID == saved.ID {
+			s.matchCache[i] = saved
 			return
 		}
 	}
-	s.matches = append(s.matches, saved)
+	s.matchCache = append(s.matchCache, saved)
 }
 func teamsForPeriod(period string) []domain.Team {
 	out := make([]domain.Team, 0)
