@@ -311,20 +311,36 @@ func (s *server) result(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), status)
 		return
 	}
-	s.events.publish(map[string]any{
-		"type":    "RESULT_UPDATED",
-		"matchId": match.ID,
-		"period":  match.Period,
-		"day":     match.Day,
-		"court":   match.Court,
-		"sportId": match.SportID,
-		"gender":  match.Gender,
-		"scoreA":  match.ScoreA,
-		"scoreB":  match.ScoreB,
-		"status":  match.Status,
-	})
+	s.broadcastScoreboard(r.Context(), match.Period)
 	writeJSON(w, 200, match)
 }
+func (s *server) broadcastScoreboard(ctx context.Context, period string) {
+	teams, err := s.store.Teams(ctx, period)
+	if err != nil {
+		log.Printf("realtime teams: %v", err)
+		return
+	}
+	matches, err := s.store.Matches(ctx, period, "", "", "", "")
+	if err != nil {
+		log.Printf("realtime matches: %v", err)
+		return
+	}
+	finished := make([]domain.Match, 0)
+	for _, item := range matches {
+		if item.Status == domain.StatusFinalizado {
+			finished = append(finished, item)
+		}
+	}
+	s.events.publish(map[string]any{
+		"type":      "SCOREBOARD_UPDATED",
+		"period":    period,
+		"teams":     teams,
+		"standings": domain.CalculateStandings(teams, matches, period, "GERAL"),
+		"matches":   finished,
+		"updatedAt": time.Now().UTC().Format(time.RFC3339),
+	})
+}
+
 func jsonHandler(value any) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) { writeJSON(w, 200, value) }
 }
