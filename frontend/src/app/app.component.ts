@@ -129,10 +129,9 @@ export class AppComponent implements OnDestroy {
 
   loadPublic(showLoading = true, force = false): void {
     if (!this.period) return;
-
-    const requestVersion = ++this.publicRequestVersion;
     if (this.publicRefreshBusy && !force) return;
 
+    const requestVersion = ++this.publicRequestVersion;
     this.publicRefreshBusy = true;
     if (showLoading) this.loading = true;
     this.error = '';
