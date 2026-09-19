@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"jogos-escolares/internal/domain"
 	"jogos-escolares/internal/store"
 )
@@ -83,6 +84,7 @@ func main() {
 	mux.HandleFunc("/healthz", s.health)
 	mux.HandleFunc("/api/v1/config", s.config)
 	mux.HandleFunc("/api/v1/events", s.eventsStream)
+	mux.HandleFunc("/api/v1/ws", s.webSocket)
 	mux.HandleFunc("/api/v1/auth/login", s.login)
 	mux.HandleFunc("/api/v1/periods", jsonHandler(domain.Periods))
 	mux.HandleFunc("/api/v1/days", jsonHandler(domain.Days))
@@ -106,6 +108,46 @@ func (s *server) health(w http.ResponseWriter, _ *http.Request) {
 func (s *server) config(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, 200, map[string]any{"year": 2026, "points": map[string]int{"win": 3, "draw": 1, "loss": 0}, "refreshSeconds": 10})
 }
+var wsUpgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool { return true },
+}
+
+func (s *server) webSocket(w http.ResponseWriter, r *http.Request) {
+	conn, err := wsUpgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+
+	ch, unsubscribe := s.events.subscribe()
+	defer unsubscribe()
+
+	if err := conn.WriteJSON(map[string]any{"type": "CONNECTED"}); err != nil {
+		return
+	}
+
+	heartbeat := time.NewTicker(20 * time.Second)
+	defer heartbeat.Stop()
+
+	for {
+		select {
+		case <-r.Context().Done():
+			return
+		case payload, ok := <-ch:
+			if !ok {
+				return
+			}
+			if err := conn.WriteMessage(websocket.TextMessage, payload); err != nil {
+				return
+			}
+		case <-heartbeat.C:
+			if err := conn.WriteJSON(map[string]any{"type": "HEARTBEAT", "at": time.Now().UTC().Format(time.RFC3339)}); err != nil {
+				return
+			}
+		}
+	}
+}
+
 func (s *server) eventsStream(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
