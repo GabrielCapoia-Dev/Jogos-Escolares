@@ -189,8 +189,8 @@ export class AppComponent implements OnDestroy {
 
           this.teams = teams;
           this.matches = requestView === 'RESULTADOS'
-            ? matches.filter(item => item.status === 'FINALIZADO')
-            : matches;
+            ? this.sortMatchesFinalizedLast(matches.filter(item => item.status === 'FINALIZADO'))
+            : this.sortMatchesFinalizedLast(matches);
           this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
           this.loading = false;
           this.renderNow();
@@ -512,8 +512,18 @@ export class AppComponent implements OnDestroy {
     return this.sports.filter(item => item.courtId === this.adminCourt);
   }
 
+  private sortMatchesFinalizedLast(items: Match[]): Match[] {
+    return [...items].sort((a, b) => {
+      const aFinished = a.status === 'FINALIZADO' ? 1 : 0;
+      const bFinished = b.status === 'FINALIZADO' ? 1 : 0;
+      return aFinished - bFinished || a.time.localeCompare(b.time) || a.order - b.order;
+    });
+  }
+
   resultMatches(): Match[] {
-    return this.matches.filter(item => !this.selectedTeam || item.teamAId === this.selectedTeam || item.teamBId === this.selectedTeam);
+    return this.sortMatchesFinalizedLast(
+      this.matches.filter(item => !this.selectedTeam || item.teamAId === this.selectedTeam || item.teamBId === this.selectedTeam)
+    );
   }
 
   latestResults(): Match[] {
@@ -521,13 +531,15 @@ export class AppComponent implements OnDestroy {
   }
 
   teamMatches(): Match[] {
-    return this.matches
-      .filter(item => !this.selectedTeam || item.teamAId === this.selectedTeam || item.teamBId === this.selectedTeam)
-      .sort((a, b) => a.time.localeCompare(b.time) || a.order - b.order);
+    return this.sortMatchesFinalizedLast(
+      this.matches.filter(item => !this.selectedTeam || item.teamAId === this.selectedTeam || item.teamBId === this.selectedTeam)
+    );
   }
 
   matchesFor(sport: string, gender: string): Match[] {
-    return this.matches.filter(item => item.sportId === sport && item.gender === gender);
+    return this.sortMatchesFinalizedLast(
+      this.matches.filter(item => item.sportId === sport && item.gender === gender)
+    );
   }
 
   periodName(value = this.period): string { return this.periods.find(item => item.id === value)?.name ?? value; }
