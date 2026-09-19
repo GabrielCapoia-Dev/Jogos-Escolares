@@ -169,27 +169,34 @@ func (s *Store) seedDemoResults(ctx context.Context) error {
 		return nil
 	}
 
-	// Sempre completa a base de teste, mas só toca partidas que ainda não foram
-	// alteradas manualmente (updated_at IS NULL). Assim funciona mesmo com banco antigo.
+	// Base de demonstração determinística:
+	// ordens 1 a 5 ficam finalizadas com placares simulados;
+	// ordens 6 em diante ficam aguardando em 0 x 0.
+	// Isso deixa aproximadamente metade das partidas disponível para testar lançamentos.
 	_, err := s.DB.ExecContext(ctx, `
 		UPDATE matches
-		   SET status = $1,
-		       score_a = CASE sort_order
-		                   WHEN 1 THEN 4
-		                   WHEN 2 THEN 1
-		                   WHEN 3 THEN 2
-		                   ELSE score_a
+		   SET status = CASE
+		                  WHEN sort_order <= 5 THEN $1
+		                  ELSE $2
+		                END,
+		       score_a = CASE
+		                   WHEN sort_order = 1 THEN 4
+		                   WHEN sort_order = 2 THEN 1
+		                   WHEN sort_order = 3 THEN 2
+		                   WHEN sort_order = 4 THEN 3
+		                   WHEN sort_order = 5 THEN 0
+		                   ELSE 0
 		                 END,
-		       score_b = CASE sort_order
-		                   WHEN 1 THEN 2
-		                   WHEN 2 THEN 3
-		                   WHEN 3 THEN 2
-		                   ELSE score_b
+		       score_b = CASE
+		                   WHEN sort_order = 1 THEN 2
+		                   WHEN sort_order = 2 THEN 3
+		                   WHEN sort_order = 3 THEN 2
+		                   WHEN sort_order = 4 THEN 1
+		                   WHEN sort_order = 5 THEN 0
+		                   ELSE 0
 		                 END,
-		       updated_at = now()
-		 WHERE sort_order BETWEEN 1 AND 3
-		   AND updated_at IS NULL
-	`, domain.StatusFinalizado)
+		       updated_at = NULL
+	`, domain.StatusFinalizado, domain.StatusAguardando)
 	return err
 }
 
