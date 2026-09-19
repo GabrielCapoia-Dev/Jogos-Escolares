@@ -349,3 +349,14 @@ je-root:has(.public-topbar) .public-footer{margin-top:auto;flex:none;width:100%;
     height:34px!important;
   }
 }
+
+.save-confirm-error{
+  margin:.75rem 0 0;
+  color:#b42318;
+  font-weight:800;
+  text-align:center;
+}
+.save-confirm-actions button:disabled{
+  opacity:.6;
+  cursor:wait;
+}
