@@ -80,6 +80,7 @@ func main() {
 	}
 	defer db.DB.Close()
 	s := &server{store: db, events: newEventHub()}
+	go keepDatabaseWarm(db)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", s.health)
 	mux.HandleFunc("/api/v1/config", s.config)
@@ -102,6 +103,16 @@ func main() {
 	log.Printf("api listening on %s", addr)
 	log.Fatal(http.ListenAndServe(addr, withCORS(mux)))
 }
+func keepDatabaseWarm(s *store.Store) {
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+	for range ticker.C {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		_ = s.DB.PingContext(ctx)
+		cancel()
+	}
+}
+
 func (s *server) health(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, 200, map[string]string{"status": "ok"})
 }
