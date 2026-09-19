@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnDestroy, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { finalize, retry } from 'rxjs/operators';
@@ -16,6 +16,7 @@ type Screen = 'PUBLIC' | 'ADMIN';
 })
 export class AppComponent implements OnDestroy {
   private readonly api = inject(ApiService);
+  private readonly cdr = inject(ChangeDetectorRef);
   private touchStartX: number | null = null;
   private publicRefreshTimer = 0;
   private publicRefreshBusy = false;
@@ -313,10 +314,12 @@ export class AppComponent implements OnDestroy {
       for (const item of this.adminMatches) {
         this.scoreDrafts[item.id] = { a: item.scoreA, b: item.scoreB };
       }
+      this.renderNow();
     } catch {
       this.showToast('Não foi possível carregar as partidas.');
     } finally {
       this.adminLoading = false;
+      this.renderNow();
     }
   }
 
@@ -382,6 +385,7 @@ export class AppComponent implements OnDestroy {
       this.pendingSaveCorrection = false;
       this.saveError = '';
       this.showToast(correction ? 'Resultado atualizado e registrado.' : 'Resultado salvo com sucesso.');
+      this.renderNow();
 
       // Ranking volta da memória da API; não segura o modal.
       void this.loadAdminRankingOnly();
@@ -395,6 +399,7 @@ export class AppComponent implements OnDestroy {
       }
     } finally {
       this.saveLoading = false;
+      this.renderNow();
     }
   }
 
@@ -403,6 +408,7 @@ export class AppComponent implements OnDestroy {
     try {
       const state = await this.api.adminStateAsync(this.adminPeriod, this.adminDay, this.adminCourt, this.adminSport, this.adminGender);
       this.adminStandings = state.standings;
+      this.renderNow();
     } catch {
       // O card já foi atualizado localmente; ranking será sincronizado na próxima ação.
     }
@@ -517,6 +523,14 @@ export class AppComponent implements OnDestroy {
     return this.winner(match, side) ? 3 : 0;
   }
 
+  private renderNow(): void {
+    try {
+      this.cdr.detectChanges();
+    } catch {
+      // O componente pode estar sendo destruído durante navegação/rebuild.
+    }
+  }
+
   private handleRealtimeEvent(event: RealtimeEvent): void {
     if (this.screen === 'PUBLIC' && this.period === event.period) {
       if (event.type === 'RESULT_UPDATED' && event.match && this.view === 'CLASSIFICACAO') {
@@ -525,6 +539,7 @@ export class AppComponent implements OnDestroy {
         this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         this.loading = false;
         this.error = '';
+        this.renderNow();
         return;
       }
 
@@ -541,6 +556,7 @@ export class AppComponent implements OnDestroy {
         this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         this.loading = false;
         this.error = '';
+        this.renderNow();
         return;
       }
 
@@ -635,9 +651,11 @@ export class AppComponent implements OnDestroy {
       this.matches = snapshot.matches;
       this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       this.error = '';
+      this.renderNow();
     } catch {
       if (this.screen !== 'PUBLIC' || this.period !== period || this.view !== 'CLASSIFICACAO') return;
       this.error = 'Não foi possível carregar os dados.';
+      this.renderNow();
       window.setTimeout(() => {
         if (this.screen === 'PUBLIC' && this.period === period && this.view === 'CLASSIFICACAO') {
           void this.loadGeneralDirect(period, false);
@@ -646,6 +664,7 @@ export class AppComponent implements OnDestroy {
     } finally {
       if (this.screen === 'PUBLIC' && this.period === period && this.view === 'CLASSIFICACAO') {
         this.loading = false;
+        this.renderNow();
       }
     }
   }
