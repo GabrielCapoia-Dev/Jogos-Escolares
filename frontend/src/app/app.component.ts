@@ -131,6 +131,11 @@ export class AppComponent implements OnDestroy {
   setView(view: PublicView): void {
     this.view = view;
     this.publicFiltersOpen = false;
+    if (view !== 'CLASSIFICACAO') {
+      this.matches = [];
+      this.loading = true;
+      this.renderNow();
+    }
     this.loadPublic();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -188,10 +193,12 @@ export class AppComponent implements OnDestroy {
             : matches;
           this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
           this.loading = false;
+          this.renderNow();
         },
         error: () => {
           if (requestVersion !== this.publicRequestVersion) return;
           this.failPublic();
+          this.renderNow();
         }
       });
   }
@@ -396,8 +403,15 @@ export class AppComponent implements OnDestroy {
       // Ranking volta da memória da API; não segura o modal.
       void this.loadAdminRankingOnly();
     } catch (error: any) {
-      if (String(error?.message ?? '').includes('401')) {
-        this.saveError = 'Sua sessão expirou. Entre novamente.';
+      if (error?.status === 401) {
+        this.saveError = 'Sua sessão expirou. Entre novamente na área administrativa.';
+        this.adminToken = '';
+        localStorage.removeItem('jogos-admin-token');
+        sessionStorage.removeItem('jogos-admin-token');
+      } else if (error?.status === 409) {
+        this.saveError = correction
+          ? 'Este resultado não pode ser alterado neste momento.'
+          : 'Esta partida já foi finalizada. Use Editar resultados finalizados.';
       } else {
         this.saveError = correction
           ? 'Não foi possível salvar a correção.'
