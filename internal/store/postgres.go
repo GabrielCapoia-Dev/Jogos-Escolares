@@ -55,9 +55,28 @@ func Open(ctx context.Context, url string) (*Store, error) {
 		_ = db.Close()
 		return nil, err
 	}
+	if err = s.loadActiveTokens(ctx); err != nil {
+		_ = db.Close()
+		return nil, err
+	}
 	return s, nil
 }
 
+func (s *Store) loadActiveTokens(ctx context.Context) error {
+	rows, err := s.DB.QueryContext(ctx, `SELECT token_hash,user_id FROM access_tokens WHERE expires_at>now()`)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var tokenHash, userID string
+		if err := rows.Scan(&tokenHash, &userID); err != nil {
+			return err
+		}
+		s.tokenUsers.Store(tokenHash, userID)
+	}
+	return rows.Err()
+}
 func (s *Store) initialize(ctx context.Context) error {
 	statements := []string{
 		`CREATE EXTENSION IF NOT EXISTS pgcrypto`,
@@ -279,24 +298,25 @@ func (s *Store) issueToken(ctx context.Context, id string) (string, error) {
 	sum := sha256.Sum256([]byte(token))
 	_, err := s.DB.ExecContext(ctx, `INSERT INTO access_tokens(token_hash,user_id,expires_at) VALUES($1,$2,$3)`, hex.EncodeToString(sum[:]), id, time.Now().Add(12*time.Hour))
 	if err == nil {
-		s.tokenUsers.Store(token, id)
+		s.tokenUsers.Store(hex.EncodeToString(sum[:]), id)
 	}
 	return token, err
 }
 
 func (s *Store) UserID(ctx context.Context, token string) (string, error) {
-	if cached, ok := s.tokenUsers.Load(token); ok {
+	sum := sha256.Sum256([]byte(token))
+	tokenHash := hex.EncodeToString(sum[:])
+	if cached, ok := s.tokenUsers.Load(tokenHash); ok {
 		if id, ok := cached.(string); ok && id != "" {
 			return id, nil
 		}
 	}
-	sum := sha256.Sum256([]byte(token))
 	var id string
-	err := s.DB.QueryRowContext(ctx, `SELECT user_id FROM access_tokens WHERE token_hash=$1 AND expires_at>now()`, hex.EncodeToString(sum[:])).Scan(&id)
+	err := s.DB.QueryRowContext(ctx, `SELECT user_id FROM access_tokens WHERE token_hash=$1 AND expires_at>now()`, tokenHash).Scan(&id)
 	if err != nil {
 		return "", ErrUnauthorized
 	}
-	s.tokenUsers.Store(token, id)
+	s.tokenUsers.Store(tokenHash, id)
 	return id, nil
 }
 func (s *Store) SaveResult(ctx context.Context, id string, a, b int, user string, correction bool) (domain.Match, error) {
