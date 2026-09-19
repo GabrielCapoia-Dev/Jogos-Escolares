@@ -88,7 +88,7 @@ var Stations = []Station{{"AMARIO_PETECA_FEM", "QUADRA_1", "PETECA", "FEMININO",
 
 type teamSeed struct{ code, color, hex, mascot, sprite string }
 
-var teamSeeds = []teamSeed{{"AMARELO", "Amarelo", "#F3C515", "Onça", "mascote-amarelo"}, {"LARANJA", "Laranja", "#EF8615", "Mico-leão-dourado", "mascote-laranja"}, {"VERMELHO", "Vermelho", "#D84247", "Lobo-guará", "mascote-vermelho"}, {"MARROM", "Marrom", "#986347", "Capivara", "mascote-marrom"}, {"BRANCO", "Branco", "#F7F7F2", "Tamanduá", "mascote-branco"}, {"PRETO", "Preto", "#29313B", "Tucano", "mascote-preto"}, {"CINZA", "Cinza", "#8D9AA6", "Tubarão", "mascote-cinza"}, {"VERDE_CLARO", "Verde-claro", "#31BD75", "Sapo", "mascote-verde-claro"}, {"VERDE_ESCURO", "Verde-escuro", "#087D4B", "Jacaré", "mascote-verde-escuro"}, {"AZUL_ESCURO", "Azul-escuro", "#0753A4", "Arara-azul", "mascote-azul-escuro"}, {"AZUL_CLARO", "Azul-claro", "#35ACE0", "Boto", "mascote-azul-claro"}}
+var teamSeeds = []teamSeed{{"AMARELO", "Amarelo", "#F3C515", "Onça", "mascote-amarelo"}, {"LARANJA", "Laranja", "#EF8615", "Mico-leão-dourado", "mascote-laranja"}, {"VERMELHO", "Vermelho", "#D84247", "Lobo-guará", "mascote-vermelho"}, {"MARROM", "Marrom", "#986347", "Capivara", "mascote-marrom"}, {"BRANCO", "Branco", "#F7F7F2", "Tamanduá", "mascote-branco"}, {"PRETO", "Preto", "#29313B", "Tucano", "mascote-preto"}, {"CINZA", "Cinza", "#8D9AA6", "Tubarão", "mascote-cinza"}, {"VERDE_CLARO", "Verde-claro", "#31BD75", "Maritaca", "mascote-verde-claro"}, {"VERDE_ESCURO", "Verde-escuro", "#087D4B", "Jacaré", "mascote-verde-escuro"}, {"AZUL_ESCURO", "Azul-escuro", "#0753A4", "Arara-azul", "mascote-azul-escuro"}, {"AZUL_CLARO", "Azul-claro", "#35ACE0", "Boto", "mascote-azul-claro"}}
 
 func SeedTeams() []Team {
 	teams := make([]Team, 0, 21)
