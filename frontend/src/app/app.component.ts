@@ -30,7 +30,7 @@ export class AppComponent implements OnDestroy {
     ['BRANCO', 'Branco', '#F7F7F2', 'Tamanduá', 'mascote-branco'],
     ['PRETO', 'Preto', '#29313B', 'Tucano', 'mascote-preto'],
     ['CINZA', 'Cinza', '#8D9AA6', 'Tubarão', 'mascote-cinza'],
-    ['VERDE_CLARO', 'Verde-claro', '#31BD75', 'Sapo', 'mascote-verde-claro'],
+    ['VERDE_CLARO', 'Verde-claro', '#31BD75', 'Maritaca', 'mascote-verde-claro'],
     ['VERDE_ESCURO', 'Verde-escuro', '#087D4B', 'Jacaré', 'mascote-verde-escuro'],
     ['AZUL_ESCURO', 'Azul-escuro', '#0753A4', 'Arara-azul', 'mascote-azul-escuro'],
     ['AZUL_CLARO', 'Azul-claro', '#35ACE0', 'Boto', 'mascote-azul-claro']
