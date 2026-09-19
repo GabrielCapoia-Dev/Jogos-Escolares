@@ -48,15 +48,40 @@ export class ApiService {
 
   events(): Observable<RealtimeEvent> {
     return new Observable<RealtimeEvent>(subscriber => {
-      const source = new EventSource(`${this.base}/events`);
-      source.onmessage = event => {
-        try {
-          subscriber.next(JSON.parse(event.data) as RealtimeEvent);
-        } catch {
-          // Ignora mensagens inválidas; o stream continua conectado.
-        }
+      let socket: WebSocket | null = null;
+      let reconnectTimer = 0;
+      let closedByClient = false;
+
+      const connect = () => {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        socket = new WebSocket(`${protocol}//${window.location.host}${this.base}/ws`);
+
+        socket.onmessage = message => {
+          try {
+            const event = JSON.parse(String(message.data)) as { type?: string } & Partial<RealtimeEvent>;
+            if (event.type === 'RESULT_UPDATED') subscriber.next(event as RealtimeEvent);
+          } catch {
+            // Mensagens de heartbeat/controle não alteram a interface.
+          }
+        };
+
+        socket.onclose = () => {
+          if (closedByClient) return;
+          reconnectTimer = window.setTimeout(connect, 1000);
+        };
+
+        socket.onerror = () => {
+          try { socket?.close(); } catch { /* noop */ }
+        };
       };
-      return () => source.close();
+
+      connect();
+
+      return () => {
+        closedByClient = true;
+        window.clearTimeout(reconnectTimer);
+        try { socket?.close(); } catch { /* noop */ }
+      };
     });
   }
 
