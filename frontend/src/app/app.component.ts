@@ -281,11 +281,30 @@ export class AppComponent implements OnDestroy {
 
   loadAdmin(): void {
     this.adminLoading = true;
-    this.api.teams(this.adminPeriod).subscribe({ next: value => this.teams = value, error: () => undefined });
-    this.api.standings(this.adminPeriod, 'GERAL').subscribe({ next: value => this.adminStandings = value, error: () => this.adminStandings = [] });
-    this.api.matches(this.adminPeriod, this.adminDay, this.adminCourt, this.adminSport, this.adminGender).subscribe({
-      next: value => {
-        this.adminMatches = [...value].sort((a, b) => {
+    const period = this.adminPeriod;
+    const day = this.adminDay;
+    const court = this.adminCourt;
+    const sport = this.adminSport;
+    const gender = this.adminGender;
+
+    forkJoin({
+      teams: this.api.teams(period).pipe(retry({ count: 2, delay: 500 })),
+      standings: this.api.standings(period, 'GERAL').pipe(retry({ count: 2, delay: 500 })),
+      matches: this.api.matches(period, day, court, sport, gender).pipe(retry({ count: 2, delay: 500 }))
+    }).subscribe({
+      next: ({ teams, standings, matches }) => {
+        if (
+          this.screen !== 'ADMIN' ||
+          this.adminPeriod !== period ||
+          this.adminDay !== day ||
+          this.adminCourt !== court ||
+          this.adminSport !== sport ||
+          this.adminGender !== gender
+        ) return;
+
+        this.teams = teams;
+        this.adminStandings = standings;
+        this.adminMatches = [...matches].sort((a, b) => {
           const aFinished = a.status === 'FINALIZADO' ? 1 : 0;
           const bFinished = b.status === 'FINALIZADO' ? 1 : 0;
           return aFinished - bFinished || a.time.localeCompare(b.time) || a.order - b.order;
@@ -297,7 +316,15 @@ export class AppComponent implements OnDestroy {
       },
       error: () => {
         this.adminLoading = false;
-        this.showToast('Não foi possível carregar as partidas.');
+        this.showToast('Não foi possível carregar as partidas. Tentando novamente...');
+        window.setTimeout(() => {
+          if (
+            this.screen === 'ADMIN' &&
+            this.adminPeriod === period &&
+            this.adminDay === day &&
+            this.adminCourt === court
+          ) this.loadAdmin();
+        }, 1200);
       }
     });
   }
@@ -602,33 +629,30 @@ export class AppComponent implements OnDestroy {
     if (showLoading) this.loading = true;
     this.error = '';
 
-    forkJoin({
-      teams: this.api.teams(period).pipe(retry({ count: 2, delay: 350 })),
-      standings: this.api.standings(period, this.gender).pipe(retry({ count: 2, delay: 350 })),
-      matches: this.api.matches(period).pipe(retry({ count: 2, delay: 350 }))
-    }).subscribe({
-      next: ({ teams, standings, matches }) => {
-        if (this.screen !== 'PUBLIC' || this.period !== period || this.view !== 'CLASSIFICACAO') return;
-        this.teams = teams;
-        this.standings = standings;
-        this.matches = matches.filter(item => item.status === 'FINALIZADO');
-        this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        this.loading = false;
-        this.error = '';
-      },
-      error: () => {
-        if (this.screen !== 'PUBLIC' || this.period !== period || this.view !== 'CLASSIFICACAO') return;
-        if (!this.teams.length) this.teams = this.fallbackTeams(period);
-        if (!this.standings.length) this.standings = this.zeroStandings(this.teams);
-        this.failPublic();
-        window.setTimeout(() => {
-          if (this.screen === 'PUBLIC' && this.period === period && this.view === 'CLASSIFICACAO') {
-            this.loadGeneralDirect(period, false);
-          }
-        }, 1000);
-      }
-    });
+    this.api.snapshot(period, this.gender)
+      .pipe(retry({ count: 2, delay: 500 }))
+      .subscribe({
+        next: snapshot => {
+          if (this.screen !== 'PUBLIC' || this.period !== period || this.view !== 'CLASSIFICACAO') return;
+          this.teams = snapshot.teams;
+          this.standings = snapshot.standings;
+          this.matches = snapshot.matches;
+          this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+          this.loading = false;
+          this.error = '';
+        },
+        error: () => {
+          if (this.screen !== 'PUBLIC' || this.period !== period || this.view !== 'CLASSIFICACAO') return;
+          this.failPublic();
+          window.setTimeout(() => {
+            if (this.screen === 'PUBLIC' && this.period === period && this.view === 'CLASSIFICACAO') {
+              this.loadGeneralDirect(period, false);
+            }
+          }, 1200);
+        }
+      });
   }
+
 
   private loadGeneralFallback(period: string, gender: string, requestVersion: number): void {
     forkJoin({
