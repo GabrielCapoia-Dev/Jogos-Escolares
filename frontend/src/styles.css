@@ -2329,3 +2329,233 @@ je-root:has(.public-topbar){
   from{transform:translateY(24px);opacity:.7}
   to{transform:translateY(0);opacity:1}
 }
+
+
+/* ==========================================================================
+   AJUSTES FINAIS APROVADOS — 19/09/2026
+   ========================================================================== */
+
+/* Tela inicial usa a arte aprovada como composição inteira. */
+.welcome-screen{
+  min-height:100svh!important;
+  padding:0!important;
+  margin:0!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:hidden!important;
+  background:#eaf4fd!important;
+}
+.welcome-hero{
+  position:relative!important;
+  width:100%!important;
+  min-height:100svh!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:hidden!important;
+  background:#eaf4fd!important;
+}
+.welcome-hero-art{
+  display:block!important;
+  width:100%!important;
+  height:100svh!important;
+}
+.welcome-hero-art img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center center!important;
+}
+.welcome-click-zones{
+  position:absolute!important;
+  z-index:4!important;
+  left:18%!important;
+  right:18%!important;
+  bottom:8.2%!important;
+  height:18.5%!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:3.5%!important;
+}
+.welcome-click-zones button{
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:18px!important;
+  background:transparent!important;
+  color:transparent!important;
+  opacity:.01!important;
+  cursor:pointer!important;
+}
+
+@media (min-width:700px){
+  .welcome-hero{
+    width:min(100vw,177.68vh)!important;
+    min-height:0!important;
+    height:min(100vh,56.28vw)!important;
+    aspect-ratio:1672 / 941!important;
+    margin:auto!important;
+  }
+  .welcome-hero-art{
+    width:100%!important;
+    height:100%!important;
+  }
+  .welcome-hero-art img{
+    object-fit:contain!important;
+  }
+  .welcome-click-zones{
+    left:26.2%!important;
+    right:26.2%!important;
+    bottom:7.2%!important;
+    height:12.7%!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:2.8%!important;
+  }
+}
+
+/* Vencedor: todo texto legível no fundo azul. */
+.fixture-team.result-winner{
+  padding:7px 9px!important;
+  border-radius:11px!important;
+  color:#fff!important;
+  background:linear-gradient(135deg,#2f73cc,#6599e5)!important;
+}
+.fixture-team.result-winner .fixture-team-copy,
+.fixture-team.result-winner .fixture-team-copy strong,
+.fixture-team.result-winner .fixture-team-copy small{
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+}
+.fixture-team.result-winner .fixture-team-copy small{
+  opacity:.88!important;
+}
+.fixture-score .winner-score,
+.result-card .fixture-score .winner-score,
+.history-result-card .fixture-score .winner-score,
+.schedule-card .fixture-score .winner-score{
+  min-width:31px!important;
+  min-height:31px!important;
+  display:inline-grid!important;
+  place-items:center!important;
+  padding:0 6px!important;
+  border:0!important;
+  border-radius:7px!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  background:#1261bd!important;
+  text-shadow:none!important;
+}
+
+/* Classificação: todas as linhas recebem a tonalidade da própria equipe. */
+.ranking-table .team-row{
+  background:transparent!important;
+}
+.ranking-table .team-row td{
+  background:color-mix(in srgb,var(--team-color,#2e84dd) 17%,#fff)!important;
+  border-bottom-color:rgba(255,255,255,.78)!important;
+}
+.ranking-table .team-row:hover td{
+  background:color-mix(in srgb,var(--team-color,#2e84dd) 23%,#fff)!important;
+}
+
+/* Filtros do admin ficam acessíveis exclusivamente pelo menu inferior. */
+.filters-panel{
+  display:none!important;
+}
+#admin-app.page-shell{
+  padding-bottom:calc(92px + env(safe-area-inset-bottom))!important;
+}
+.admin-registration-nav{
+  position:fixed!important;
+  z-index:135!important;
+  left:50%!important;
+  right:auto!important;
+  top:auto!important;
+  bottom:calc(8px + env(safe-area-inset-bottom))!important;
+  transform:translateX(-50%)!important;
+  width:min(560px,calc(100% - 16px))!important;
+  margin:0!important;
+  min-height:62px!important;
+  padding:6px!important;
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:5px!important;
+  border:1px solid rgba(155,199,243,.5)!important;
+  border-radius:18px!important;
+  background:rgba(255,255,255,.97)!important;
+  box-shadow:0 10px 28px rgba(9,61,114,.22)!important;
+  backdrop-filter:blur(16px)!important;
+}
+.admin-registration-nav button{
+  min-height:48px!important;
+  padding:4px 8px!important;
+  border:0!important;
+  border-radius:12px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:3px!important;
+  color:#70849a!important;
+  background:transparent!important;
+  font-size:.64rem!important;
+  font-weight:850!important;
+}
+.admin-registration-nav button.active{
+  color:var(--ji-blue-800)!important;
+  background:var(--ji-blue-100)!important;
+}
+
+/* Bottom sheet do admin também abre de baixo em telas grandes. */
+.admin-filter-modal{
+  position:fixed!important;
+  inset:0!important;
+  z-index:230!important;
+  display:flex!important;
+  align-items:flex-end!important;
+  justify-content:center!important;
+  padding:0!important;
+}
+.admin-filter-modal .mobile-filter-sheet{
+  width:min(720px,100%)!important;
+  max-height:88vh!important;
+  margin:0!important;
+  border-radius:22px 22px 0 0!important;
+}
+
+/* O filtro público fica sempre flutuante nas telas que possuem filtros. */
+.mobile-filter-fab{
+  z-index:155!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+@media (max-width:699px){
+  .mobile-filter-fab{
+    display:flex!important;
+    position:fixed!important;
+    right:14px!important;
+    bottom:calc(82px + env(safe-area-inset-bottom))!important;
+  }
+
+  /* Por equipe e resultados escolhem o time somente pelo bottom sheet. */
+  .team-schedule-picker,
+  .history-team-picker{
+    display:none!important;
+  }
+
+  .mobile-team-filter-options{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+  .mobile-team-filter-options button{
+    min-height:84px!important;
+  }
+}
+
+/* No desktop não precisa FAB: filtros públicos permanecem pelos controles da tela. */
+@media (min-width:700px){
+  .mobile-filter-fab{
+    display:none!important;
+  }
+}
