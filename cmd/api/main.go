@@ -159,7 +159,9 @@ func (s *server) login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "payload inválido", 400)
 		return
 	}
-	token, err := s.store.Login(r.Context(), input.Email, input.Password)
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+	token, err := s.store.Login(ctx, input.Email, input.Password)
 	if err != nil {
 		http.Error(w, "credenciais inválidas", 401)
 		return
