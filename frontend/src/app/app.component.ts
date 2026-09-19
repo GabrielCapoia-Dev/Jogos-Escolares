@@ -107,7 +107,7 @@ export class AppComponent implements OnDestroy {
     this.selectedTeam = sessionStorage.getItem(this.teamFilterKey(period.id)) ?? '';
     this.teams = this.fallbackTeams(period.id);
     this.standings = this.zeroStandings(this.teams);
-    this.loadPublic();
+    this.loadGeneralDirect(period.id, true);
   }
 
   backHome(): void {
@@ -148,23 +148,8 @@ export class AppComponent implements OnDestroy {
     };
 
     if (requestView === 'CLASSIFICACAO') {
-      this.api.snapshot(requestPeriod, requestGender)
-        .pipe(finalize(complete))
-        .subscribe({
-          next: snapshot => {
-            if (requestVersion !== this.publicRequestVersion) return;
-            if (this.period !== requestPeriod || this.view !== requestView) return;
-            this.teams = snapshot.teams;
-            this.standings = snapshot.standings;
-            this.matches = snapshot.matches;
-            this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-            this.loading = false;
-          },
-          error: () => {
-            if (requestVersion !== this.publicRequestVersion) return;
-            this.loadGeneralFallback(requestPeriod, requestGender, requestVersion);
-          }
-        });
+      this.loadGeneralDirect(requestPeriod, showLoading);
+      complete();
       return;
     }
 
@@ -485,6 +470,38 @@ export class AppComponent implements OnDestroy {
   private failPublic(): void {
     this.error = 'Não foi possível carregar os dados.';
     this.loading = false;
+  }
+
+  private loadGeneralDirect(period: string, showLoading = true): void {
+    if (showLoading) this.loading = true;
+    this.error = '';
+
+    forkJoin({
+      teams: this.api.teams(period).pipe(retry({ count: 2, delay: 350 })),
+      standings: this.api.standings(period, this.gender).pipe(retry({ count: 2, delay: 350 })),
+      matches: this.api.matches(period).pipe(retry({ count: 2, delay: 350 }))
+    }).subscribe({
+      next: ({ teams, standings, matches }) => {
+        if (this.screen !== 'PUBLIC' || this.period !== period || this.view !== 'CLASSIFICACAO') return;
+        this.teams = teams;
+        this.standings = standings;
+        this.matches = matches.filter(item => item.status === 'FINALIZADO');
+        this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        this.loading = false;
+        this.error = '';
+      },
+      error: () => {
+        if (this.screen !== 'PUBLIC' || this.period !== period || this.view !== 'CLASSIFICACAO') return;
+        if (!this.teams.length) this.teams = this.fallbackTeams(period);
+        if (!this.standings.length) this.standings = this.zeroStandings(this.teams);
+        this.failPublic();
+        window.setTimeout(() => {
+          if (this.screen === 'PUBLIC' && this.period === period && this.view === 'CLASSIFICACAO') {
+            this.loadGeneralDirect(period, false);
+          }
+        }, 1000);
+      }
+    });
   }
 
   private loadGeneralFallback(period: string, gender: string, requestVersion: number): void {
