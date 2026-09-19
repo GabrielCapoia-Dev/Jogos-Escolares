@@ -1,22 +1,19 @@
 <ng-container *ngIf="screen === 'PUBLIC'">
   <ng-container *ngIf="!period; else publicScoreboard">
     <section class="welcome-screen">
-      <div class="welcome-content welcome-content-periods">
-        <picture class="brand-logo welcome-logo">
-          <img src="/assets/logo-vertical.png" alt="Jogos Infantis de Umuarama">
+      <div class="welcome-hero">
+        <picture class="welcome-hero-art">
+          <source media="(min-width: 700px)" srcset="/assets/hero-inicial-desktop.webp">
+          <img src="/assets/hero-inicial-mobile.webp" alt="Jogos Infantis de Umuarama. Escolha o turno: manhã ou tarde.">
         </picture>
-
-        <div class="period-choice welcome-period-choice">
-          <h2>Qual é o seu turno?</h2>
-          <div class="choice-grid">
-            <button
-              type="button"
-              class="choice-button"
-              *ngFor="let item of periods"
-              (click)="choosePeriod(item)">
-              {{ item.name }}
-            </button>
-          </div>
+        <div class="welcome-click-zones" aria-label="Escolha o turno">
+          <button
+            type="button"
+            *ngFor="let item of periods"
+            (click)="choosePeriod(item)"
+            [attr.aria-label]="'Selecionar período ' + item.name">
+            {{ item.name }}
+          </button>
         </div>
       </div>
     </section>
@@ -29,7 +26,6 @@
         <div class="public-brand"><button type="button" class="header-home" (click)="backHome()">Início</button></div>
         <button class="admin-button" type="button" (click)="openLogin()">Área administrativa</button>
       </div>
-      <button *ngIf="view !== 'CLASSIFICACAO'" type="button" class="mobile-filter-fab" aria-label="Abrir filtros" (click)="publicFiltersOpen=true"><span class="filter-icon">☷</span><span>Filtros</span></button>
     </header>
 
       <nav class="public-main-nav" aria-label="Menu principal">
@@ -38,6 +34,15 @@
         <button type="button" [class.active]="view === 'CRONOGRAMA_EQUIPE'" (click)="setView('CRONOGRAMA_EQUIPE')"><span class="nav-icon">♟</span><span>Por equipe</span></button>
         <button type="button" [class.active]="view === 'RESULTADOS'" (click)="setView('RESULTADOS')"><span class="nav-icon">▥</span><span>Resultados</span></button>
       </nav>
+
+      <button
+        *ngIf="view === 'CRONOGRAMA' || view === 'CRONOGRAMA_EQUIPE' || view === 'RESULTADOS'"
+        type="button"
+        class="mobile-filter-fab"
+        aria-label="Abrir filtros"
+        (click)="publicFiltersOpen=true">
+        <span class="filter-icon">☷</span><span>Filtros</span>
+      </button>
 
     <div class="page-shell scoreboard-shell">
       <nav class="tabs public-view-tabs legacy-view-tabs" aria-label="Seções do placar público">
@@ -210,7 +215,7 @@
 
     <section id="admin-ranking" class="admin-ranking-section" aria-label="Placar geral do período">
       <div class="admin-ranking-heading"><div><p class="eyebrow blue">Acompanhamento</p><h2>Placar geral</h2></div><span class="period-badge">Período: {{ periodName(adminPeriod) }}</span></div>
-      <div class="panel ranking-panel"><div class="table-wrap"><table class="ranking-table"><thead><tr><th>Posição</th><th>Cor</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead><tbody><tr *ngFor="let row of adminStandings"><td class="position"><strong>{{ row.position }}º</strong></td><td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small></span></span></td><td><strong>{{ row.points }}</strong></td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td></tr></tbody></table></div></div>
+      <div class="panel ranking-panel"><div class="table-wrap"><table class="ranking-table"><thead><tr><th>Posição</th><th>Cor</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead><tbody><tr class="team-row" *ngFor="let row of adminStandings" [style.--team-color]="row.hex"><td class="position"><strong>{{ row.position }}º</strong></td><td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small></span></span></td><td><strong>{{ row.points }}</strong></td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td></tr></tbody></table></div></div>
     </section>
 
     <section class="correction-panel">
@@ -264,7 +269,7 @@
   <div class="admin-ranking-backdrop" (click)="adminRankingOpen=false"></div>
   <section class="admin-ranking-sheet" role="dialog" aria-modal="true" aria-label="Placar geral">
     <div class="admin-ranking-sheet-head"><h2>Placar geral</h2></div>
-    <div class="admin-ranking-sheet-body"><div class="table-wrap"><table class="ranking-table"><thead><tr><th>Posição</th><th>Cor</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead><tbody><tr *ngFor="let row of adminStandings"><td><strong>{{ row.position }}º</strong></td><td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small></span></span></td><td><strong>{{ row.points }}</strong></td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td></tr></tbody></table></div></div>
+    <div class="admin-ranking-sheet-body"><div class="table-wrap"><table class="ranking-table"><thead><tr><th>Posição</th><th>Cor</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead><tbody><tr class="team-row" *ngFor="let row of adminStandings" [style.--team-color]="row.hex"><td><strong>{{ row.position }}º</strong></td><td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small></span></span></td><td><strong>{{ row.points }}</strong></td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td></tr></tbody></table></div></div>
     <button type="button" class="admin-ranking-back" (click)="adminRankingOpen=false">Voltar</button>
   </section>
 </div>
