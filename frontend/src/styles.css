@@ -1905,3 +1905,161 @@ je-root:has(.public-topbar){
   .ranking-table .team-name small{display:none!important}
   .team-picker-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 }
+
+
+/* ==========================================================================
+   AJUSTE TELA INICIAL — fiel ao conceito aprovado
+   ========================================================================== */
+
+.welcome-screen{
+  min-height:100svh!important;
+  padding:0!important;
+  display:grid!important;
+  place-items:center!important;
+  background:
+    radial-gradient(circle at 8% 10%, rgba(88,155,226,.20), transparent 24%),
+    radial-gradient(circle at 92% 88%, rgba(48,125,207,.16), transparent 28%),
+    linear-gradient(180deg,#ffffff 0%,#f3f8fe 100%)!important;
+}
+
+.welcome-content{
+  width:min(100%,440px)!important;
+  min-height:100svh!important;
+  padding:18px 18px 24px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:12px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+
+.welcome-content::before,
+.welcome-content::after{
+  display:none!important;
+}
+
+.welcome-logo{
+  width:min(78vw,330px)!important;
+  max-width:330px!important;
+  margin:0 auto 4px!important;
+}
+
+.welcome-logo img{
+  display:block!important;
+  width:100%!important;
+  height:auto!important;
+  max-height:none!important;
+  object-fit:contain!important;
+}
+
+.welcome-period-choice{
+  width:min(100%,330px)!important;
+  max-width:330px!important;
+  margin:0 auto!important;
+}
+
+.welcome-period-choice h2{
+  margin:0 0 10px!important;
+  text-align:center!important;
+  color:var(--ji-blue-900)!important;
+  font-size:.82rem!important;
+  font-weight:900!important;
+  letter-spacing:.14em!important;
+  text-transform:uppercase!important;
+}
+
+.welcome-screen .choice-grid{
+  grid-template-columns:1fr!important;
+  gap:10px!important;
+}
+
+.welcome-screen .choice-button{
+  min-height:56px!important;
+  border-radius:16px!important;
+  font-size:1.02rem!important;
+  box-shadow:0 8px 20px rgba(15,99,186,.20)!important;
+}
+
+@media (min-width:700px){
+  .welcome-screen{
+    min-height:100vh!important;
+    padding:28px!important;
+  }
+
+  .welcome-content{
+    width:min(92vw,980px)!important;
+    min-height:auto!important;
+    padding:30px 36px 34px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:14px!important;
+    border:1px solid rgba(155,199,243,.48)!important;
+    border-radius:28px!important;
+    background:rgba(255,255,255,.94)!important;
+    box-shadow:0 18px 48px rgba(17,73,126,.14)!important;
+    position:relative!important;
+    overflow:hidden!important;
+  }
+
+  .welcome-content::before,
+  .welcome-content::after{
+    display:block!important;
+    content:"";
+    position:absolute;
+    border-radius:50%;
+    background:rgba(74,155,232,.08);
+    z-index:0;
+  }
+
+  .welcome-content::before{
+    width:220px;
+    height:220px;
+    right:-90px;
+    top:-100px;
+  }
+
+  .welcome-content::after{
+    width:190px;
+    height:190px;
+    left:-90px;
+    bottom:-100px;
+  }
+
+  .welcome-content>*{
+    position:relative!important;
+    z-index:1!important;
+  }
+
+  .welcome-logo{
+    width:min(46vw,470px)!important;
+    max-width:470px!important;
+    margin:0 auto!important;
+  }
+
+  .welcome-period-choice{
+    width:min(100%,520px)!important;
+    max-width:520px!important;
+  }
+
+  .welcome-period-choice h2{
+    margin:0 0 12px!important;
+    font-size:.92rem!important;
+  }
+
+  .welcome-screen .choice-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:14px!important;
+  }
+
+  .welcome-screen .choice-button{
+    min-height:58px!important;
+    font-size:1.05rem!important;
+  }
+}
