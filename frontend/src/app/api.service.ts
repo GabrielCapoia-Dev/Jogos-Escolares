@@ -36,7 +36,9 @@ export class ApiService {
       });
       if (!response.ok) {
         const message = await response.text().catch(() => '');
-        throw new Error(message || `HTTP ${response.status}`);
+        const error = new Error(message || `HTTP ${response.status}`) as Error & { status?: number };
+        error.status = response.status;
+        throw error;
       }
       return await response.json() as T;
     } finally {
