@@ -329,10 +329,16 @@ export class AppComponent implements OnDestroy {
     if (kind === 'day') this.adminDay = value;
     if (kind === 'court') {
       this.adminCourt = value;
-      if (this.adminSport && !this.sports.some(item => item.id === this.adminSport && item.courtId === value)) this.adminSport = '';
+      if (this.adminSport && !this.sports.some(item => item.id === this.adminSport && item.courtId === value)) {
+        this.adminSport = '';
+      }
     }
     if (kind === 'sport') this.adminSport = value;
     if (kind === 'gender') this.adminGender = value;
+
+    this.adminLoading = true;
+    this.renderNow();
+    void this.loadAdmin();
   }
 
   confirmAdminFilters(): void {
