@@ -13,6 +13,7 @@ export interface Standing { teamId: string; color: string; hex: string; mascot: 
 export interface LoginResponse { accessToken: string; tokenType: string; expiresIn: string; }
 export interface RealtimeEvent { type: 'RESULT_UPDATED' | 'SCOREBOARD_UPDATED'; period: string; match?: Match; matchId?: string; day?: string; court?: string; sportId?: string; gender?: string; scoreA?: number; scoreB?: number; status?: string; teams?: Team[]; standings?: Standing[]; matches?: Match[]; updatedAt?: string; }
 export interface PublicSnapshot { teams: Team[]; standings: Standing[]; matches: Match[]; updatedAt: string; }
+export interface AdminState { teams: Team[]; standings: Standing[]; matches: Match[]; }
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -40,6 +41,12 @@ export class ApiService {
 
   snapshot(period: string, gender: string): Observable<PublicSnapshot> {
     return this.http.get<PublicSnapshot>(`${this.base}/snapshot`, { params: { period, gender } }).pipe(timeout(15000));
+  }
+  adminState(period: string, day: string, court: string, sport = '', gender = ''): Observable<AdminState> {
+    let params = new HttpParams().set('period', period).set('day', day).set('court', court);
+    if (sport) params = params.set('sport', sport);
+    if (gender) params = params.set('gender', gender);
+    return this.http.get<AdminState>(`${this.base}/admin-state`, { params }).pipe(timeout(12000));
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
@@ -92,6 +99,6 @@ export class ApiService {
     return (correction
       ? this.http.put<Match>(url, body, { headers })
       : this.http.post<Match>(url, body, { headers })
-     ).pipe(timeout(15000));
+     ).pipe(timeout(8000));
   }
 }
