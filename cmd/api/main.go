@@ -95,6 +95,7 @@ func main() {
 	mux.HandleFunc("/api/v1/matches", s.matches)
 	mux.HandleFunc("/api/v1/standings", s.standings)
 	mux.HandleFunc("/api/v1/snapshot", s.snapshot)
+	mux.HandleFunc("/api/v1/admin-state", s.adminState)
 	mux.HandleFunc("/api/v1/admin/matches/", s.result)
 	addr := os.Getenv("HTTP_ADDR")
 	if addr == "" {
@@ -238,6 +239,15 @@ func (s *server) matches(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, 200, out)
 }
+func teamsForPeriod(period string) []domain.Team {
+	out := make([]domain.Team, 0)
+	for _, team := range domain.SeedTeams() {
+		if team.Active && (period == "" || team.Period == period) {
+			out = append(out, team)
+		}
+	}
+	return out
+}
 func (s *server) standings(w http.ResponseWriter, r *http.Request) {
 	period := r.URL.Query().Get("period")
 	if period == "" {
@@ -287,6 +297,33 @@ func (s *server) snapshot(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (s *server) adminState(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	period := q.Get("period")
+	if period == "" {
+		http.Error(w, "period is required", 400)
+		return
+	}
+	all, err := s.store.Matches(r.Context(), period, "", "", "", "")
+	if err != nil {
+		serverError(w, err)
+		return
+	}
+	filtered := make([]domain.Match, 0)
+	for _, match := range all {
+		if q.Get("day") != "" && match.Day != q.Get("day") { continue }
+		if q.Get("court") != "" && match.Court != q.Get("court") { continue }
+		if q.Get("sport") != "" && match.SportID != q.Get("sport") { continue }
+		if q.Get("gender") != "" && match.Gender != q.Get("gender") { continue }
+		filtered = append(filtered, match)
+	}
+	teams := teamsForPeriod(period)
+	writeJSON(w, 200, map[string]any{
+		"teams": teams,
+		"standings": domain.CalculateStandings(teams, all, period, "GERAL"),
+		"matches": filtered,
+	})
+}
 func (s *server) result(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost && r.Method != http.MethodPut {
 		http.Error(w, "method not allowed", 405)
