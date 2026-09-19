@@ -93,7 +93,7 @@ export class AppComponent implements OnDestroy {
       if (this.screen === 'PUBLIC' && this.period && document.visibilityState === 'visible') {
         this.loadPublic(false);
       }
-    }, 2000);
+    }, 15000);
   }
 
   ngOnDestroy(): void {
@@ -455,10 +455,24 @@ export class AppComponent implements OnDestroy {
   }
 
   private handleRealtimeEvent(event: RealtimeEvent): void {
-    if (event.type !== 'RESULT_UPDATED') return;
-
     if (this.screen === 'PUBLIC' && this.period === event.period) {
-      this.loadPublic(false);
+      if (
+        event.type === 'SCOREBOARD_UPDATED' &&
+        this.view === 'CLASSIFICACAO' &&
+        event.teams &&
+        event.standings &&
+        event.matches
+      ) {
+        this.teams = event.teams;
+        this.standings = event.standings;
+        this.matches = event.matches;
+        this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        this.loading = false;
+        this.error = '';
+        return;
+      }
+
+      this.loadPublic(false, true);
       return;
     }
 
