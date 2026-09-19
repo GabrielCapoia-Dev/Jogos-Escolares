@@ -287,46 +287,44 @@ export class AppComponent implements OnDestroy {
     const sport = this.adminSport;
     const gender = this.adminGender;
 
-    forkJoin({
-      teams: this.api.teams(period).pipe(retry({ count: 2, delay: 500 })),
-      standings: this.api.standings(period, 'GERAL').pipe(retry({ count: 2, delay: 500 })),
-      matches: this.api.matches(period, day, court, sport, gender).pipe(retry({ count: 2, delay: 500 }))
-    }).subscribe({
-      next: ({ teams, standings, matches }) => {
-        if (
-          this.screen !== 'ADMIN' ||
-          this.adminPeriod !== period ||
-          this.adminDay !== day ||
-          this.adminCourt !== court ||
-          this.adminSport !== sport ||
-          this.adminGender !== gender
-        ) return;
-
-        this.teams = teams;
-        this.adminStandings = standings;
-        this.adminMatches = [...matches].sort((a, b) => {
-          const aFinished = a.status === 'FINALIZADO' ? 1 : 0;
-          const bFinished = b.status === 'FINALIZADO' ? 1 : 0;
-          return aFinished - bFinished || a.time.localeCompare(b.time) || a.order - b.order;
-        });
-        for (const item of this.adminMatches) {
-          this.scoreDrafts[item.id] = { a: item.scoreA, b: item.scoreB };
-        }
-        this.adminLoading = false;
-      },
-      error: () => {
-        this.adminLoading = false;
-        this.showToast('Não foi possível carregar as partidas. Tentando novamente...');
-        window.setTimeout(() => {
+    this.api.adminState(period, day, court, sport, gender)
+      .pipe(retry({ count: 2, delay: 500 }))
+      .subscribe({
+        next: state => {
           if (
-            this.screen === 'ADMIN' &&
-            this.adminPeriod === period &&
-            this.adminDay === day &&
-            this.adminCourt === court
-          ) this.loadAdmin();
-        }, 1200);
-      }
-    });
+            this.screen !== 'ADMIN' ||
+            this.adminPeriod !== period ||
+            this.adminDay !== day ||
+            this.adminCourt !== court ||
+            this.adminSport !== sport ||
+            this.adminGender !== gender
+          ) return;
+
+          this.teams = state.teams;
+          this.adminStandings = state.standings;
+          this.adminMatches = [...state.matches].sort((a, b) => {
+            const aFinished = a.status === 'FINALIZADO' ? 1 : 0;
+            const bFinished = b.status === 'FINALIZADO' ? 1 : 0;
+            return aFinished - bFinished || a.time.localeCompare(b.time) || a.order - b.order;
+          });
+          for (const item of this.adminMatches) {
+            this.scoreDrafts[item.id] = { a: item.scoreA, b: item.scoreB };
+          }
+          this.adminLoading = false;
+        },
+        error: () => {
+          this.adminLoading = false;
+          this.showToast('Não foi possível carregar as partidas. Tentando novamente...');
+          window.setTimeout(() => {
+            if (
+              this.screen === 'ADMIN' &&
+              this.adminPeriod === period &&
+              this.adminDay === day &&
+              this.adminCourt === court
+            ) this.loadAdmin();
+          }, 1200);
+        }
+      });
   }
 
   setAdminFilter(kind: 'period' | 'day' | 'court' | 'sport' | 'gender', value: string): void {
