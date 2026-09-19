@@ -2063,3 +2063,269 @@ je-root:has(.public-topbar){
     font-size:1.05rem!important;
   }
 }
+
+
+/* ==========================================================================
+   AJUSTES MOBILE — navegação inferior, espaçamento, filtros e contraste
+   ========================================================================== */
+
+@media (max-width:699px){
+
+  /* remove o grande espaço herdado do CSS legado */
+  je-root:has(.public-topbar) .scoreboard-shell{
+    padding-top:12px!important;
+    padding-left:10px!important;
+    padding-right:10px!important;
+    padding-bottom:calc(94px + env(safe-area-inset-bottom))!important;
+  }
+
+  .scoreboard-heading{
+    margin-top:0!important;
+    margin-bottom:10px!important;
+  }
+
+  .schedule-view,
+  .team-view,
+  .history-heading{
+    margin-top:0!important;
+    padding-top:0!important;
+  }
+
+  /* navegação principal realmente fixa no rodapé */
+  .public-main-nav{
+    position:fixed!important;
+    left:8px!important;
+    right:8px!important;
+    top:auto!important;
+    bottom:calc(8px + env(safe-area-inset-bottom))!important;
+    z-index:130!important;
+    width:auto!important;
+    margin:0!important;
+    padding:6px!important;
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:4px!important;
+    border:1px solid rgba(155,199,243,.48)!important;
+    border-radius:18px!important;
+    background:rgba(255,255,255,.97)!important;
+    box-shadow:0 10px 28px rgba(9,61,114,.22)!important;
+    backdrop-filter:blur(16px)!important;
+  }
+
+  .public-main-nav button{
+    min-height:48px!important;
+    padding:4px 2px!important;
+    border:0!important;
+    border-radius:12px!important;
+    background:transparent!important;
+    color:#7e8fa0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:3px!important;
+    font-size:.60rem!important;
+    font-weight:800!important;
+    white-space:nowrap!important;
+  }
+
+  .public-main-nav button.active{
+    color:var(--ji-blue-800)!important;
+    background:var(--ji-blue-100)!important;
+  }
+
+  .public-main-nav .nav-icon{
+    font-size:1rem!important;
+    line-height:1!important;
+  }
+
+  /* botão claro e visível para abrir filtros */
+  .mobile-filter-fab{
+    position:fixed!important;
+    right:14px!important;
+    bottom:calc(82px + env(safe-area-inset-bottom))!important;
+    z-index:128!important;
+    width:auto!important;
+    min-width:88px!important;
+    height:42px!important;
+    padding:0 13px!important;
+    border:0!important;
+    border-radius:999px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:6px!important;
+    color:#fff!important;
+    background:linear-gradient(135deg,var(--ji-blue-800),var(--ji-blue-600))!important;
+    box-shadow:0 9px 22px rgba(15,99,186,.28)!important;
+    font-size:.68rem!important;
+    font-weight:850!important;
+  }
+
+  .mobile-filter-fab .filter-icon{
+    font-size:.9rem!important;
+  }
+
+  /* bottom sheet real: surge de baixo para cima */
+  .mobile-filter-modal,
+  .admin-filter-modal,
+  .jogos-login-modal{
+    position:fixed!important;
+    inset:0!important;
+    z-index:220!important;
+    display:flex!important;
+    align-items:flex-end!important;
+    justify-content:center!important;
+    padding:0!important;
+  }
+
+  .mobile-filter-backdrop{
+    position:absolute!important;
+    inset:0!important;
+    background:rgba(4,32,65,.56)!important;
+    backdrop-filter:blur(3px)!important;
+  }
+
+  .mobile-filter-sheet{
+    position:relative!important;
+    z-index:1!important;
+    width:100%!important;
+    max-width:none!important;
+    max-height:88svh!important;
+    margin:0!important;
+    padding:14px 12px calc(14px + env(safe-area-inset-bottom))!important;
+    border:0!important;
+    border-radius:22px 22px 0 0!important;
+    background:#fff!important;
+    box-shadow:0 -14px 38px rgba(6,47,99,.22)!important;
+    overflow:auto!important;
+    animation:ji-sheet-up .18s ease-out both;
+  }
+
+  .mobile-filter-sheet::before{
+    content:"";
+    display:block;
+    width:42px;
+    height:4px;
+    margin:0 auto 12px;
+    border-radius:999px;
+    background:#d6e3ef;
+  }
+
+  .mobile-filter-sheet-head{
+    padding:0 2px 10px!important;
+    border-bottom:1px solid var(--ji-line)!important;
+  }
+
+  .mobile-filter-sheet-head h2{
+    margin:0!important;
+    color:var(--ji-blue-950)!important;
+    font-size:1.05rem!important;
+  }
+
+  .mobile-filter-body{
+    padding-top:2px!important;
+  }
+
+  .mobile-filter-group{
+    margin-top:14px!important;
+  }
+
+  .mobile-filter-group h3{
+    margin:0 0 7px!important;
+    color:var(--ji-blue-900)!important;
+    font-size:.72rem!important;
+    font-weight:850!important;
+  }
+
+  .mobile-filter-options{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:7px!important;
+  }
+
+  .mobile-filter-options button{
+    min-height:42px!important;
+    border:1px solid var(--ji-line)!important;
+    border-radius:12px!important;
+    color:#63798e!important;
+    background:#f8fbfe!important;
+    font-size:.68rem!important;
+    font-weight:800!important;
+  }
+
+  .mobile-filter-options button.active{
+    color:#fff!important;
+    border-color:var(--ji-blue-700)!important;
+    background:var(--ji-blue-700)!important;
+  }
+
+  .mobile-team-filter-options{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+
+  .mobile-team-filter-options button{
+    min-height:84px!important;
+  }
+
+  .mobile-team-filter-choice .team-emblem{
+    width:42px!important;
+    height:42px!important;
+    flex-basis:42px!important;
+  }
+
+  .mobile-filter-actions{
+    position:sticky!important;
+    bottom:calc(-14px - env(safe-area-inset-bottom))!important;
+    margin-top:14px!important;
+    padding:10px 0 calc(2px + env(safe-area-inset-bottom))!important;
+    background:linear-gradient(180deg,rgba(255,255,255,.88),#fff 28%)!important;
+  }
+
+  .mobile-filter-close{
+    width:100%!important;
+    min-height:44px!important;
+    border:0!important;
+    border-radius:12px!important;
+    color:#fff!important;
+    background:linear-gradient(135deg,var(--ji-blue-800),var(--ji-blue-600))!important;
+    font-weight:850!important;
+  }
+
+  /* no mobile, filtros de equipe ficam no bottom sheet; evita bloco duplicado */
+  .team-schedule-picker,
+  .history-team-picker{
+    display:none!important;
+  }
+
+  /* vencedor com texto branco sobre fundo azul */
+  .winner-score{
+    color:#fff!important;
+    background:var(--ji-blue-700)!important;
+    border-radius:8px!important;
+    min-width:30px!important;
+    min-height:30px!important;
+    display:inline-grid!important;
+    place-items:center!important;
+    padding:0 6px!important;
+  }
+
+  .fixture-score b.winner-score{
+    color:#fff!important;
+  }
+
+  /* garante que o placar não seja cortado */
+  .fixture-score{
+    min-width:76px!important;
+    overflow:visible!important;
+  }
+
+  .fixture-row{
+    overflow:visible!important;
+  }
+}
+
+@keyframes ji-sheet-up{
+  from{transform:translateY(24px);opacity:.7}
+  to{transform:translateY(0);opacity:1}
+}
