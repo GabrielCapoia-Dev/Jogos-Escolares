@@ -286,9 +286,10 @@
       </div>
     </div>
     <p class="save-confirm-meta">{{ dayName(pendingSaveMatch.day) }} · {{ pendingSaveMatch.time }} · {{ courtName(pendingSaveMatch.court) }}</p>
+    <p class="save-confirm-error" *ngIf="saveError">{{ saveError }}</p>
     <div class="save-confirm-actions">
-      <button type="button" class="save-confirm-primary" (click)="confirmSave()">Confirmar</button>
-      <button type="button" class="save-confirm-secondary" (click)="cancelSave()">Cancelar</button>
+      <button type="button" class="save-confirm-primary" [disabled]="saveLoading" (click)="confirmSave()">{{ saveLoading ? 'Salvando...' : 'Confirmar' }}</button>
+      <button type="button" class="save-confirm-secondary" [disabled]="saveLoading" (click)="cancelSave()">Cancelar</button>
     </div>
   </section>
 </div>
