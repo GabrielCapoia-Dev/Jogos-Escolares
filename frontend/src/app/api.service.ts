@@ -23,7 +23,7 @@ export class ApiService {
   days(): Observable<Day[]> { return this.http.get<Day[]>(`${this.base}/days`); }
   courts(): Observable<Court[]> { return this.http.get<Court[]>(`${this.base}/courts`); }
   sports(): Observable<Sport[]> { return this.http.get<Sport[]>(`${this.base}/sports`); }
-  teams(period: string): Observable<Team[]> { return this.http.get<Team[]>(`${this.base}/teams`, { params: { period } }).pipe(timeout(4000)); }
+  teams(period: string): Observable<Team[]> { return this.http.get<Team[]>(`${this.base}/teams`, { params: { period } }).pipe(timeout(12000)); }
 
   matches(period: string, day = '', court = '', sport = '', gender = ''): Observable<Match[]> {
     let params = new HttpParams().set('period', period);
@@ -31,11 +31,11 @@ export class ApiService {
     if (court) params = params.set('court', court);
     if (sport) params = params.set('sport', sport);
     if (gender) params = params.set('gender', gender);
-    return this.http.get<Match[]>(`${this.base}/matches`, { params }).pipe(timeout(4000));
+    return this.http.get<Match[]>(`${this.base}/matches`, { params }).pipe(timeout(12000));
   }
 
   standings(period: string, gender: string): Observable<Standing[]> {
-    return this.http.get<Standing[]>(`${this.base}/standings`, { params: { period, gender } }).pipe(timeout(4000));
+    return this.http.get<Standing[]>(`${this.base}/standings`, { params: { period, gender } }).pipe(timeout(12000));
   }
 
   snapshot(period: string, gender: string): Observable<PublicSnapshot> {
@@ -92,6 +92,6 @@ export class ApiService {
     return (correction
       ? this.http.put<Match>(url, body, { headers })
       : this.http.post<Match>(url, body, { headers })
-    ).pipe(timeout(12000));
+     ).pipe(timeout(15000));
   }
 }
