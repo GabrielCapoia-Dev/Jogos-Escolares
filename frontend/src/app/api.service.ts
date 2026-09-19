@@ -89,8 +89,9 @@ export class ApiService {
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
     const url = `${this.base}/admin/matches/${encodeURIComponent(id)}/result`;
     const body = { scoreA, scoreB };
-    return correction
+    return (correction
       ? this.http.put<Match>(url, body, { headers })
-      : this.http.post<Match>(url, body, { headers });
+      : this.http.post<Match>(url, body, { headers })
+    ).pipe(timeout(12000));
   }
 }
