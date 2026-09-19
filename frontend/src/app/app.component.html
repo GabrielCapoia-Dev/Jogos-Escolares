@@ -30,15 +30,6 @@
         <div class="public-brand"><button type="button" class="header-home" (click)="backHome()">Início</button></div>
         <button class="admin-button" type="button" (click)="openLogin()">Área administrativa</button>
       </div>
-      <div class="public-period-switcher" aria-label="Período dos jogos">
-        <button
-          type="button"
-          *ngFor="let item of periods"
-          [class.active]="period === item.id"
-          (click)="choosePeriod(item)">
-          {{ item.name }}
-        </button>
-      </div>
       <nav class="public-main-nav" aria-label="Menu principal">
         <button type="button" [class.active]="view === 'CLASSIFICACAO'" (click)="setView('CLASSIFICACAO')"><span class="nav-icon">▦</span><span>Geral</span></button>
         <button type="button" [class.active]="view === 'CRONOGRAMA'" (click)="setView('CRONOGRAMA')"><span class="nav-icon">▤</span><span>Cronograma</span></button>
