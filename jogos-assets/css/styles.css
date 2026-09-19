@@ -197,18 +197,18 @@ h1, h2 { line-height: 1.1; letter-spacing: -0.025em; }
 .fixture-team strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .team-emblem { display: grid; width: 30px; height: 30px; flex: 0 0 30px; place-items: center; border: 1px solid rgba(0,0,0,.16); border-radius: 8px; color: white; background: var(--emblem-color); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22); }
 .team-emblem svg { width: 19px; height: 19px; overflow: visible; fill: currentColor; }
-.mascot-image { background-color: transparent; background-image: url('../assets/mascotes-times-circulares.png'); background-repeat: no-repeat; background-size: 520% auto; }
-.mascote-amarelo { background-position: 5.5% .3%; }
-.mascote-laranja { background-position: 34.5% .3%; }
-.mascote-vermelho { background-position: 63% .3%; }
-.mascote-marrom { background-position: 92.1% .3%; }
-.mascote-branco { background-position: 5.5% 46.3%; }
-.mascote-preto { background-position: 34.5% 46.3%; }
-.mascote-cinza { background-position: 63% 46.3%; }
-.mascote-verde-claro { background-position: 92.1% 46.3%; }
-.mascote-verde-escuro { background-position: 19% 91.4%; }
-.mascote-azul-escuro { background-position: 50% 91.4%; }
-.mascote-azul-claro { background-position: 81% 91.4%; }
+.mascot-image { background-color: transparent; background-image: url('../assets/mascotes-times-circulares.webp'); background-repeat: no-repeat; background-size: 400% 300%; }
+.mascote-amarelo { background-position: 0% 0%; }
+.mascote-laranja { background-position: 33.333% 0%; }
+.mascote-vermelho { background-position: 66.667% 0%; }
+.mascote-marrom { background-position: 100% 0%; }
+.mascote-branco { background-position: 0% 50%; }
+.mascote-preto { background-position: 33.333% 50%; }
+.mascote-cinza { background-position: 66.667% 50%; }
+.mascote-verde-claro { background-position: 100% 50%; }
+.mascote-verde-escuro { background-position: 0% 100%; }
+.mascote-azul-escuro { background-position: 33.333% 100%; }
+.mascote-azul-claro { background-position: 66.667% 100%; }
 .fixture-team-copy { display: grid; min-width: 0; line-height: 1.05; }
 .fixture-team.home .fixture-team-copy { text-align: right; }
 .fixture-team.away .fixture-team-copy { text-align: left; }
