@@ -360,3 +360,72 @@ je-root:has(.public-topbar) .public-footer{margin-top:auto;flex:none;width:100%;
   opacity:.6;
   cursor:wait;
 }
+
+/* Entrada simplificada e seletor de período público. */
+.simple-welcome{
+  display:grid!important;
+  place-items:center!important;
+  min-height:100dvh!important;
+  padding:1rem!important;
+}
+.welcome-logo-button{
+  display:grid;
+  place-items:center;
+  width:min(92vw,760px);
+  min-height:min(70vh,620px);
+  padding:0;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+}
+.welcome-logo-button .welcome-logo{
+  display:block;
+  width:min(86vw,680px)!important;
+  margin:0!important;
+}
+.welcome-logo-button img{
+  display:block;
+  width:100%;
+  height:auto;
+}
+.public-period-switcher{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:.45rem;
+  width:min(420px,100%);
+  margin:0 0 .55rem;
+}
+.public-period-switcher button{
+  min-height:40px;
+  border:1px solid #cbd8e7;
+  border-radius:9px;
+  color:#2f5e91;
+  background:#eef3f8;
+  font-weight:850;
+}
+.public-period-switcher button.active{
+  color:#fff;
+  background:#0753a4;
+  border-color:#0753a4;
+}
+@media (max-width:699px){
+  .simple-welcome{
+    min-height:100svh!important;
+    padding:.65rem!important;
+  }
+  .welcome-logo-button{
+    width:100%;
+    min-height:78svh;
+  }
+  .welcome-logo-button .welcome-logo{
+    width:min(78vw,330px)!important;
+  }
+  .public-period-switcher{
+    width:100%;
+    margin:.2rem 0 .35rem;
+    padding:0 .2rem;
+  }
+  .public-period-switcher button{
+    min-height:38px;
+  }
+}
