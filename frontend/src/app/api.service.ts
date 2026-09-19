@@ -39,7 +39,7 @@ export class ApiService {
   }
 
   snapshot(period: string, gender: string): Observable<PublicSnapshot> {
-    return this.http.get<PublicSnapshot>(`${this.base}/snapshot`, { params: { period, gender } }).pipe(timeout(4000));
+    return this.http.get<PublicSnapshot>(`${this.base}/snapshot`, { params: { period, gender } }).pipe(timeout(15000));
   }
 
   login(email: string, password: string): Observable<LoginResponse> {
