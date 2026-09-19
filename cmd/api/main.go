@@ -311,10 +311,15 @@ func (s *server) result(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), status)
 		return
 	}
+	// Envia a própria partida imediatamente para todas as telas conectadas.
+	s.events.publish(map[string]any{
+		"type":   "RESULT_UPDATED",
+		"period": match.Period,
+		"match":  match,
+	})
 	writeJSON(w, 200, match)
 
-	// O lançamento não espera a montagem do placar público.
-	// A transmissão acontece logo após a confirmação do banco, em segundo plano.
+	// A sincronização completa fica em segundo plano e não atrasa o lançamento.
 	go func(period string) {
 		ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
 		defer cancel()
