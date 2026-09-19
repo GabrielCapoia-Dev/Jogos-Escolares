@@ -1,12 +1,25 @@
 <ng-container *ngIf="screen === 'PUBLIC'">
   <ng-container *ngIf="!period; else publicScoreboard">
-    <section class="welcome-screen simple-welcome">
-      <button type="button" class="welcome-logo-button" (click)="enterPublicFromLogo()" aria-label="Entrar no placar dos Jogos Infantis">
+    <section class="welcome-screen">
+      <div class="welcome-content welcome-content-periods">
         <picture class="brand-logo welcome-logo">
           <source media="(min-width: 700px)" srcset="/assets/logo-horizontal-inicial.png">
           <img src="/assets/logo-vertical.png" alt="Jogos Infantis de Umuarama">
         </picture>
-      </button>
+
+        <div class="period-choice welcome-period-choice">
+          <h2>Escolha o período</h2>
+          <div class="choice-grid">
+            <button
+              type="button"
+              class="choice-button"
+              *ngFor="let item of periods"
+              (click)="choosePeriod(item)">
+              {{ item.name }}
+            </button>
+          </div>
+        </div>
+      </div>
     </section>
   </ng-container>
 
