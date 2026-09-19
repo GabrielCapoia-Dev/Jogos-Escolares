@@ -273,11 +273,7 @@ func (s *server) snapshot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	gender := r.URL.Query().Get("gender")
-	teams, err := s.store.Teams(r.Context(), period)
-	if err != nil {
-		serverError(w, err)
-		return
-	}
+	teams := teamsForPeriod(period)
 	matches, err := s.store.Matches(r.Context(), period, "", "", "", "")
 	if err != nil {
 		serverError(w, err)
@@ -334,7 +330,9 @@ func (s *server) result(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "autenticação obrigatória", 401)
 		return
 	}
-	user, err := s.store.UserID(r.Context(), token)
+	ctx, cancel := context.WithTimeout(r.Context(), 6*time.Second)
+	defer cancel()
+	user, err := s.store.UserID(ctx, token)
 	if err != nil {
 		http.Error(w, "não autorizado", 401)
 		return
@@ -350,7 +348,7 @@ func (s *server) result(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "payload inválido", 400)
 		return
 	}
-	match, err := s.store.SaveResult(r.Context(), id, input.ScoreA, input.ScoreB, user, r.Method == http.MethodPut)
+	match, err := s.store.SaveResult(ctx, id, input.ScoreA, input.ScoreB, user, r.Method == http.MethodPut)
 	if err != nil {
 		status := 409
 		if errors.Is(err, store.ErrNotFound) {
@@ -375,11 +373,7 @@ func (s *server) result(w http.ResponseWriter, r *http.Request) {
 	}(match.Period)
 }
 func (s *server) broadcastScoreboard(ctx context.Context, period string) {
-	teams, err := s.store.Teams(ctx, period)
-	if err != nil {
-		log.Printf("realtime teams: %v", err)
-		return
-	}
+	teams := teamsForPeriod(period)
 	matches, err := s.store.Matches(ctx, period, "", "", "", "")
 	if err != nil {
 		log.Printf("realtime matches: %v", err)
