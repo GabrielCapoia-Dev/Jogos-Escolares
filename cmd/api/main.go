@@ -17,8 +17,10 @@ import (
 )
 
 type server struct {
-	store *store.Store
-	events *eventHub
+	store     *store.Store
+	events    *eventHub
+	matchesMu sync.RWMutex
+	matches   []domain.Match
 }
 
 type eventHub struct {
@@ -79,7 +81,11 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.DB.Close()
-	s := &server{store: db, events: newEventHub()}
+	initialMatches, err := db.Matches(ctx, "", "", "", "", "")
+	if err != nil {
+		log.Fatal(err)
+	}
+	s := &server{store: db, events: newEventHub(), matches: initialMatches}
 	go keepDatabaseWarm(db)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", s.health)
@@ -232,12 +238,33 @@ func (s *server) teams(w http.ResponseWriter, r *http.Request) {
 }
 func (s *server) matches(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
-	out, err := s.store.Matches(r.Context(), q.Get("period"), q.Get("day"), q.Get("court"), q.Get("sport"), q.Get("gender"))
-	if err != nil {
-		serverError(w, err)
-		return
+	writeJSON(w, 200, s.cachedMatches(q.Get("period"), q.Get("day"), q.Get("court"), q.Get("sport"), q.Get("gender")))
+}
+func (s *server) cachedMatches(period, day, court, sport, gender string) []domain.Match {
+	s.matchesMu.RLock()
+	defer s.matchesMu.RUnlock()
+	out := make([]domain.Match, 0)
+	for _, match := range s.matches {
+		if period != "" && match.Period != period { continue }
+		if day != "" && match.Day != day { continue }
+		if court != "" && match.Court != court { continue }
+		if sport != "" && match.SportID != sport { continue }
+		if gender != "" && match.Gender != gender { continue }
+		out = append(out, match)
 	}
-	writeJSON(w, 200, out)
+	return out
+}
+
+func (s *server) upsertCachedMatch(saved domain.Match) {
+	s.matchesMu.Lock()
+	defer s.matchesMu.Unlock()
+	for i := range s.matches {
+		if s.matches[i].ID == saved.ID {
+			s.matches[i] = saved
+			return
+		}
+	}
+	s.matches = append(s.matches, saved)
 }
 func teamsForPeriod(period string) []domain.Team {
 	out := make([]domain.Team, 0)
@@ -254,16 +281,8 @@ func (s *server) standings(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "period is required", 400)
 		return
 	}
-	teams, err := s.store.Teams(r.Context(), period)
-	if err != nil {
-		serverError(w, err)
-		return
-	}
-	matches, err := s.store.Matches(r.Context(), period, "", "", "", "")
-	if err != nil {
-		serverError(w, err)
-		return
-	}
+	teams := teamsForPeriod(period)
+	matches := s.cachedMatches(period, "", "", "", "")
 	writeJSON(w, 200, domain.CalculateStandings(teams, matches, period, r.URL.Query().Get("gender")))
 }
 func (s *server) snapshot(w http.ResponseWriter, r *http.Request) {
@@ -274,11 +293,7 @@ func (s *server) snapshot(w http.ResponseWriter, r *http.Request) {
 	}
 	gender := r.URL.Query().Get("gender")
 	teams := teamsForPeriod(period)
-	matches, err := s.store.Matches(r.Context(), period, "", "", "", "")
-	if err != nil {
-		serverError(w, err)
-		return
-	}
+	matches := s.cachedMatches(period, "", "", "", "")
 	finished := make([]domain.Match, 0)
 	for _, match := range matches {
 		if match.Status == domain.StatusFinalizado {
@@ -300,11 +315,7 @@ func (s *server) adminState(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "period is required", 400)
 		return
 	}
-	all, err := s.store.Matches(r.Context(), period, "", "", "", "")
-	if err != nil {
-		serverError(w, err)
-		return
-	}
+	all := s.cachedMatches(period, "", "", "", "")
 	filtered := make([]domain.Match, 0)
 	for _, match := range all {
 		if q.Get("day") != "" && match.Day != q.Get("day") { continue }
@@ -357,6 +368,8 @@ func (s *server) result(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), status)
 		return
 	}
+	s.upsertCachedMatch(match)
+
 	// Envia a própria partida imediatamente para todas as telas conectadas.
 	s.events.publish(map[string]any{
 		"type":   "RESULT_UPDATED",
@@ -365,20 +378,12 @@ func (s *server) result(w http.ResponseWriter, r *http.Request) {
 	})
 	writeJSON(w, 200, match)
 
-	// A sincronização completa fica em segundo plano e não atrasa o lançamento.
-	go func(period string) {
-		ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
-		defer cancel()
-		s.broadcastScoreboard(ctx, period)
-	}(match.Period)
+	// A sincronização completa usa apenas a memória da API.
+	s.broadcastScoreboard(match.Period)
 }
-func (s *server) broadcastScoreboard(ctx context.Context, period string) {
+func (s *server) broadcastScoreboard(period string) {
 	teams := teamsForPeriod(period)
-	matches, err := s.store.Matches(ctx, period, "", "", "", "")
-	if err != nil {
-		log.Printf("realtime matches: %v", err)
-		return
-	}
+	matches := s.cachedMatches(period, "", "", "", "")
 	finished := make([]domain.Match, 0)
 	for _, item := range matches {
 		if item.Status == domain.StatusFinalizado {
