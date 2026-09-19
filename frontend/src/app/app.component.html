@@ -1,19 +1,343 @@
-<ng-container *ngIf="!period; else scoreboard">
-  <section class="welcome-screen"><div class="welcome-content"><picture class="brand-logo welcome-logo"><source media="(min-width: 700px)" srcset="/assets/logo-horizontal-inicial.png"><img src="/assets/logo-vertical.png" alt="Jogos Infantis de Umuarama"></picture><div class="welcome-copy"><p class="eyebrow blue">Jogos Infantis de Umuarama</p><h1>Placar ao vivo dos Jogos Infantis de Umuarama <span>2026</span></h1><p>Acompanhe a classificação geral e os resultados em tempo real durante os jogos.</p></div><div class="period-choice"><h2 id="period-title">Escolha o período</h2><div class="choice-grid"><button class="choice-button" *ngFor="let item of periods" (click)="choosePeriod(item)">{{ item.name }}</button></div></div></div></section>
+<ng-container *ngIf="screen === 'PUBLIC'">
+  <ng-container *ngIf="!period; else publicScoreboard">
+    <section class="welcome-screen">
+      <div class="welcome-content">
+        <picture class="brand-logo welcome-logo">
+          <source media="(min-width: 700px)" srcset="/assets/logo-horizontal-inicial.png">
+          <img src="/assets/logo-vertical.png" alt="Jogos Infantis de Umuarama">
+        </picture>
+        <div class="welcome-copy">
+          <p class="eyebrow blue">Jogos Infantis de Umuarama</p>
+          <h1>Placar ao vivo dos Jogos Infantis de Umuarama <span>2026</span></h1>
+          <p>Acompanhe a classificação geral e os resultados em tempo real durante os jogos.</p>
+        </div>
+        <div class="period-choice">
+          <h2 id="period-title">Escolha o período</h2>
+          <div class="choice-grid">
+            <button class="choice-button" *ngFor="let item of periods" (click)="choosePeriod(item)">{{ item.name }}</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </ng-container>
+
+  <ng-template #publicScoreboard>
+    <div class="public-topbar"><div><strong>JOGOS INFANTIS DE UMUARAMA 2026</strong><strong>PLACAR OFICIAL</strong></div></div>
+    <header class="site-header public-header">
+      <div class="header-inner">
+        <div class="public-brand"><button type="button" class="header-home" (click)="backHome()">Início</button></div>
+        <button class="admin-button" type="button" (click)="openLogin()">Área administrativa</button>
+      </div>
+      <nav class="public-main-nav" aria-label="Menu principal">
+        <button type="button" [class.active]="view === 'CLASSIFICACAO'" (click)="setView('CLASSIFICACAO')"><span class="nav-icon">▦</span><span>Geral</span></button>
+        <button type="button" [class.active]="view === 'CRONOGRAMA'" (click)="setView('CRONOGRAMA')"><span class="nav-icon">▤</span><span>Cronograma</span></button>
+        <button type="button" [class.active]="view === 'CRONOGRAMA_EQUIPE'" (click)="setView('CRONOGRAMA_EQUIPE')"><span class="nav-icon">♟</span><span>Por time</span></button>
+        <button type="button" [class.active]="view === 'RESULTADOS'" (click)="setView('RESULTADOS')"><span class="nav-icon">▥</span><span>Resultados</span></button>
+      </nav>
+      <button *ngIf="view !== 'CLASSIFICACAO'" type="button" class="mobile-filter-fab" aria-label="Abrir filtros" (click)="publicFiltersOpen=true"><span class="filter-icon">☷</span></button>
+    </header>
+
+    <div class="page-shell scoreboard-shell">
+      <nav class="tabs public-view-tabs legacy-view-tabs" aria-label="Seções do placar público">
+        <button class="tab" [class.active]="view === 'CLASSIFICACAO'" (click)="setView('CLASSIFICACAO')">Classificação</button>
+        <button class="tab" [class.active]="view === 'CRONOGRAMA'" (click)="setView('CRONOGRAMA')">Cronograma geral</button>
+        <button class="tab" [class.active]="view === 'CRONOGRAMA_EQUIPE'" (click)="setView('CRONOGRAMA_EQUIPE')">Cronograma por equipes</button>
+      </nav>
+
+      <p class="legacy-error" *ngIf="error">{{ error }}</p>
+      <p class="updated-at" *ngIf="loading">Carregando…</p>
+
+      <section *ngIf="view === 'CLASSIFICACAO'" class="scoreboard-heading">
+        <div><p class="eyebrow blue">Acompanhe em tempo real</p><h2>Classificação geral <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div>
+      </section>
+
+      <div *ngIf="view === 'CLASSIFICACAO'" class="dashboard-grid">
+        <section class="panel ranking-panel">
+          <div class="table-wrap">
+            <table class="ranking-table">
+              <thead><tr><th>Posição</th><th>Cor</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead>
+              <tbody>
+                <tr class="team-row" *ngFor="let row of standings" [style.--team-color]="row.hex">
+                  <td class="position"><strong>{{ row.position }}º</strong></td>
+                  <td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small></span></span></td>
+                  <td><strong>{{ row.points }}</strong></td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section class="results-section">
+          <div class="section-heading editorial-heading"><div><p class="eyebrow blue">Acompanhe em tempo real</p><h2>Últimos resultados</h2><p>Resultados lançados recentemente</p></div><span class="live-badge">Ao vivo</span></div>
+          <div class="results-list">
+            <article class="result-card fixture-card" *ngFor="let match of latestResults()">
+              <div class="result-meta"><span class="sport-pill">{{ sportName(match.sportId) }}</span><span>{{ genderName(match.gender) }}</span></div>
+              <div class="fixture-row">
+                <span class="fixture-team home" [class.result-winner]="winner(match,'A')">
+                  <span class="fixture-team-copy"><strong>{{ team(match.teamAId)?.color }}</strong><small>{{ team(match.teamAId)?.mascot }}</small></span>
+                  <span class="team-emblem mascot-image" [ngClass]="team(match.teamAId)?.sprite"></span>
+                </span>
+                <span class="fixture-score">
+                  <b [class.winner-score]="winner(match,'A')">{{ match.scoreA }}</b><small>:</small><b [class.winner-score]="winner(match,'B')">{{ match.scoreB }}</b>
+                </span>
+                <span class="fixture-team away" [class.result-winner]="winner(match,'B')">
+                  <span class="team-emblem mascot-image" [ngClass]="team(match.teamBId)?.sprite"></span>
+                  <span class="fixture-team-copy"><strong>{{ team(match.teamBId)?.color }}</strong><small>{{ team(match.teamBId)?.mascot }}</small></span>
+                </span>
+              </div>
+              <p>{{ team(match.teamAId)?.color }} {{ resultPoints(match,'A') }} {{ resultPoints(match,'A') === 1 ? 'pt' : 'pts' }} · {{ team(match.teamBId)?.color }} {{ resultPoints(match,'B') }} {{ resultPoints(match,'B') === 1 ? 'pt' : 'pts' }}</p>
+            </article>
+            <div class="empty-state" *ngIf="!latestResults().length">Nenhum resultado lançado neste período.</div>
+          </div>
+        </section>
+      </div>
+
+      <section *ngIf="view === 'CRONOGRAMA'" class="schedule-view">
+        <section class="scoreboard-heading schedule-heading"><div><p class="eyebrow blue">Programação dos jogos</p><h2>Cronograma <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div></section>
+        <nav class="schedule-days"><button *ngFor="let item of days" class="schedule-day" [class.active]="item.id === day" (click)="applyPublicFilter('day',item.id)">{{ item.name }}</button></nav>
+        <div class="schedule-selectors"><section class="choice-panel"><div class="section-title-block"><p class="eyebrow blue">{{ dayName(day) }}</p><h3>{{ courtName(court) }}</h3></div><div class="court-buttons"><button *ngFor="let item of courts" class="filter-choice court-choice" [class.active]="item.id === court" (click)="applyPublicFilter('court',item.id)">{{ item.name }}</button></div></section></div>
+        <div class="schedule-content-layout"><section class="selected-court"><div class="activity-grid"><section class="activity-column" *ngFor="let item of visibleSports(court)"><div class="activity-heading"><span>{{ courtName(court) }}</span><h3>{{ item.name }}</h3></div><div class="gender-grid"><section class="gender-lane" *ngFor="let genderValue of ['FEMININO','MASCULINO']"><div class="gender-lane-heading"><h4>{{ genderName(genderValue) }}</h4><span>{{ matchesFor(item.id, genderValue).length }} jogos</span></div><div class="gender-games"><article class="schedule-card" *ngFor="let match of matchesFor(item.id, genderValue)" [class.finished]="match.status==='FINALIZADO'" [class.happening]="match.status==='EM_ANDAMENTO'"><div class="schedule-card-top"><div><time>{{ match.time }}</time><span class="sport-pill">{{ item.name }}</span></div><span class="status waiting">{{ statusLabel(match.status) }}</span></div><div class="fixture-row schedule-fixture"><span class="fixture-team home"><span class="fixture-team-copy"><strong>{{ team(match.teamAId)?.color }}</strong><small>{{ team(match.teamAId)?.mascot }}</small></span><span class="team-emblem mascot-image" [ngClass]="team(match.teamAId)?.sprite"></span></span><span class="fixture-score"><b>{{ match.status === 'FINALIZADO' ? match.scoreA : '×' }}</b><small>:</small><b>{{ match.status === 'FINALIZADO' ? match.scoreB : '×' }}</b></span><span class="fixture-team away"><span class="team-emblem mascot-image" [ngClass]="team(match.teamBId)?.sprite"></span><span class="fixture-team-copy"><strong>{{ team(match.teamBId)?.color }}</strong><small>{{ team(match.teamBId)?.mascot }}</small></span></span></div></article></div></section></div></section></div></section></div>
+        <p class="updated-at">Atualizado às {{ lastUpdated }}</p>
+      </section>
+
+      <section *ngIf="view === 'CRONOGRAMA_EQUIPE'" class="team-view">
+        <section class="scoreboard-heading schedule-heading"><div><p class="eyebrow blue">Programação por equipe</p><h2>Jogos da equipe <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div></section>
+        <nav class="schedule-days"><button *ngFor="let item of days" class="schedule-day" [class.active]="item.id === day" (click)="applyPublicFilter('day',item.id)">{{ item.name }}</button></nav>
+        <section class="choice-panel team-schedule-picker"><div class="picker-heading"><p class="eyebrow blue">Torcida</p><h3>Equipes</h3><span>Selecione uma cor para filtrar</span></div><div class="team-picker-grid"><button class="team-picker-choice team-picker-all" [class.active]="!selectedTeam" (click)="selectTeam('')">Todos</button><button class="team-picker-choice" *ngFor="let item of teams" [class.active]="selectedTeam === item.id" (click)="selectTeam(item.id)"><span class="team-emblem mascot-image" [ngClass]="item.sprite"></span><strong>{{ item.color }}</strong></button></div></section>
+        <section class="team-schedule-panel" *ngIf="selectedTeam; else teamPrompt"><section class="team-schedule-heading"><span class="team-emblem mascot-image" [ngClass]="team(selectedTeam)?.sprite"></span><div><span>{{ dayName(day) }}</span><h3>{{ team(selectedTeam)?.color }}</h3><small>{{ team(selectedTeam)?.mascot }} · {{ teamMatches().length }} jogos</small></div></section><div class="team-schedule-grid"><article class="team-schedule-card" *ngFor="let match of teamMatches()"><div class="team-schedule-card-top"><time>{{ match.time }}</time><span class="status waiting">{{ statusLabel(match.status) }}</span></div><div class="team-schedule-location"><strong>{{ courtName(match.court) }}</strong><span>{{ sportName(match.sportId) }} · {{ genderName(match.gender) }}</span></div><div class="team-schedule-versus"><div><span class="team-emblem mascot-image" [ngClass]="team(match.teamAId)?.sprite"></span><span><b>{{ team(match.teamAId)?.color }}</b><small>{{ team(match.teamAId)?.mascot }}</small></span></div><strong class="team-schedule-score">{{ match.status === 'FINALIZADO' ? match.scoreA + ' × ' + match.scoreB : '×' }}</strong><div><span class="team-emblem mascot-image" [ngClass]="team(match.teamBId)?.sprite"></span><span><b>{{ team(match.teamBId)?.color }}</b><small>{{ team(match.teamBId)?.mascot }}</small></span></div></div></article></div></section>
+        <ng-template #teamPrompt><div class="empty-state team-selection-prompt">Selecione uma equipe para visualizar seus jogos.</div></ng-template>
+      </section>
+
+      <section *ngIf="view === 'RESULTADOS'" class="results-section history-heading">
+        <section class="scoreboard-heading"><div><p class="eyebrow blue">Histórico completo</p><h2>Jogos finalizados <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div></section>
+        <section class="choice-panel history-team-picker team-schedule-picker"><div class="picker-heading"><p class="eyebrow blue">Torcida</p><h3>Equipes</h3><span>Selecione uma cor para filtrar</span></div><div class="team-picker-grid"><button class="team-picker-choice team-picker-all" [class.active]="!selectedTeam" (click)="selectTeam('')">Todos</button><button class="team-picker-choice" *ngFor="let item of teams" [class.active]="selectedTeam === item.id" (click)="selectTeam(item.id)"><span class="team-emblem mascot-image" [ngClass]="item.sprite"></span><strong>{{ item.color }}</strong></button></div></section>
+        <section class="team-schedule-heading results-selected-team" *ngIf="selectedTeam">
+          <span class="team-emblem mascot-image" [ngClass]="team(selectedTeam)?.sprite"></span>
+          <div><span>{{ periodName().toUpperCase() }}</span><h3>{{ team(selectedTeam)?.color }}</h3><small>{{ team(selectedTeam)?.mascot }} · {{ resultMatches().length }} resultados</small></div>
+        </section>
+        <div class="history-results-grid"><article class="history-result-card" *ngFor="let match of resultMatches()"><div class="history-result-meta"><strong>{{ dayName(match.day) }} · {{ match.time }}</strong><span>{{ courtName(match.court) }}</span><span>{{ sportName(match.sportId) }} · {{ genderName(match.gender) }}</span></div><div class="fixture-row"><span class="fixture-team home"><span class="fixture-team-copy"><strong>{{ team(match.teamAId)?.color }}</strong><small>{{ team(match.teamAId)?.mascot }}</small></span><span class="team-emblem mascot-image" [ngClass]="team(match.teamAId)?.sprite"></span></span><span class="fixture-score"><b [class.winner-score]="winner(match,'A')">{{ match.scoreA }}</b><small>:</small><b [class.winner-score]="winner(match,'B')">{{ match.scoreB }}</b></span><span class="fixture-team away"><span class="team-emblem mascot-image" [ngClass]="team(match.teamBId)?.sprite"></span><span class="fixture-team-copy"><strong>{{ team(match.teamBId)?.color }}</strong><small>{{ team(match.teamBId)?.mascot }}</small></span></span></div></article><div class="empty-state" *ngIf="!resultMatches().length">Nenhum jogo finalizado para este filtro.</div></div>
+      </section>
+    </div>
+    <footer class="public-footer"><strong>Jogos Infantis de Umuarama - 2026</strong><span>Secretaria Municipal de Educação</span></footer>
+  </ng-template>
 </ng-container>
 
-<ng-template #scoreboard>
-  <div class="public-topbar"><div><strong>JOGOS INFANTIS DE UMUARAMA 2026</strong><strong>PLACAR OFICIAL</strong></div></div>
-  <header class="site-header public-header"><div class="header-inner"><div class="public-brand"><button type="button" class="header-home" (click)="backHome()">Início</button></div><button class="admin-button" type="button">Área administrativa</button></div>
-    <nav class="public-main-nav" aria-label="Menu principal"><button type="button" [class.active]="view === 'CLASSIFICACAO'" (click)="setView('CLASSIFICACAO')"><span class="nav-icon">▦</span><span>Geral</span></button><button type="button" [class.active]="view === 'CRONOGRAMA'" (click)="setView('CRONOGRAMA')"><span class="nav-icon">▤</span><span>Cronograma</span></button><button type="button" [class.active]="view === 'CRONOGRAMA_EQUIPE'" (click)="setView('CRONOGRAMA_EQUIPE')"><span class="nav-icon">♟</span><span>Por time</span></button><button type="button" [class.active]="view === 'RESULTADOS'" (click)="setView('RESULTADOS')"><span class="nav-icon">▥</span><span>Resultados</span></button></nav>
+<ng-container *ngIf="screen === 'ADMIN'">
+  <div class="public-topbar"><div><strong>JOGOS INFANTIS DE UMUARAMA 2026</strong></div></div>
+  <header class="site-header public-header admin-header">
+    <div class="header-inner">
+      <div class="public-brand"><button type="button" class="header-home" (click)="backHome()">Início</button></div>
+      <button type="button" class="admin-button">Área administrativa</button>
+    </div>
   </header>
-  <div class="page-shell scoreboard-shell"><nav class="tabs public-view-tabs legacy-view-tabs"><button class="tab" [class.active]="view === 'CLASSIFICACAO'" (click)="setView('CLASSIFICACAO')">Classificação</button><button class="tab" [class.active]="view === 'CRONOGRAMA'" (click)="setView('CRONOGRAMA')">Cronograma geral</button><button class="tab" [class.active]="view === 'CRONOGRAMA_EQUIPE'" (click)="setView('CRONOGRAMA_EQUIPE')">Cronograma por equipes</button></nav>
-    <p class="legacy-error" *ngIf="error">{{ error }}</p><p class="updated-at" *ngIf="loading">Carregando…</p>
-    <section *ngIf="view === 'CLASSIFICACAO'" class="scoreboard-heading"><div><p class="eyebrow blue">Acompanhe em tempo real</p><h2>Classificação geral <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div></section>
-    <div *ngIf="view === 'CLASSIFICACAO'" class="dashboard-grid"><section class="panel ranking-panel"><div class="table-wrap"><table class="ranking-table"><thead><tr><th>Posição</th><th>Cor</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead><tbody><tr class="team-row" *ngFor="let row of standings" [style.--team-color]="row.hex"><td class="position"><strong>{{ row.position }}º</strong></td><td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite" [attr.aria-label]="row.mascot"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small></span></span></td><td><strong>{{ row.points }}</strong></td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td></tr></tbody></table></div></section><section class="results-section"><div class="section-heading editorial-heading"><div><p class="eyebrow blue">Acompanhe em tempo real</p><h2>Últimos resultados</h2><p>Resultados lançados recentemente</p></div><span class="live-badge">Ao vivo</span></div><div class="results-list"><div class="empty-state">Nenhum resultado lançado neste período.</div></div></section></div>
-    <section *ngIf="view === 'CRONOGRAMA'" class="schedule-view"><section class="scoreboard-heading schedule-heading"><div><p class="eyebrow blue">Programação dos jogos</p><h2>Cronograma <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div></section><nav class="schedule-days"><button *ngFor="let item of days" class="schedule-day" [class.active]="item.id === day" (click)="day=item.id;load()">{{ item.name }}</button></nav><div class="schedule-selectors"><section class="choice-panel"><div class="section-title-block"><p class="eyebrow blue">{{ dayName(day) }}</p><h3>{{ courtName(court) }}</h3></div><div class="court-buttons"><button *ngFor="let item of courts" class="filter-choice court-choice" [class.active]="item.id === court" (click)="court=item.id;load()">{{ item.name }}</button></div></section></div><div class="schedule-content-layout"><section class="selected-court"><div class="activity-grid"><section class="activity-column" *ngFor="let item of sports | slice:0:4"><ng-container *ngIf="item.courtId === court"><div class="activity-heading"><span>{{ courtName(court) }}</span><h3>{{ item.name }}</h3></div><div class="gender-grid"><section class="gender-lane" *ngFor="let genderValue of ['FEMININO','MASCULINO']"><div class="gender-lane-heading"><h4>{{ genderName(genderValue) }}</h4><span>{{ matchesFor(item.id, genderValue).length }} jogos</span></div><div class="gender-games"><article class="schedule-card" *ngFor="let match of matchesFor(item.id, genderValue)"><div class="schedule-card-top"><div><time>{{ match.time }}</time><span class="sport-pill">{{ item.name }}</span></div><span class="status waiting">{{ statusLabel(match.status) }}</span></div><div class="fixture-row schedule-fixture"><span class="fixture-team home"><span class="fixture-team-copy"><strong>{{ team(match.teamAId)?.color }}</strong><small>{{ team(match.teamAId)?.mascot }}</small></span><span class="team-emblem mascot-image"></span></span><span class="fixture-score"><b>{{ match.status === 'FINALIZADO' ? match.scoreA : '×' }}</b><small>:</small><b>{{ match.status === 'FINALIZADO' ? match.scoreB : '×' }}</b></span><span class="fixture-team away"><span class="team-emblem mascot-image"></span><span class="fixture-team-copy"><strong>{{ team(match.teamBId)?.color }}</strong><small>{{ team(match.teamBId)?.mascot }}</small></span></span></div></article></div></section></div></ng-container></section></div></section></div><p class="updated-at">Atualizado às {{ lastUpdated }}</p></section>
-    <section *ngIf="view === 'CRONOGRAMA_EQUIPE'" class="team-view"><section class="scoreboard-heading schedule-heading"><div><p class="eyebrow blue">Programação por equipe</p><h2>Jogos da equipe <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div></section><nav class="schedule-days"><button *ngFor="let item of days" class="schedule-day" [class.active]="item.id === day" (click)="day=item.id;load()">{{ item.name }}</button></nav><section class="choice-panel team-schedule-picker"><div class="picker-heading"><p class="eyebrow blue">Torcida</p><h3>Equipes</h3><span>Selecione uma cor para filtrar</span></div><div class="team-picker-grid"><button class="team-picker-choice" [class.active]="!selectedTeam" (click)="selectedTeam='';load()"><strong>Todos</strong></button><button class="team-picker-choice" *ngFor="let item of teams" [class.active]="selectedTeam === item.id" (click)="selectedTeam=item.id;load()"><span class="team-emblem mascot-image"></span><strong>{{ item.color }}</strong></button></div></section><section class="team-schedule-panel" *ngIf="selectedTeam; else teamPrompt"><section class="team-schedule-heading"><span class="team-emblem mascot-image"></span><div><span>{{ dayName(day) }}</span><h3>{{ team(selectedTeam)?.color }}</h3><small>{{ team(selectedTeam)?.mascot }} · {{ teamMatches().length }} jogos</small></div></section><div class="team-schedule-grid"><article class="team-schedule-card" *ngFor="let match of teamMatches()"><div class="team-schedule-card-top"><time>{{ match.time }}</time><span class="status waiting">{{ statusLabel(match.status) }}</span></div><div class="team-schedule-location"><strong>{{ courtName(match.court) }}</strong><span>{{ sportName(match.sportId) }} · {{ genderName(match.gender) }}</span></div><div class="team-schedule-versus"><div><span class="team-emblem mascot-image"></span><span><b>{{ team(match.teamAId)?.color }}</b><small>{{ team(match.teamAId)?.mascot }}</small></span></div><strong class="team-schedule-score">{{ match.status === 'FINALIZADO' ? match.scoreA + ' × ' + match.scoreB : '×' }}</strong><div><span class="team-emblem mascot-image"></span><span><b>{{ team(match.teamBId)?.color }}</b><small>{{ team(match.teamBId)?.mascot }}</small></span></div></div></article></div></section><ng-template #teamPrompt><div class="empty-state team-selection-prompt">Selecione uma equipe para visualizar seus jogos.</div></ng-template></section>
-    <section *ngIf="view === 'RESULTADOS'" class="results-section history-heading"><section class="scoreboard-heading"><div><p class="eyebrow blue">Histórico completo</p><h2>Jogos finalizados <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div></section><section class="choice-panel history-team-picker team-schedule-picker"><div class="picker-heading"><p class="eyebrow blue">Torcida</p><h3>Equipes</h3><span>Selecione uma cor para filtrar</span></div><div class="team-picker-grid"><button class="team-picker-choice" [class.active]="!selectedTeam" (click)="selectedTeam='' "><strong>Todos</strong></button><button class="team-picker-choice" *ngFor="let item of teams" [class.active]="selectedTeam === item.id" (click)="selectedTeam=item.id"><strong>{{ item.color }}</strong></button></div></section><div class="history-results-grid"><article class="history-result-card" *ngFor="let match of resultMatches()"><div class="history-result-meta"><strong>{{ dayName(match.day) }} · {{ match.time }}</strong><span>{{ courtName(match.court) }}</span><span>{{ sportName(match.sportId) }} · {{ genderName(match.gender) }}</span></div><div class="fixture-row"><span class="fixture-team home"><span class="fixture-team-copy"><strong>{{ team(match.teamAId)?.color }}</strong><small>{{ team(match.teamAId)?.mascot }}</small></span><span class="team-emblem mascot-image"></span></span><span class="fixture-score"><b [class.winner-score]="winner(match,'A')">{{ match.scoreA }}</b><small>:</small><b [class.winner-score]="winner(match,'B')">{{ match.scoreB }}</b></span><span class="fixture-team away"><span class="team-emblem mascot-image"></span><span class="fixture-team-copy"><strong>{{ team(match.teamBId)?.color }}</strong><small>{{ team(match.teamBId)?.mascot }}</small></span></span></div></article><div class="empty-state" *ngIf="!resultMatches().length">Nenhum jogo finalizado para este filtro.</div></div></section>
-  </div>
-  <footer class="public-footer"><strong>Jogos Infantis de Umuarama - 2026</strong><span>Secretaria Municipal de Educação</span></footer>
-</ng-template>
+
+  <nav class="public-main-nav admin-registration-nav" aria-label="Menu administrativo">
+    <button type="button" [class.active]="adminFiltersOpen" (click)="adminFiltersOpen=true"><span class="nav-icon">⚙</span><span>Filtros</span></button>
+    <button type="button" (click)="adminRankingOpen=true"><span class="nav-icon">▥</span><span>Placar</span></button>
+    <button type="button" (click)="correctionOpen=true"><span class="nav-icon">✎</span><span>Editar</span></button>
+  </nav>
+
+  <main id="admin-app" class="page-shell">
+    <section class="admin-intro"><h2>Registro de Resultados</h2></section>
+
+    <section class="panel filters-panel">
+      <fieldset class="filter-group"><legend>Período</legend><div class="segmented"><button *ngFor="let item of periods" type="button" class="segment" [class.active]="adminPeriod===item.id" (click)="setAdminFilter('period',item.id)">{{ item.name }}</button></div></fieldset>
+      <fieldset class="filter-group"><legend>Dia</legend><div class="segmented"><button *ngFor="let item of days" type="button" class="segment" [class.active]="adminDay===item.id" (click)="setAdminFilter('day',item.id)">{{ item.name }}</button></div></fieldset>
+      <fieldset class="filter-group"><legend>Quadra</legend><div class="segmented"><button *ngFor="let item of courts" type="button" class="segment" [class.active]="adminCourt===item.id" (click)="setAdminFilter('court',item.id)">{{ item.name }}</button></div></fieldset>
+      <fieldset class="filter-group"><legend>Modalidade</legend><div class="segmented"><button type="button" class="segment" [class.active]="!adminSport" (click)="setAdminFilter('sport','')">Todas</button><button *ngFor="let item of adminVisibleSports()" type="button" class="segment" [class.active]="adminSport===item.id" (click)="setAdminFilter('sport',item.id)">{{ item.name }}</button></div></fieldset>
+      <fieldset class="filter-group"><legend>Gênero</legend><div class="segmented"><button type="button" class="segment" [class.active]="!adminGender" (click)="setAdminFilter('gender','')">Todos</button><button type="button" class="segment" [class.active]="adminGender==='FEMININO'" (click)="setAdminFilter('gender','FEMININO')">Feminino</button><button type="button" class="segment" [class.active]="adminGender==='MASCULINO'" (click)="setAdminFilter('gender','MASCULINO')">Masculino</button></div></fieldset>
+      <div class="admin-filter-actions"><button type="button" class="admin-filter-confirm" (click)="confirmAdminFilters()">Confirmar</button></div>
+    </section>
+
+    <section id="matches-area" class="matches-area">
+      <div class="matches-heading">
+        <div class="selected-court-title"><p class="eyebrow blue">Quadra selecionada</p><h2>{{ courtName(adminCourt) }}</h2></div>
+        <div class="selection-summary"><span>Período: {{ periodName(adminPeriod) }}</span><span>{{ dayName(adminDay) }}</span><span>{{ adminSport ? sportName(adminSport) : 'Todas as modalidades' }}</span><span>{{ adminGender ? genderName(adminGender) : 'Todos os gêneros' }}</span><span>{{ adminMatches.length }} partidas</span></div>
+      </div>
+
+      <div class="matches-list">
+        <article class="match-card" *ngFor="let match of adminMatches"
+          [class.current-match]="match.id===currentMatchId()"
+          [class.next-match]="match.id===nextMatchId()"
+          [class.finished]="match.status==='FINALIZADO'">
+          <div class="match-top">
+            <div><time>{{ match.time }}</time><span class="sport-pill">{{ sportName(match.sportId) }}</span></div>
+            <div class="match-labels">
+              <span *ngIf="match.id===currentMatchId()" class="current-badge">Jogo Acontecendo</span>
+              <span *ngIf="match.id===nextMatchId()" class="current-badge next-badge">Próximo jogo</span>
+              <span class="gender-label">{{ genderName(match.gender) }}</span>
+            </div>
+          </div>
+
+          <div class="match-score-row">
+            <div class="admin-team">
+              <span class="admin-team-name" [class.winner]="match.status==='FINALIZADO' && winner(match,'A')">
+                <span class="team-emblem mascot-image" [ngClass]="team(match.teamAId)?.sprite"></span>
+                <span><strong>{{ team(match.teamAId)?.color }}</strong><small>{{ team(match.teamAId)?.mascot }}</small></span>
+              </span>
+              <div class="score-control">
+                <button type="button" [disabled]="match.status==='FINALIZADO'" (click)="adjustScore(match,'A',-1)">−</button>
+                <output>{{ scoreDrafts[match.id]?.a ?? match.scoreA }}</output>
+                <button type="button" [disabled]="match.status==='FINALIZADO'" (click)="adjustScore(match,'A',1)">+</button>
+              </div>
+            </div>
+
+            <span class="versus">×</span>
+
+            <div class="admin-team">
+              <span class="admin-team-name" [class.winner]="match.status==='FINALIZADO' && winner(match,'B')">
+                <span class="team-emblem mascot-image" [ngClass]="team(match.teamBId)?.sprite"></span>
+                <span><strong>{{ team(match.teamBId)?.color }}</strong><small>{{ team(match.teamBId)?.mascot }}</small></span>
+              </span>
+              <div class="score-control">
+                <button type="button" [disabled]="match.status==='FINALIZADO'" (click)="adjustScore(match,'B',-1)">−</button>
+                <output>{{ scoreDrafts[match.id]?.b ?? match.scoreB }}</output>
+                <button type="button" [disabled]="match.status==='FINALIZADO'" (click)="adjustScore(match,'B',1)">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="match-actions">
+            <span class="status" [class.done]="match.status==='FINALIZADO'" [class.live]="match.id===currentMatchId() || match.status==='EM_ANDAMENTO'" [class.waiting]="match.status==='AGUARDANDO'">{{ statusLabel(match.status) }}</span>
+            <button class="save-button" type="button" [disabled]="match.status==='FINALIZADO'" (click)="requestSave(match)">{{ match.status==='FINALIZADO' ? 'Salvo' : 'Salvar' }}</button>
+          </div>
+        </article>
+
+        <div class="empty-state" *ngIf="!adminLoading && !adminMatches.length">Nenhuma partida para estes filtros.</div>
+      </div>
+    </section>
+
+    <section id="admin-ranking" class="admin-ranking-section" aria-label="Placar geral do período">
+      <div class="admin-ranking-heading"><div><p class="eyebrow blue">Acompanhamento</p><h2>Placar geral</h2></div><span class="period-badge">Período: {{ periodName(adminPeriod) }}</span></div>
+      <div class="panel ranking-panel"><div class="table-wrap"><table class="ranking-table"><thead><tr><th>Posição</th><th>Cor</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead><tbody><tr *ngFor="let row of adminStandings"><td class="position"><strong>{{ row.position }}º</strong></td><td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small></span></span></td><td><strong>{{ row.points }}</strong></td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td></tr></tbody></table></div></div>
+    </section>
+
+    <section class="correction-panel">
+      <div><p class="eyebrow">Acesso restrito</p><h2>Correção de resultados</h2><p>Resultados finalizados protegidos</p></div>
+      <button class="correction-button" type="button" (click)="correctionOpen=true">Editar resultados finalizados</button>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" [class.show]="toast" role="status" aria-live="polite">{{ toast }}</div>
+</ng-container>
+
+<div *ngIf="loginOpen" class="jogos-login-modal mobile-filter-modal">
+  <div class="mobile-filter-backdrop" (click)="loginOpen=false"></div>
+  <section class="mobile-filter-sheet" role="dialog" aria-modal="true" aria-label="Acesso administrativo">
+    <div class="mobile-filter-sheet-head"><h2>Acesso administrativo</h2></div>
+    <div class="mobile-filter-body login-form"><input [(ngModel)]="loginEmail" type="text" placeholder="Login" autocomplete="username"><input [(ngModel)]="loginPassword" type="password" placeholder="Senha" autocomplete="current-password" (keyup.enter)="login()"><label class="login-remember"><input [(ngModel)]="rememberLogin" type="checkbox"><span>Lembrar de mim neste navegador</span></label><p class="login-error">{{ loginError }}</p></div>
+    <div class="mobile-filter-actions login-actions"><button class="mobile-filter-close" type="button" [disabled]="loginLoading" (click)="login()">{{ loginLoading ? 'Entrando...' : 'Entrar' }}</button><button class="login-cancel" type="button" (click)="loginOpen=false">Cancelar</button></div>
+  </section>
+</div>
+
+<div *ngIf="publicFiltersOpen" class="mobile-filter-modal">
+  <div class="mobile-filter-backdrop" (click)="publicFiltersOpen=false"></div>
+  <section class="mobile-filter-sheet" role="dialog" aria-modal="true" aria-label="Filtros">
+    <div class="mobile-filter-sheet-head"><h2>Filtros</h2></div>
+    <div class="mobile-filter-body">
+      <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA' || view==='CRONOGRAMA_EQUIPE'"><h3>Dia</h3><div class="mobile-filter-options"><button *ngFor="let item of days" [class.active]="day===item.id" (click)="applyPublicFilter('day',item.id)">{{ item.name }}</button></div></div>
+      <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA'"><h3>Quadra</h3><div class="mobile-filter-options"><button *ngFor="let item of courts" [class.active]="court===item.id" (click)="applyPublicFilter('court',item.id)">{{ item.name }}</button></div></div>
+      <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA'"><h3>Modalidade</h3><div class="mobile-filter-options"><button [class.active]="!sport" (click)="applyPublicFilter('sport','')">Todas</button><button *ngFor="let item of visibleSports(court)" [class.active]="sport===item.id" (click)="applyPublicFilter('sport',item.id)">{{ item.name }}</button></div></div>
+      <div class="mobile-filter-group" *ngIf="view==='RESULTADOS' || view==='CRONOGRAMA_EQUIPE'"><h3>Equipe</h3><div class="mobile-filter-options mobile-team-filter-options"><button class="mobile-team-filter-all" [class.active]="!selectedTeam" (click)="applyPublicFilter('team','')"><strong>Todas</strong></button><button class="mobile-team-filter-choice" *ngFor="let item of teams" [class.active]="selectedTeam===item.id" (click)="applyPublicFilter('team',item.id)"><span class="team-emblem mascot-image" [ngClass]="item.sprite"></span><strong>{{ item.color }}</strong></button></div></div>
+    </div>
+    <div class="mobile-filter-actions"><button class="mobile-filter-close" type="button" (click)="confirmPublicFilters()">Confirmar</button></div>
+  </section>
+</div>
+
+<div *ngIf="adminFiltersOpen && screen==='ADMIN'" class="mobile-filter-modal admin-filter-modal">
+  <div class="mobile-filter-backdrop" (click)="adminFiltersOpen=false"></div>
+  <section class="mobile-filter-sheet" role="dialog" aria-modal="true" aria-label="Filtros administrativos">
+    <div class="mobile-filter-sheet-head"><h2>Filtros</h2></div>
+    <div class="mobile-filter-body">
+      <div class="mobile-filter-group"><h3>Período</h3><div class="mobile-filter-options"><button *ngFor="let item of periods" [class.active]="adminPeriod===item.id" (click)="setAdminFilter('period',item.id)">{{ item.name }}</button></div></div>
+      <div class="mobile-filter-group"><h3>Dia</h3><div class="mobile-filter-options"><button *ngFor="let item of days" [class.active]="adminDay===item.id" (click)="setAdminFilter('day',item.id)">{{ item.name }}</button></div></div>
+      <div class="mobile-filter-group"><h3>Quadra</h3><div class="mobile-filter-options"><button *ngFor="let item of courts" [class.active]="adminCourt===item.id" (click)="setAdminFilter('court',item.id)">{{ item.name }}</button></div></div>
+      <div class="mobile-filter-group"><h3>Modalidade</h3><div class="mobile-filter-options"><button [class.active]="!adminSport" (click)="setAdminFilter('sport','')">Todas</button><button *ngFor="let item of adminVisibleSports()" [class.active]="adminSport===item.id" (click)="setAdminFilter('sport',item.id)">{{ item.name }}</button></div></div>
+      <div class="mobile-filter-group"><h3>Gênero</h3><div class="mobile-filter-options"><button [class.active]="!adminGender" (click)="setAdminFilter('gender','')">Todos</button><button [class.active]="adminGender==='FEMININO'" (click)="setAdminFilter('gender','FEMININO')">Feminino</button><button [class.active]="adminGender==='MASCULINO'" (click)="setAdminFilter('gender','MASCULINO')">Masculino</button></div></div>
+    </div>
+    <div class="mobile-filter-actions"><button class="mobile-filter-close" type="button" (click)="confirmAdminFilters()">Confirmar</button></div>
+  </section>
+</div>
+
+<div *ngIf="adminRankingOpen && screen==='ADMIN'" class="admin-ranking-modal">
+  <div class="admin-ranking-backdrop" (click)="adminRankingOpen=false"></div>
+  <section class="admin-ranking-sheet" role="dialog" aria-modal="true" aria-label="Placar geral">
+    <div class="admin-ranking-sheet-head"><h2>Placar geral</h2></div>
+    <div class="admin-ranking-sheet-body"><div class="table-wrap"><table class="ranking-table"><thead><tr><th>Posição</th><th>Cor</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead><tbody><tr *ngFor="let row of adminStandings"><td><strong>{{ row.position }}º</strong></td><td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small></span></span></td><td><strong>{{ row.points }}</strong></td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td></tr></tbody></table></div></div>
+    <button type="button" class="admin-ranking-back" (click)="adminRankingOpen=false">Voltar</button>
+  </section>
+</div>
+
+<div *ngIf="saveConfirmOpen && pendingSaveMatch" class="save-confirm-modal">
+  <div class="save-confirm-backdrop" (click)="cancelSave()"></div>
+  <section class="save-confirm-sheet" role="dialog" aria-modal="true" aria-label="Confirmar resultado">
+    <p class="eyebrow blue">{{ pendingSaveCorrection ? 'Confirmar correção' : 'Confirmar resultado' }}</p>
+    <h2>{{ sportName(pendingSaveMatch.sportId) }} · {{ genderName(pendingSaveMatch.gender) }}</h2>
+    <div class="save-confirm-game">
+      <div class="save-confirm-team">
+        <span class="team-emblem mascot-image" [ngClass]="team(pendingSaveMatch.teamAId)?.sprite"></span>
+        <strong>{{ team(pendingSaveMatch.teamAId)?.color }}</strong>
+      </div>
+      <div class="save-confirm-score">
+        <strong>{{ pendingDraft().a }}</strong><span>×</span><strong>{{ pendingDraft().b }}</strong>
+      </div>
+      <div class="save-confirm-team">
+        <span class="team-emblem mascot-image" [ngClass]="team(pendingSaveMatch.teamBId)?.sprite"></span>
+        <strong>{{ team(pendingSaveMatch.teamBId)?.color }}</strong>
+      </div>
+    </div>
+    <p class="save-confirm-meta">{{ dayName(pendingSaveMatch.day) }} · {{ pendingSaveMatch.time }} · {{ courtName(pendingSaveMatch.court) }}</p>
+    <div class="save-confirm-actions">
+      <button type="button" class="save-confirm-primary" (click)="confirmSave()">Confirmar</button>
+      <button type="button" class="save-confirm-secondary" (click)="cancelSave()">Cancelar</button>
+    </div>
+  </section>
+</div>
+
+<div *ngIf="correctionOpen && screen==='ADMIN'" class="admin-edit-modal">
+  <div class="admin-ranking-backdrop" (click)="correctionOpen=false"></div>
+  <section class="admin-edit-sheet" role="dialog" aria-modal="true" aria-label="Editar resultados finalizados">
+    <h2>Editar resultados finalizados</h2>
+    <div class="admin-edit-list">
+      <article class="match-card editing" *ngFor="let match of filteredFinishedMatches()">
+        <div class="match-top">
+          <div><time>{{ match.time }}</time><span class="sport-pill">{{ sportName(match.sportId) }}</span></div>
+          <span class="gender-label">{{ genderName(match.gender) }}</span>
+        </div>
+
+        <div class="match-score-row edit-score-row">
+          <div class="admin-team">
+            <span class="admin-team-name">
+              <span class="team-emblem mascot-image" [ngClass]="team(match.teamAId)?.sprite"></span>
+              <span><strong>{{ team(match.teamAId)?.color }}</strong><small>{{ team(match.teamAId)?.mascot }}</small></span>
+            </span>
+            <div class="score-control">
+              <button type="button" (click)="adjustScore(match,'A',-1)">−</button>
+              <output>{{ scoreDrafts[match.id]?.a ?? match.scoreA }}</output>
+              <button type="button" (click)="adjustScore(match,'A',1)">+</button>
+            </div>
+          </div>
+
+          <span class="versus">×</span>
+
+          <div class="admin-team">
+            <span class="admin-team-name">
+              <span class="team-emblem mascot-image" [ngClass]="team(match.teamBId)?.sprite"></span>
+              <span><strong>{{ team(match.teamBId)?.color }}</strong><small>{{ team(match.teamBId)?.mascot }}</small></span>
+            </span>
+            <div class="score-control">
+              <button type="button" (click)="adjustScore(match,'B',-1)">−</button>
+              <output>{{ scoreDrafts[match.id]?.b ?? match.scoreB }}</output>
+              <button type="button" (click)="adjustScore(match,'B',1)">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="match-actions">
+          <button class="save-button" type="button" (click)="requestSave(match,true)">Salvar correção</button>
+        </div>
+      </article>
+      <div class="empty-state" *ngIf="!filteredFinishedMatches().length">Nenhum resultado finalizado neste filtro.</div>
+    </div>
+    <div class="admin-edit-actions"><button type="button" class="admin-edit-confirm" (click)="correctionOpen=false">Confirmar</button></div>
+  </section>
+</div>

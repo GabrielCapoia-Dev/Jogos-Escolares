@@ -31,9 +31,21 @@ func Open(ctx context.Context, url string) (*Store, error) {
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(30 * time.Minute)
-	if err = db.PingContext(ctx); err != nil {
+	var pingErr error
+	for attempt := 1; attempt <= 30; attempt++ {
+		pingCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+		pingErr = db.PingContext(pingCtx)
+		cancel()
+		if pingErr == nil {
+			break
+		}
+		if attempt < 30 {
+			time.Sleep(2 * time.Second)
+		}
+	}
+	if pingErr != nil {
 		_ = db.Close()
-		return nil, err
+		return nil, pingErr
 	}
 	s := &Store{DB: db}
 	if err = s.initialize(ctx); err != nil {
@@ -68,7 +80,10 @@ func (s *Store) initialize(ctx context.Context) error {
 	if err := s.ensureAdmin(ctx); err != nil {
 		return err
 	}
-	return s.seedMatches(ctx)
+	if err := s.seedMatches(ctx); err != nil {
+		return err
+	}
+	return s.seedDemoResults(ctx)
 }
 
 func (s *Store) seedReferenceData(ctx context.Context) error {
@@ -106,27 +121,76 @@ func (s *Store) seedReferenceData(ctx context.Context) error {
 }
 
 func (s *Store) seedMatches(ctx context.Context) error {
-	var count int
-	if err := s.DB.QueryRowContext(ctx, "SELECT count(*) FROM matches").Scan(&count); err != nil {
-		return err
-	}
-	if count > 0 {
-		return nil
-	}
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
+
 	for _, m := range domain.SeedMatches() {
-		if _, err = tx.ExecContext(ctx, `INSERT INTO matches(id,period_id,day_id,court_id,scheduled_time,sport_id,gender,team_a_id,team_b_id,status,sort_order,score_a,score_b) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`, m.ID, m.Period, m.Day, m.Court, m.Time, m.SportID, m.Gender, m.TeamAID, m.TeamBID, m.Status, m.Order, m.ScoreA, m.ScoreB); err != nil {
+		if _, err = tx.ExecContext(ctx, `
+			INSERT INTO matches(
+				id,period_id,day_id,court_id,scheduled_time,sport_id,gender,
+				team_a_id,team_b_id,status,sort_order,score_a,score_b
+			)
+			VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+			ON CONFLICT(id) DO NOTHING
+		`, m.ID, m.Period, m.Day, m.Court, m.Time, m.SportID, m.Gender, m.TeamAID, m.TeamBID, m.Status, m.Order, m.ScoreA, m.ScoreB); err != nil {
 			return err
 		}
 	}
 	return tx.Commit()
 }
 
+func (s *Store) seedDemoResults(ctx context.Context) error {
+	if strings.ToLower(strings.TrimSpace(os.Getenv("DEMO_RESULTS"))) != "true" {
+		return nil
+	}
+
+	// Sempre completa a base de teste, mas só toca partidas que ainda não foram
+	// alteradas manualmente (updated_at IS NULL). Assim funciona mesmo com banco antigo.
+	_, err := s.DB.ExecContext(ctx, `
+		UPDATE matches
+		   SET status = $1,
+		       score_a = CASE sort_order
+		                   WHEN 1 THEN 4
+		                   WHEN 2 THEN 1
+		                   WHEN 3 THEN 2
+		                   ELSE score_a
+		                 END,
+		       score_b = CASE sort_order
+		                   WHEN 1 THEN 2
+		                   WHEN 2 THEN 3
+		                   WHEN 3 THEN 2
+		                   ELSE score_b
+		                 END,
+		       updated_at = now()
+		 WHERE sort_order BETWEEN 1 AND 3
+		   AND updated_at IS NULL
+	`, domain.StatusFinalizado)
+	return err
+}
+
 func (s *Store) ensureAdmin(ctx context.Context) error {
+	fixedUsers := []struct {
+		login string
+		name  string
+		hash  string
+	}{
+		{"Vinicius Cerezuela", "Vinicius Cerezuela", "$2a$12$3ev/g8YrW6iTu.AwQWfzlO4gh28RhtwdY/EdVke8B6EhLreegaNue"},
+		{"Gabriel Capoia", "Gabriel Capoia", "$2a$12$xS8MDi/o62b6DCa.BSAqRermT3V00ILfEOjUrNdSoy8TF61c4NBci"},
+		{"Smel", "Smel", "$2a$12$xVvzyagcQxOAVLWLwEkJX.5iEpJ.ZvzSJXTSUHbNeM3XIhGs7HX.."},
+	}
+	for _, user := range fixedUsers {
+		if _, err := s.DB.ExecContext(ctx,
+			`INSERT INTO users(email,name,password_hash) VALUES($1,$2,$3)
+			 ON CONFLICT(email) DO UPDATE SET name=EXCLUDED.name, password_hash=EXCLUDED.password_hash, active=true`,
+			strings.ToLower(strings.TrimSpace(user.login)), user.name, user.hash,
+		); err != nil {
+			return err
+		}
+	}
+
 	email, password := os.Getenv("ADMIN_EMAIL"), os.Getenv("ADMIN_PASSWORD")
 	if email == "" || password == "" {
 		return nil
@@ -135,7 +199,11 @@ func (s *Store) ensureAdmin(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	_, err = s.DB.ExecContext(ctx, `INSERT INTO users(email,name,password_hash) VALUES($1,$2,$3) ON CONFLICT(email) DO UPDATE SET name=EXCLUDED.name, password_hash=EXCLUDED.password_hash, active=true`, strings.ToLower(strings.TrimSpace(email)), "Administrador", string(hash))
+	_, err = s.DB.ExecContext(ctx,
+		`INSERT INTO users(email,name,password_hash) VALUES($1,$2,$3)
+		 ON CONFLICT(email) DO UPDATE SET name=EXCLUDED.name, password_hash=EXCLUDED.password_hash, active=true`,
+		strings.ToLower(strings.TrimSpace(email)), "Administrador", string(hash),
+	)
 	return err
 }
 
@@ -173,20 +241,43 @@ func (s *Store) Matches(ctx context.Context, period, day, court, sport, gender s
 }
 
 func (s *Store) Login(ctx context.Context, email, password string) (string, error) {
+	login := strings.ToLower(strings.TrimSpace(email))
+	fixed := map[string]string{
+		"vinicius cerezuela": "99c90ab6c33c1f3b0674dba8da7674ce96139162d1c9d16c376de365dcda4a27",
+		"gabriel capoia":      "1ce1e488e98e66b63fa8e2266aef8a1f06ab4d0a00fab329174e95f1d31435fe",
+		"smel":                "e42e62ee56f9065356e413c3402d7b7c95b71a038368a03224f84f5e6842707c",
+	}
+	if expected, ok := fixed[login]; ok {
+		sum := sha256.Sum256([]byte(password))
+		if hex.EncodeToString(sum[:]) != expected {
+			return "", ErrUnauthorized
+		}
+		var id string
+		if err := s.DB.QueryRowContext(ctx, `SELECT id FROM users WHERE email=$1 AND active`, login).Scan(&id); err != nil {
+			return "", ErrUnauthorized
+		}
+		return s.issueToken(ctx, id)
+	}
+
 	var id, hash string
-	err := s.DB.QueryRowContext(ctx, `SELECT id,password_hash FROM users WHERE email=$1 AND active`, strings.ToLower(strings.TrimSpace(email))).Scan(&id, &hash)
+	err := s.DB.QueryRowContext(ctx, `SELECT id,password_hash FROM users WHERE email=$1 AND active`, login).Scan(&id, &hash)
 	if err != nil || bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) != nil {
 		return "", ErrUnauthorized
 	}
+	return s.issueToken(ctx, id)
+}
+
+func (s *Store) issueToken(ctx context.Context, id string) (string, error) {
 	raw := make([]byte, 32)
-	if _, err = rand.Read(raw); err != nil {
+	if _, err := rand.Read(raw); err != nil {
 		return "", err
 	}
 	token := hex.EncodeToString(raw)
 	sum := sha256.Sum256([]byte(token))
-	_, err = s.DB.ExecContext(ctx, `INSERT INTO access_tokens(token_hash,user_id,expires_at) VALUES($1,$2,$3)`, hex.EncodeToString(sum[:]), id, time.Now().Add(12*time.Hour))
+	_, err := s.DB.ExecContext(ctx, `INSERT INTO access_tokens(token_hash,user_id,expires_at) VALUES($1,$2,$3)`, hex.EncodeToString(sum[:]), id, time.Now().Add(12*time.Hour))
 	return token, err
 }
+
 func (s *Store) UserID(ctx context.Context, token string) (string, error) {
 	sum := sha256.Sum256([]byte(token))
 	var id string

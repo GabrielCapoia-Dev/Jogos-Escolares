@@ -12,23 +12,36 @@ services:
       timeout: 3s
       retries: 10
   api:
+    restart: on-failure
     build:
       context: .
       dockerfile: backend/Dockerfile
     environment:
       HTTP_ADDR: ":8080"
       CORS_ORIGIN: http://localhost:4200
-      DATABASE_URL: postgres://jogos:jogos_dev@postgres:5432/jogos_escolares?sslmode=disable
+      DATABASE_URL: postgres://jogos:jogos_dev@host.docker.internal:5432/jogos_escolares?sslmode=disable
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      DEMO_RESULTS: ${DEMO_RESULTS:-true}
     ports: ["8080:8080"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/healthz >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
     depends_on:
       postgres:
         condition: service_healthy
   frontend:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     build:
       context: .
       dockerfile: frontend/Dockerfile
     ports: ["4200:80"]
     depends_on:
-      - api
+      api:
+        condition: service_healthy
