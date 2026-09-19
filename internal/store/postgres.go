@@ -135,7 +135,7 @@ func (s *Store) seedReferenceData(ctx context.Context) error {
 		}
 	}
 	for _, item := range domain.SeedTeams() {
-		if _, err := s.DB.ExecContext(ctx, `INSERT INTO teams(id,period_id,color,hex,mascot,sprite,active) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT DO NOTHING`, item.ID, item.Period, item.Color, item.Hex, item.Mascot, item.Sprite, item.Active); err != nil {
+		if _, err := s.DB.ExecContext(ctx, `INSERT INTO teams(id,period_id,color,hex,mascot,sprite,active) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(id) DO UPDATE SET period_id=EXCLUDED.period_id,color=EXCLUDED.color,hex=EXCLUDED.hex,mascot=EXCLUDED.mascot,sprite=EXCLUDED.sprite,active=EXCLUDED.active`, item.ID, item.Period, item.Color, item.Hex, item.Mascot, item.Sprite, item.Active); err != nil {
 			return err
 		}
 	}
