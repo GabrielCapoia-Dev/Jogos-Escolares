@@ -162,9 +162,7 @@ export class AppComponent implements OnDestroy {
           },
           error: () => {
             if (requestVersion !== this.publicRequestVersion) return;
-            if (!this.teams.length) this.teams = this.fallbackTeams(requestPeriod);
-            if (!this.standings.length) this.standings = this.zeroStandings(this.teams);
-            this.failPublic();
+            this.loadGeneralFallback(requestPeriod, requestGender, requestVersion);
           }
         });
       return;
@@ -487,6 +485,31 @@ export class AppComponent implements OnDestroy {
   private failPublic(): void {
     this.error = 'Não foi possível carregar os dados.';
     this.loading = false;
+  }
+
+  private loadGeneralFallback(period: string, gender: string, requestVersion: number): void {
+    forkJoin({
+      teams: this.api.teams(period),
+      standings: this.api.standings(period, gender),
+      matches: this.api.matches(period)
+    }).subscribe({
+      next: ({ teams, standings, matches }) => {
+        if (requestVersion !== this.publicRequestVersion) return;
+        if (this.period !== period || this.view !== 'CLASSIFICACAO') return;
+        this.teams = teams;
+        this.standings = standings;
+        this.matches = matches.filter(item => item.status === 'FINALIZADO');
+        this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        this.loading = false;
+        this.error = '';
+      },
+      error: () => {
+        if (requestVersion !== this.publicRequestVersion) return;
+        if (!this.teams.length) this.teams = this.fallbackTeams(period);
+        if (!this.standings.length) this.standings = this.zeroStandings(this.teams);
+        this.failPublic();
+      }
+    });
   }
 
   private teamFilterKey(period = this.period): string {
