@@ -311,8 +311,15 @@ func (s *server) result(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), status)
 		return
 	}
-	s.broadcastScoreboard(r.Context(), match.Period)
 	writeJSON(w, 200, match)
+
+	// O lançamento não espera a montagem do placar público.
+	// A transmissão acontece logo após a confirmação do banco, em segundo plano.
+	go func(period string) {
+		ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+		defer cancel()
+		s.broadcastScoreboard(ctx, period)
+	}(match.Period)
 }
 func (s *server) broadcastScoreboard(ctx context.Context, period string) {
 	teams, err := s.store.Teams(ctx, period)
