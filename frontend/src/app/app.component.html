@@ -1,23 +1,12 @@
 <ng-container *ngIf="screen === 'PUBLIC'">
   <ng-container *ngIf="!period; else publicScoreboard">
-    <section class="welcome-screen">
-      <div class="welcome-content">
+    <section class="welcome-screen simple-welcome">
+      <button type="button" class="welcome-logo-button" (click)="enterPublicFromLogo()" aria-label="Entrar no placar dos Jogos Infantis">
         <picture class="brand-logo welcome-logo">
           <source media="(min-width: 700px)" srcset="/assets/logo-horizontal-inicial.png">
           <img src="/assets/logo-vertical.png" alt="Jogos Infantis de Umuarama">
         </picture>
-        <div class="welcome-copy">
-          <p class="eyebrow blue">Jogos Infantis de Umuarama</p>
-          <h1>Placar ao vivo dos Jogos Infantis de Umuarama <span>2026</span></h1>
-          <p>Acompanhe a classificação geral e os resultados em tempo real durante os jogos.</p>
-        </div>
-        <div class="period-choice">
-          <h2 id="period-title">Escolha o período</h2>
-          <div class="choice-grid">
-            <button class="choice-button" *ngFor="let item of periods" (click)="choosePeriod(item)">{{ item.name }}</button>
-          </div>
-        </div>
-      </div>
+      </button>
     </section>
   </ng-container>
 
@@ -27,6 +16,15 @@
       <div class="header-inner">
         <div class="public-brand"><button type="button" class="header-home" (click)="backHome()">Início</button></div>
         <button class="admin-button" type="button" (click)="openLogin()">Área administrativa</button>
+      </div>
+      <div class="public-period-switcher" aria-label="Período dos jogos">
+        <button
+          type="button"
+          *ngFor="let item of periods"
+          [class.active]="period === item.id"
+          (click)="choosePeriod(item)">
+          {{ item.name }}
+        </button>
       </div>
       <nav class="public-main-nav" aria-label="Menu principal">
         <button type="button" [class.active]="view === 'CLASSIFICACAO'" (click)="setView('CLASSIFICACAO')"><span class="nav-icon">▦</span><span>Geral</span></button>
