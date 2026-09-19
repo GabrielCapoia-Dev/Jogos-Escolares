@@ -10,6 +10,7 @@ import (
 	"errors"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -21,7 +22,7 @@ var ErrNotFound = errors.New("registro não encontrado")
 var ErrProtected = errors.New("resultado finalizado está protegido")
 var ErrUnauthorized = errors.New("credenciais inválidas")
 
-type Store struct{ DB *sql.DB }
+type Store struct{\n\tDB *sql.DB\n\ttokenUsers sync.Map\n}
 
 func Open(ctx context.Context, url string) (*Store, error) {
 	db, err := sql.Open("pgx", url)
@@ -288,40 +289,57 @@ func (s *Store) UserID(ctx context.Context, token string) (string, error) {
 	return id, nil
 }
 func (s *Store) SaveResult(ctx context.Context, id string, a, b int, user string, correction bool) (domain.Match, error) {
-	if a < 0 || b < 0 {
-		return domain.Match{}, errors.New("placar inválido")
-	}
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return domain.Match{}, err
-	}
-	defer tx.Rollback()
-	var m domain.Match
-	err = tx.QueryRowContext(ctx, `SELECT id,period_id,day_id,court_id,to_char(scheduled_time,'HH24:MI'),sport_id,gender,team_a_id,team_b_id,status,sort_order,score_a,score_b FROM matches WHERE id=$1 FOR UPDATE`, id).Scan(&m.ID, &m.Period, &m.Day, &m.Court, &m.Time, &m.SportID, &m.Gender, &m.TeamAID, &m.TeamBID, &m.Status, &m.Order, &m.ScoreA, &m.ScoreB)
-	if err == sql.ErrNoRows {
-		return domain.Match{}, ErrNotFound
-	}
-	if err != nil {
-		return domain.Match{}, err
-	}
-	if m.Status == domain.StatusFinalizado && !correction {
-		return domain.Match{}, ErrProtected
-	}
-	before, _ := json.Marshal(m)
-	m.ScoreA = a
-	m.ScoreB = b
-	m.Status = domain.StatusFinalizado
-	_, err = tx.ExecContext(ctx, `UPDATE matches SET score_a=$1,score_b=$2,status=$3,updated_at=now() WHERE id=$4`, a, b, m.Status, id)
-	if err != nil {
-		return domain.Match{}, err
-	}
-	after, _ := json.Marshal(m)
-	action := "SALVAR_RESULTADO"
-	if correction {
-		action = "ALTERAR_RESULTADO"
-	}
-	if _, err = tx.ExecContext(ctx, `INSERT INTO audit_logs(user_id,action,match_id,before_state,after_state) VALUES($1,$2,$3,$4,$5)`, user, action, id, before, after); err != nil {
-		return domain.Match{}, err
-	}
-	return m, tx.Commit()
+\tif a < 0 || b < 0 {
+\t\treturn domain.Match{}, errors.New("placar inválido")
+\t}
+\taction := "SALVAR_RESULTADO"
+\tif correction {
+\t\taction = "ALTERAR_RESULTADO"
+\t}
+\tvar m domain.Match
+\terr := s.DB.QueryRowContext(ctx, `
+\t\tWITH old AS (
+\t\t\tSELECT id, period_id, day_id, court_id, scheduled_time, sport_id, gender,
+\t\t\t       team_a_id, team_b_id, status, sort_order, score_a, score_b
+\t\t\t  FROM matches
+\t\t\t WHERE id = $4
+\t\t\t   AND (status <> $5 OR $6)
+\t\t),
+\t\tupdated AS (
+\t\t\tUPDATE matches m
+\t\t\t   SET score_a=$1, score_b=$2, status=$5, updated_at=now()
+\t\t\t  FROM old
+\t\t\t WHERE m.id=old.id
+\t\t\tRETURNING m.id,m.period_id,m.day_id,m.court_id,m.scheduled_time,m.sport_id,m.gender,
+\t\t\t          m.team_a_id,m.team_b_id,m.status,m.sort_order,m.score_a,m.score_b
+\t\t),
+\t\tlogged AS (
+\t\t\tINSERT INTO audit_logs(user_id,action,match_id,before_state,after_state)
+\t\t\tSELECT $3,$7,old.id,
+\t\t\t       jsonb_build_object(
+\t\t\t         'id',old.id,'period',old.period_id,'day',old.day_id,'court',old.court_id,
+\t\t\t         'sportId',old.sport_id,'gender',old.gender,'teamAId',old.team_a_id,'teamBId',old.team_b_id,
+\t\t\t         'status',old.status,'order',old.sort_order,'scoreA',old.score_a,'scoreB',old.score_b
+\t\t\t       ),
+\t\t\t       jsonb_build_object(
+\t\t\t         'id',updated.id,'period',updated.period_id,'day',updated.day_id,'court',updated.court_id,
+\t\t\t         'sportId',updated.sport_id,'gender',updated.gender,'teamAId',updated.team_a_id,'teamBId',updated.team_b_id,
+\t\t\t         'status',updated.status,'order',updated.sort_order,'scoreA',updated.score_a,'scoreB',updated.score_b
+\t\t\t       )
+\t\t\t  FROM old JOIN updated ON updated.id=old.id
+\t\t)
+\t\tSELECT id,period_id,day_id,court_id,to_char(scheduled_time,'HH24:MI'),sport_id,gender,
+\t\t       team_a_id,team_b_id,status,sort_order,score_a,score_b
+\t\t  FROM updated
+\t`, a,b,user,id,domain.StatusFinalizado,correction,action).Scan(
+\t\t&m.ID,&m.Period,&m.Day,&m.Court,&m.Time,&m.SportID,&m.Gender,
+\t\t&m.TeamAID,&m.TeamBID,&m.Status,&m.Order,&m.ScoreA,&m.ScoreB,
+\t)
+\tif err == sql.ErrNoRows {
+\t\treturn domain.Match{}, ErrProtected
+\t}
+\tif err != nil {
+\t\treturn domain.Match{}, err
+\t}
+\treturn m, nil
 }
