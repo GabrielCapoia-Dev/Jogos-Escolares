@@ -109,7 +109,7 @@ export class AppComponent implements OnDestroy {
     this.selectedTeam = sessionStorage.getItem(this.teamFilterKey(period.id)) ?? '';
     this.teams = this.fallbackTeams(period.id);
     this.standings = this.zeroStandings(this.teams);
-    this.loadGeneralDirect(period.id, true);
+    void this.loadGeneralDirect(period.id, true);
   }
 
   backHome(): void {
@@ -150,8 +150,8 @@ export class AppComponent implements OnDestroy {
     };
 
     if (requestView === 'CLASSIFICACAO') {
-      this.loadGeneralDirect(requestPeriod, showLoading);
       complete();
+      void this.loadGeneralDirect(requestPeriod, showLoading);
       return;
     }
 
@@ -269,7 +269,7 @@ export class AppComponent implements OnDestroy {
     this.adminCourt = this.courts[0]?.id ?? 'QUADRA_1';
     this.adminSport = '';
     this.adminGender = '';
-    this.loadAdmin();
+    void this.loadAdmin();
   }
 
   logout(): void {
@@ -279,7 +279,7 @@ export class AppComponent implements OnDestroy {
     this.backHome();
   }
 
-  loadAdmin(): void {
+  async loadAdmin(): Promise<void> {
     this.adminLoading = true;
     const period = this.adminPeriod;
     const day = this.adminDay;
@@ -287,45 +287,34 @@ export class AppComponent implements OnDestroy {
     const sport = this.adminSport;
     const gender = this.adminGender;
 
-    this.api.adminState(period, day, court, sport, gender)
-      .pipe(retry({ count: 2, delay: 500 }))
-      .subscribe({
-        next: state => {
-          if (
-            this.screen !== 'ADMIN' ||
-            this.adminPeriod !== period ||
-            this.adminDay !== day ||
-            this.adminCourt !== court ||
-            this.adminSport !== sport ||
-            this.adminGender !== gender
-          ) return;
+    try {
+      const state = await this.api.adminStateAsync(period, day, court, sport, gender);
+      if (
+        this.screen !== 'ADMIN' ||
+        this.adminPeriod !== period ||
+        this.adminDay !== day ||
+        this.adminCourt !== court ||
+        this.adminSport !== sport ||
+        this.adminGender !== gender
+      ) return;
 
-          this.teams = state.teams;
-          this.adminStandings = state.standings;
-          this.adminMatches = [...state.matches].sort((a, b) => {
-            const aFinished = a.status === 'FINALIZADO' ? 1 : 0;
-            const bFinished = b.status === 'FINALIZADO' ? 1 : 0;
-            return aFinished - bFinished || a.time.localeCompare(b.time) || a.order - b.order;
-          });
-          for (const item of this.adminMatches) {
-            this.scoreDrafts[item.id] = { a: item.scoreA, b: item.scoreB };
-          }
-          this.adminLoading = false;
-        },
-        error: () => {
-          this.adminLoading = false;
-          this.showToast('Não foi possível carregar as partidas. Tentando novamente...');
-          window.setTimeout(() => {
-            if (
-              this.screen === 'ADMIN' &&
-              this.adminPeriod === period &&
-              this.adminDay === day &&
-              this.adminCourt === court
-            ) this.loadAdmin();
-          }, 1200);
-        }
+      this.teams = state.teams;
+      this.adminStandings = state.standings;
+      this.adminMatches = [...state.matches].sort((a, b) => {
+        const aFinished = a.status === 'FINALIZADO' ? 1 : 0;
+        const bFinished = b.status === 'FINALIZADO' ? 1 : 0;
+        return aFinished - bFinished || a.time.localeCompare(b.time) || a.order - b.order;
       });
+      for (const item of this.adminMatches) {
+        this.scoreDrafts[item.id] = { a: item.scoreA, b: item.scoreB };
+      }
+    } catch {
+      this.showToast('Não foi possível carregar as partidas.');
+    } finally {
+      this.adminLoading = false;
+    }
   }
+
 
   setAdminFilter(kind: 'period' | 'day' | 'court' | 'sport' | 'gender', value: string): void {
     if (kind === 'period') this.adminPeriod = value;
@@ -340,7 +329,7 @@ export class AppComponent implements OnDestroy {
 
   confirmAdminFilters(): void {
     this.adminFiltersOpen = false;
-    this.loadAdmin();
+    void this.loadAdmin();
   }
 
   adjustScore(match: Match, side: 'A' | 'B', delta: number): void {
@@ -366,7 +355,7 @@ export class AppComponent implements OnDestroy {
     this.saveError = '';
   }
 
-  confirmSave(): void {
+  async confirmSave(): Promise<void> {
     if (!this.pendingSaveMatch || this.saveLoading) return;
     if (!this.adminToken) {
       this.logout();
@@ -380,33 +369,38 @@ export class AppComponent implements OnDestroy {
     this.saveLoading = true;
     this.saveError = '';
 
-    this.api.saveResult(match.id, draft.a, draft.b, this.adminToken, correction).subscribe({
-      next: saved => {
-        this.applySavedMatchToAdmin(saved);
-        this.saveLoading = false;
-        this.saveConfirmOpen = false;
-        this.pendingSaveMatch = null;
-        this.pendingSaveCorrection = false;
-        this.saveError = '';
-        this.showToast(correction ? 'Resultado atualizado e registrado.' : 'Resultado salvo com sucesso.');
+    try {
+      const saved = await this.api.saveResultAsync(match.id, draft.a, draft.b, this.adminToken, correction);
+      this.applySavedMatchToAdmin(saved);
+      this.saveConfirmOpen = false;
+      this.pendingSaveMatch = null;
+      this.pendingSaveCorrection = false;
+      this.saveError = '';
+      this.showToast(correction ? 'Resultado atualizado e registrado.' : 'Resultado salvo com sucesso.');
 
-        // Confere ranking e banco em segundo plano, sem segurar a interface.
-        this.api.standings(this.adminPeriod, 'GERAL').subscribe({
-          next: value => this.adminStandings = value,
-          error: () => undefined
-        });
-      },
-      error: error => {
-        this.saveLoading = false;
-        if (error?.status === 401) {
-          this.saveError = 'Sua sessão expirou. Entre novamente.';
-          return;
-        }
+      // Ranking volta da memória da API; não segura o modal.
+      void this.loadAdminRankingOnly();
+    } catch (error: any) {
+      if (String(error?.message ?? '').includes('401')) {
+        this.saveError = 'Sua sessão expirou. Entre novamente.';
+      } else {
         this.saveError = correction
           ? 'Não foi possível salvar a correção.'
           : 'Não foi possível salvar o resultado. Tente novamente.';
       }
-    });
+    } finally {
+      this.saveLoading = false;
+    }
+  }
+
+
+  private async loadAdminRankingOnly(): Promise<void> {
+    try {
+      const state = await this.api.adminStateAsync(this.adminPeriod, this.adminDay, this.adminCourt, this.adminSport, this.adminGender);
+      this.adminStandings = state.standings;
+    } catch {
+      // O card já foi atualizado localmente; ranking será sincronizado na próxima ação.
+    }
   }
 
   pendingDraft(): { a: number; b: number } {
@@ -623,34 +617,33 @@ export class AppComponent implements OnDestroy {
     this.loading = false;
   }
 
-  private loadGeneralDirect(period: string, showLoading = true): void {
+  private async loadGeneralDirect(period: string, showLoading = true): Promise<void> {
     if (showLoading) this.loading = true;
     this.error = '';
 
-    this.api.snapshot(period, this.gender)
-      .pipe(retry({ count: 2, delay: 500 }))
-      .subscribe({
-        next: snapshot => {
-          if (this.screen !== 'PUBLIC' || this.period !== period || this.view !== 'CLASSIFICACAO') return;
-          this.teams = snapshot.teams;
-          this.standings = snapshot.standings;
-          this.matches = snapshot.matches;
-          this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-          this.loading = false;
-          this.error = '';
-        },
-        error: () => {
-          if (this.screen !== 'PUBLIC' || this.period !== period || this.view !== 'CLASSIFICACAO') return;
-          this.failPublic();
-          window.setTimeout(() => {
-            if (this.screen === 'PUBLIC' && this.period === period && this.view === 'CLASSIFICACAO') {
-              this.loadGeneralDirect(period, false);
-            }
-          }, 1200);
-        }
-      });
-  }
+    try {
+      const snapshot = await this.api.snapshotAsync(period, this.gender);
+      if (this.screen !== 'PUBLIC' || this.period !== period || this.view !== 'CLASSIFICACAO') return;
 
+      this.teams = snapshot.teams;
+      this.standings = snapshot.standings;
+      this.matches = snapshot.matches;
+      this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      this.error = '';
+    } catch {
+      if (this.screen !== 'PUBLIC' || this.period !== period || this.view !== 'CLASSIFICACAO') return;
+      this.error = 'Não foi possível carregar os dados.';
+      window.setTimeout(() => {
+        if (this.screen === 'PUBLIC' && this.period === period && this.view === 'CLASSIFICACAO') {
+          void this.loadGeneralDirect(period, false);
+        }
+      }, 1500);
+    } finally {
+      if (this.screen === 'PUBLIC' && this.period === period && this.view === 'CLASSIFICACAO') {
+        this.loading = false;
+      }
+    }
+  }
 
   private loadGeneralFallback(period: string, gender: string, requestVersion: number): void {
     forkJoin({
