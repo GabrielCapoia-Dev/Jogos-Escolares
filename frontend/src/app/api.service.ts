@@ -20,6 +20,57 @@ export class ApiService {
   private readonly http = inject(HttpClient);
   private readonly base = '/api/v1';
 
+  private async fetchJson<T>(url: string, init: RequestInit = {}, timeoutMs = 8000): Promise<T> {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, {
+        ...init,
+        cache: 'no-store',
+        credentials: 'same-origin',
+        signal: controller.signal,
+        headers: {
+          Accept: 'application/json',
+          ...(init.headers ?? {})
+        }
+      });
+      if (!response.ok) {
+        const message = await response.text().catch(() => '');
+        throw new Error(message || `HTTP ${response.status}`);
+      }
+      return await response.json() as T;
+    } finally {
+      window.clearTimeout(timer);
+    }
+  }
+
+  snapshotAsync(period: string, gender: string): Promise<PublicSnapshot> {
+    const params = new URLSearchParams({ period, gender, _t: String(Date.now()) });
+    return this.fetchJson<PublicSnapshot>(`${this.base}/snapshot?${params.toString()}`, {}, 10000);
+  }
+
+  adminStateAsync(period: string, day: string, court: string, sport = '', gender = ''): Promise<AdminState> {
+    const params = new URLSearchParams({ period, day, court, _t: String(Date.now()) });
+    if (sport) params.set('sport', sport);
+    if (gender) params.set('gender', gender);
+    return this.fetchJson<AdminState>(`${this.base}/admin-state?${params.toString()}`, {}, 10000);
+  }
+
+  saveResultAsync(id: string, scoreA: number, scoreB: number, token: string, correction = false): Promise<Match> {
+    return this.fetchJson<Match>(
+      `${this.base}/admin/matches/${encodeURIComponent(id)}/result`,
+      {
+        method: correction ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ scoreA, scoreB })
+      },
+      8000
+    );
+  }
+
   periods(): Observable<Period[]> { return this.http.get<Period[]>(`${this.base}/periods`); }
   days(): Observable<Day[]> { return this.http.get<Day[]>(`${this.base}/days`); }
   courts(): Observable<Court[]> { return this.http.get<Court[]>(`${this.base}/courts`); }
