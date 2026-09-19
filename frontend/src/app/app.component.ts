@@ -536,6 +536,20 @@ export class AppComponent implements OnDestroy {
     );
   }
 
+  previousMatchForTeamMatch(match: Match): Match | null {
+    const lane = this.matches
+      .filter(item =>
+        item.day === match.day &&
+        item.court === match.court &&
+        item.sportId === match.sportId &&
+        item.gender === match.gender
+      )
+      .sort((a, b) => a.time.localeCompare(b.time) || a.order - b.order);
+
+    const index = lane.findIndex(item => item.id === match.id);
+    return index > 0 ? lane[index - 1] : null;
+  }
+
   matchesFor(sport: string, gender: string): Match[] {
     return this.sortMatchesFinalizedLast(
       this.matches.filter(item => item.sportId === sport && item.gender === gender)
