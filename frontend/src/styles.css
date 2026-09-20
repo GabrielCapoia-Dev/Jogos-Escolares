@@ -2611,3 +2611,16 @@ je-root:has(.public-topbar){
     margin:0!important;
   }
 }
+
+
+/* A confirmação de resultado/correção deve sempre ficar acima do editor. */
+.save-confirm-modal{
+  z-index:260!important;
+}
+.save-confirm-modal .save-confirm-backdrop{
+  z-index:0!important;
+}
+.save-confirm-modal .save-confirm-sheet{
+  position:relative!important;
+  z-index:1!important;
+}
