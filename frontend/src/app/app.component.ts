@@ -562,9 +562,34 @@ export class AppComponent implements OnDestroy {
     return index > 0 ? lane[index - 1] : null;
   }
 
+  currentScheduleMatches(): Match[] {
+    const lanes = new Map<string, Match[]>();
+
+    for (const match of this.matches) {
+      if (match.status === 'FINALIZADO' || match.status === 'CANCELADO') continue;
+      const key = match.sportId + '|' + match.gender;
+      const lane = lanes.get(key) ?? [];
+      lane.push(match);
+      lanes.set(key, lane);
+    }
+
+    return [...lanes.values()]
+      .map(items => [...items].sort((a, b) => a.time.localeCompare(b.time) || a.order - b.order)[0])
+      .filter((item): item is Match => !!item)
+      .sort((a, b) => a.time.localeCompare(b.time) || a.order - b.order || a.sportId.localeCompare(b.sportId));
+  }
+
+  isCurrentScheduleMatch(match: Match): boolean {
+    return this.currentScheduleMatches().some(item => item.id === match.id);
+  }
+
   matchesFor(sport: string, gender: string): Match[] {
     return this.sortMatchesFinalizedLast(
-      this.matches.filter(item => item.sportId === sport && item.gender === gender)
+      this.matches.filter(item =>
+        item.sportId === sport &&
+        item.gender === gender &&
+        !this.isCurrentScheduleMatch(item)
+      )
     );
   }
 
