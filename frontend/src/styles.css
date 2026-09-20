@@ -3138,3 +3138,47 @@ body:not(:has(#admin-app)) .site-header.public-header{
     padding-bottom:calc(96px + env(safe-area-inset-bottom))!important;
   }
 }
+
+
+/* Desktop: agrupa Início + navegação e padroniza o tamanho dos botões. */
+@media (min-width:700px){
+  .public-header .header-inner{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:8px!important;
+  }
+
+  .public-header .public-brand{
+    flex:0 0 auto!important;
+  }
+
+  .public-header .public-main-nav{
+    flex:0 0 auto!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:8px!important;
+    margin:0!important;
+  }
+
+  .public-header .header-home,
+  .public-header .public-main-nav button{
+    width:124px!important;
+    min-width:124px!important;
+    max-width:124px!important;
+    height:40px!important;
+    min-height:40px!important;
+    padding:0 10px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    box-sizing:border-box!important;
+    white-space:nowrap!important;
+  }
+
+  .public-header .admin-button{
+    margin-left:auto!important;
+    min-height:40px!important;
+  }
+}
