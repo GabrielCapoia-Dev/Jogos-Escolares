@@ -480,6 +480,19 @@ export class AppComponent implements OnDestroy {
     this.showToast('Backup exportado.');
   }
 
+  adminOverlayOpen(): boolean {
+    return this.adminFiltersOpen || this.adminRankingOpen || this.correctionOpen || this.saveConfirmOpen;
+  }
+
+  openAdminOverlay(kind: 'filters' | 'ranking' | 'correction'): void {
+    if (this.adminOverlayOpen()) return;
+
+    if (kind === 'filters') this.adminFiltersOpen = true;
+    if (kind === 'ranking') this.adminRankingOpen = true;
+    if (kind === 'correction') this.correctionOpen = true;
+    this.renderNow();
+  }
+
   closeAdminOverlays(): void {
     this.adminFiltersOpen = false;
     this.adminRankingOpen = false;
