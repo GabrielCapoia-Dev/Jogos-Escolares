@@ -3828,3 +3828,82 @@ body:has(.save-confirm-modal) main{
     padding:4px 2px!important;
   }
 }
+
+
+/* Desktop — classificação com altura natural e resultados com scroll independente. */
+@media (min-width:700px){
+  body:not(:has(#admin-app)):has(.dashboard-grid){
+    overflow:hidden!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .scoreboard-shell{
+    height:calc(100vh - 114px)!important;
+    max-height:calc(100vh - 114px)!important;
+    min-height:0!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .scoreboard-heading{
+    flex:0 0 auto!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid{
+    flex:1 1 auto!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    overflow:hidden!important;
+    align-items:start!important;
+  }
+
+  /* Esquerda: termina exatamente no final da tabela. */
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.ranking-panel{
+    position:relative!important;
+    top:auto!important;
+    align-self:start!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:hidden!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.ranking-panel .table-wrap{
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:hidden!important;
+  }
+
+  /* Direita: única área rolável. */
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.results-section{
+    align-self:stretch!important;
+    height:100%!important;
+    min-height:0!important;
+    max-height:100%!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    overscroll-behavior:contain!important;
+    scrollbar-gutter:stable!important;
+    padding-right:8px!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.results-section::-webkit-scrollbar{
+    width:8px!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.results-section::-webkit-scrollbar-track{
+    background:#edf4fb!important;
+    border-radius:999px!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.results-section::-webkit-scrollbar-thumb{
+    background:#9dbbd8!important;
+    border-radius:999px!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .public-footer{
+    display:none!important;
+  }
+}
