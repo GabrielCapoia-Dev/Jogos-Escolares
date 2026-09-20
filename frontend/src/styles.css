@@ -3301,3 +3301,30 @@ body:not(:has(#admin-app)) .site-header.public-header{
     max-width:none!important;
   }
 }
+
+
+/* Mobile: rodapé de navegação com fundo sólido cobrindo toda a área inferior. */
+@media (max-width:699px){
+  body:not(:has(#admin-app))::after{
+    content:""!important;
+    position:fixed!important;
+    left:0!important;
+    right:0!important;
+    bottom:0!important;
+    height:calc(82px + env(safe-area-inset-bottom))!important;
+    z-index:205!important;
+    background:#fff!important;
+    border-top:1px solid #d8e6f4!important;
+    box-shadow:0 -6px 18px rgba(8,54,104,.08)!important;
+    pointer-events:none!important;
+  }
+
+  body:not(:has(#admin-app)) .public-main-nav{
+    z-index:220!important;
+    background:#fff!important;
+  }
+
+  body:not(:has(#admin-app)) .scoreboard-shell{
+    padding-bottom:calc(108px + env(safe-area-inset-bottom))!important;
+  }
+}
