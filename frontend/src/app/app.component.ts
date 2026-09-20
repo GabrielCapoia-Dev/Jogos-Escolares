@@ -77,6 +77,7 @@ export class AppComponent implements OnDestroy {
   adminLoading = false;
   toast = '';
   scoreDrafts: Record<string, { a: number; b: number }> = {};
+  queuedCorrections = new Set<string>();
   saveConfirmOpen = false;
   pendingSaveMatch: Match | null = null;
   pendingSaveCorrection = false;
@@ -360,6 +361,79 @@ export class AppComponent implements OnDestroy {
     this.scoreDrafts[match.id] = { ...draft };
   }
 
+  queueCorrection(match: Match): void {
+    const draft = this.scoreDrafts[match.id] ?? { a: match.scoreA, b: match.scoreB };
+
+    if (draft.a === match.scoreA && draft.b === match.scoreB) {
+      this.queuedCorrections.delete(match.id);
+      this.showToast('Altere o placar antes de salvar a correção.');
+      this.renderNow();
+      return;
+    }
+
+    this.queuedCorrections.add(match.id);
+    this.showToast('Correção pronta. Clique em Confirmar para aplicar.');
+    this.renderNow();
+  }
+
+  correctionQueued(matchId: string): boolean {
+    return this.queuedCorrections.has(matchId);
+  }
+
+  async confirmCorrections(): Promise<void> {
+    if (this.saveLoading) return;
+
+    const matches = this.filteredFinishedMatches().filter(item => this.queuedCorrections.has(item.id));
+    if (!matches.length) {
+      this.correctionOpen = false;
+      this.renderNow();
+      return;
+    }
+
+    if (!this.adminToken) {
+      this.logout();
+      return;
+    }
+
+    this.saveLoading = true;
+    const failed = new Set<string>();
+
+    for (const match of matches) {
+      const draft = this.scoreDrafts[match.id] ?? { a: match.scoreA, b: match.scoreB };
+
+      try {
+        const saved = await this.api.saveResultAsync(match.id, draft.a, draft.b, this.adminToken, true);
+        this.applySavedMatchToAdmin(saved);
+        this.queuedCorrections.delete(match.id);
+      } catch (error: any) {
+        failed.add(match.id);
+
+        if (error?.status === 401) {
+          this.adminToken = '';
+          localStorage.removeItem('jogos-admin-token');
+          sessionStorage.removeItem('jogos-admin-token');
+          this.saveLoading = false;
+          this.logout();
+          return;
+        }
+      }
+    }
+
+    this.saveLoading = false;
+
+    if (failed.size) {
+      this.queuedCorrections = failed;
+      this.showToast(`${failed.size} correção(ões) não puderam ser salvas. Tente novamente.`);
+      this.renderNow();
+      return;
+    }
+
+    this.correctionOpen = false;
+    this.showToast(matches.length === 1 ? 'Correção salva com sucesso.' : 'Correções salvas com sucesso.');
+    this.renderNow();
+    void this.loadAdminRankingOnly();
+  }
+
   requestSave(match: Match, correction = false): void {
     this.pendingSaveMatch = match;
     this.pendingSaveCorrection = correction;
@@ -489,7 +563,10 @@ export class AppComponent implements OnDestroy {
 
     if (kind === 'filters') this.adminFiltersOpen = true;
     if (kind === 'ranking') this.adminRankingOpen = true;
-    if (kind === 'correction') this.correctionOpen = true;
+    if (kind === 'correction') {
+      this.queuedCorrections.clear();
+      this.correctionOpen = true;
+    }
     this.renderNow();
   }
 
