@@ -3182,3 +3182,60 @@ body:not(:has(#admin-app)) .site-header.public-header{
     min-height:40px!important;
   }
 }
+
+
+/* Desktop: classificação um pouco mais compacta para caber inteira na tela. */
+@media (min-width:700px){
+  .ranking-panel{
+    margin-bottom:0!important;
+  }
+
+  .ranking-table thead th{
+    height:30px!important;
+    padding:4px 8px!important;
+    font-size:.60rem!important;
+  }
+
+  .ranking-table tbody td{
+    height:50px!important;
+    padding:4px 8px!important;
+    font-size:.70rem!important;
+  }
+
+  .ranking-table .team-emblem{
+    width:34px!important;
+    height:34px!important;
+    flex-basis:34px!important;
+  }
+
+  .ranking-table .team-ident{
+    gap:7px!important;
+  }
+
+  .ranking-table .team-name strong{
+    font-size:.74rem!important;
+    line-height:1.05!important;
+  }
+
+  .ranking-table .team-name small{
+    font-size:.55rem!important;
+    line-height:1!important;
+  }
+
+  .ranking-table .position strong{
+    font-size:.74rem!important;
+  }
+
+  .scoreboard-heading{
+    margin-bottom:8px!important;
+  }
+
+  .scoreboard-heading h2{
+    margin:0!important;
+    line-height:1.05!important;
+  }
+
+  .dashboard-grid{
+    gap:14px!important;
+  }
+}
