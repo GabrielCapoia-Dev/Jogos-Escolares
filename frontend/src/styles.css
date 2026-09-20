@@ -4070,3 +4070,64 @@ body:has(.save-confirm-modal) main{
     padding-bottom:calc(112px + env(safe-area-inset-bottom))!important;
   }
 }
+
+
+/* Login administrativo: mais respiro interno e alinhamento consistente. */
+.jogos-login-modal .mobile-filter-sheet{
+  padding-left:14px!important;
+  padding-right:14px!important;
+  box-sizing:border-box!important;
+}
+
+.jogos-login-modal .mobile-filter-sheet-head{
+  padding-left:2px!important;
+  padding-right:2px!important;
+}
+
+.jogos-login-modal .login-form{
+  padding:12px!important;
+  border-radius:18px!important;
+  box-sizing:border-box!important;
+}
+
+.jogos-login-modal .login-form > input{
+  width:100%!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+}
+
+.jogos-login-modal .login-form > input + input{
+  margin-top:10px!important;
+}
+
+.jogos-login-modal .login-remember{
+  width:auto!important;
+  margin:10px 4px 0!important;
+  padding:0!important;
+  box-sizing:border-box!important;
+}
+
+.jogos-login-modal .login-error{
+  margin:8px 4px 0!important;
+}
+
+.jogos-login-modal .login-actions{
+  padding-left:0!important;
+  padding-right:0!important;
+}
+
+@media (max-width:699px){
+  .jogos-login-modal .mobile-filter-sheet{
+    padding-left:12px!important;
+    padding-right:12px!important;
+  }
+
+  .jogos-login-modal .login-form{
+    padding:12px!important;
+  }
+
+  .jogos-login-modal .login-remember{
+    margin-left:4px!important;
+    margin-right:4px!important;
+  }
+}
