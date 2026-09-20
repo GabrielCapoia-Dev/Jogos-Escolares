@@ -4388,3 +4388,27 @@ body:has(.save-confirm-modal) main{
     grid-template-columns:1fr!important;
   }
 }
+
+
+/* Admin mobile: remove a placa branca grande atrás do menu inferior. */
+@media (max-width:699px){
+  body:has(#admin-app)::after{
+    content:none!important;
+    display:none!important;
+  }
+
+  body:has(#admin-app) .admin-registration-nav{
+    background:#fff!important;
+    box-shadow:0 8px 22px rgba(9,61,114,.18)!important;
+  }
+
+  /* Com modal aberto, o menu inferior não deve aparecer por cima do pop. */
+  body:has(.save-confirm-modal) .admin-registration-nav,
+  body:has(.admin-filter-modal) .admin-registration-nav,
+  body:has(.admin-ranking-modal) .admin-registration-nav,
+  body:has(.admin-edit-modal) .admin-registration-nav{
+    visibility:hidden!important;
+    opacity:0!important;
+    pointer-events:none!important;
+  }
+}
