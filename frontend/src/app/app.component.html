@@ -186,9 +186,9 @@
   </header>
 
   <nav class="public-main-nav admin-registration-nav" aria-label="Menu administrativo">
-    <button type="button" [class.active]="adminFiltersOpen" (click)="adminFiltersOpen=true"><span class="nav-icon">⚙</span><span>Filtros</span></button>
-    <button type="button" (click)="adminRankingOpen=true"><span class="nav-icon">▥</span><span>Placar</span></button>
-    <button type="button" (click)="correctionOpen=true"><span class="nav-icon">✎</span><span>Editar</span></button>
+    <button type="button" [class.active]="adminFiltersOpen" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('filters')"><span class="nav-icon">⚙</span><span>Filtros</span></button>
+    <button type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('ranking')"><span class="nav-icon">▥</span><span>Placar</span></button>
+    <button type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('correction')"><span class="nav-icon">✎</span><span>Editar</span></button>
   </nav>
 
   <main id="admin-app" class="page-shell">
@@ -268,7 +268,7 @@
 
     <section class="correction-panel">
       <div><p class="eyebrow">Acesso restrito</p><h2>Correção de resultados</h2><p>Resultados finalizados protegidos</p></div>
-      <button class="correction-button" type="button" (click)="correctionOpen=true">Editar resultados finalizados</button>
+      <button class="correction-button" type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('correction')">Editar resultados finalizados</button>
     </section>
   </main>
 
@@ -299,7 +299,7 @@
 </div>
 
 <div *ngIf="adminFiltersOpen && screen==='ADMIN'" class="mobile-filter-modal admin-filter-modal">
-  <div class="mobile-filter-backdrop" (click)="adminFiltersOpen=false"></div>
+  <div class="mobile-filter-backdrop" (click)="$event.stopPropagation()"></div>
   <section class="mobile-filter-sheet" role="dialog" aria-modal="true" aria-label="Filtros administrativos">
     <div class="mobile-filter-sheet-head"><h2>Filtros</h2></div>
     <div class="mobile-filter-body">
@@ -314,7 +314,7 @@
 </div>
 
 <div *ngIf="adminRankingOpen && screen==='ADMIN'" class="admin-ranking-modal">
-  <div class="admin-ranking-backdrop" (click)="adminRankingOpen=false"></div>
+  <div class="admin-ranking-backdrop" (click)="$event.stopPropagation()"></div>
   <section class="admin-ranking-sheet" role="dialog" aria-modal="true" aria-label="Placar geral">
     <div class="admin-ranking-sheet-head"><h2>Placar geral</h2></div>
     <div class="admin-ranking-sheet-body"><div class="table-wrap"><table class="ranking-table"><thead><tr><th>Posição</th><th>Cor</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead><tbody><tr class="team-row" *ngFor="let row of adminStandings" [style.--team-color]="row.hex"><td><strong>{{ row.position }}º</strong></td><td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small></span></span></td><td><strong>{{ row.points }}</strong></td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td></tr></tbody></table></div></div>
@@ -350,7 +350,7 @@
 </div>
 
 <div *ngIf="correctionOpen && screen==='ADMIN'" class="admin-edit-modal">
-  <div class="admin-ranking-backdrop" (click)="correctionOpen=false"></div>
+  <div class="admin-ranking-backdrop" (click)="$event.stopPropagation()"></div>
   <section class="admin-edit-sheet" role="dialog" aria-modal="true" aria-label="Editar resultados finalizados">
     <h2>Editar resultados finalizados</h2>
     <div class="admin-edit-list">
