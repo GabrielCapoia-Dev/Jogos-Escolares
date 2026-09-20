@@ -103,6 +103,33 @@
         <section class="scoreboard-heading schedule-heading"><div><p class="eyebrow blue">Programação dos jogos</p><h2>Cronograma <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div></section>
         <nav class="schedule-days"><button *ngFor="let item of days" class="schedule-day" [class.active]="item.id === day" (click)="applyPublicFilter('day',item.id)">{{ item.name }}</button></nav>
         <div class="schedule-selectors"><section class="choice-panel"><div class="section-title-block"><p class="eyebrow blue">{{ dayName(day) }}</p><h3>{{ courtName(court) }}</h3></div><div class="court-buttons"><button *ngFor="let item of courts" class="filter-choice court-choice" [class.active]="item.id === court" (click)="applyPublicFilter('court',item.id)">{{ item.name }}</button></div></section></div>
+
+        <section class="live-schedule-panel" *ngIf="currentScheduleMatches().length">
+          <div class="live-schedule-heading">
+            <div><span class="live-dot"></span><strong>Partidas acontecendo agora</strong></div>
+            <small>{{ currentScheduleMatches().length }} em andamento</small>
+          </div>
+          <div class="live-schedule-grid">
+            <article class="live-schedule-card" *ngFor="let match of currentScheduleMatches()">
+              <div class="live-schedule-meta">
+                <div><time>{{ match.time }}</time><span>{{ sportName(match.sportId) }}</span></div>
+                <span>{{ genderName(match.gender) }}</span>
+              </div>
+              <div class="fixture-row schedule-fixture">
+                <span class="fixture-team home">
+                  <span class="fixture-team-copy"><strong>{{ team(match.teamAId)?.color }}</strong><small>{{ team(match.teamAId)?.mascot }}</small></span>
+                  <span class="team-emblem mascot-image" [ngClass]="team(match.teamAId)?.sprite"></span>
+                </span>
+                <span class="fixture-score live-versus"><b>×</b></span>
+                <span class="fixture-team away">
+                  <span class="team-emblem mascot-image" [ngClass]="team(match.teamBId)?.sprite"></span>
+                  <span class="fixture-team-copy"><strong>{{ team(match.teamBId)?.color }}</strong><small>{{ team(match.teamBId)?.mascot }}</small></span>
+                </span>
+              </div>
+            </article>
+          </div>
+        </section>
+
         <div class="schedule-content-layout"><section class="selected-court"><div class="activity-grid"><section class="activity-column" *ngFor="let item of visibleSports(court)"><div class="activity-heading"><span>{{ courtName(court) }}</span><h3>{{ item.name }}</h3></div><div class="gender-grid"><section class="gender-lane" *ngFor="let genderValue of ['FEMININO','MASCULINO']"><div class="gender-lane-heading"><h4>{{ genderName(genderValue) }}</h4><span>{{ matchesFor(item.id, genderValue).length }} jogos</span></div><div class="gender-games"><article class="schedule-card" *ngFor="let match of matchesFor(item.id, genderValue)" [class.finished]="match.status==='FINALIZADO'" [class.happening]="match.status==='EM_ANDAMENTO'"><div class="schedule-card-top"><div><time>{{ match.time }}</time><span class="sport-pill">{{ item.name }}</span></div><span class="status waiting">{{ statusLabel(match.status) }}</span></div><div class="fixture-row schedule-fixture"><span class="fixture-team home"><span class="fixture-team-copy"><strong>{{ team(match.teamAId)?.color }}</strong><small>{{ team(match.teamAId)?.mascot }}</small></span><span class="team-emblem mascot-image" [ngClass]="team(match.teamAId)?.sprite"></span></span><span class="fixture-score"><b>{{ match.status === 'FINALIZADO' ? match.scoreA : '×' }}</b><small>:</small><b>{{ match.status === 'FINALIZADO' ? match.scoreB : '×' }}</b></span><span class="fixture-team away"><span class="team-emblem mascot-image" [ngClass]="team(match.teamBId)?.sprite"></span><span class="fixture-team-copy"><strong>{{ team(match.teamBId)?.color }}</strong><small>{{ team(match.teamBId)?.mascot }}</small></span></span></div></article></div></section></div></section></div></section></div>
         <p class="updated-at">Atualizado às {{ lastUpdated }}</p>
       </section>
