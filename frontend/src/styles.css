@@ -3907,3 +3907,35 @@ body:has(.save-confirm-modal) main{
     display:none!important;
   }
 }
+
+
+/* Desktop — remove qualquer rolagem residual da tela de Classificação. */
+@media (min-width:700px){
+  html:has(body:not(:has(#admin-app)) .dashboard-grid),
+  body:not(:has(#admin-app)):has(.dashboard-grid){
+    height:100dvh!important;
+    max-height:100dvh!important;
+    overflow:hidden!important;
+    overscroll-behavior:none!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) je-root{
+    display:block!important;
+    height:100dvh!important;
+    max-height:100dvh!important;
+    overflow:hidden!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .scoreboard-shell{
+    box-sizing:border-box!important;
+    height:calc(100dvh - 114px)!important;
+    max-height:calc(100dvh - 114px)!important;
+    margin-bottom:0!important;
+    overflow:hidden!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid{
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+  }
+}
