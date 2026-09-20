@@ -286,6 +286,28 @@ export class AppComponent implements OnDestroy {
     void this.loadAdmin();
   }
 
+  expireAdminSession(): void {
+    this.adminToken = '';
+    localStorage.removeItem('jogos-admin-token');
+    sessionStorage.removeItem('jogos-admin-token');
+
+    this.adminFiltersOpen = false;
+    this.adminRankingOpen = false;
+    this.correctionOpen = false;
+    this.saveConfirmOpen = false;
+    this.pendingSaveMatch = null;
+    this.pendingSaveCorrection = false;
+    this.saveLoading = false;
+    this.queuedCorrections.clear();
+
+    this.loginPassword = '';
+    this.loginLoading = false;
+    this.loginError = 'Sua sessão expirou. Faça login novamente para continuar.';
+    this.loginOpen = true;
+    this.screen = 'ADMIN';
+    this.renderNow();
+  }
+
   logout(): void {
     this.adminToken = '';
     localStorage.removeItem('jogos-admin-token');
@@ -323,7 +345,11 @@ export class AppComponent implements OnDestroy {
         this.scoreDrafts[item.id] = { a: item.scoreA, b: item.scoreB };
       }
       this.renderNow();
-    } catch {
+    } catch (error: any) {
+      if (error?.status === 401) {
+        this.expireAdminSession();
+        return;
+      }
       this.showToast('Não foi possível carregar as partidas.');
     } finally {
       this.adminLoading = false;
@@ -391,7 +417,7 @@ export class AppComponent implements OnDestroy {
     }
 
     if (!this.adminToken) {
-      this.logout();
+      this.expireAdminSession();
       return;
     }
 
@@ -409,11 +435,8 @@ export class AppComponent implements OnDestroy {
         failed.add(match.id);
 
         if (error?.status === 401) {
-          this.adminToken = '';
-          localStorage.removeItem('jogos-admin-token');
-          sessionStorage.removeItem('jogos-admin-token');
           this.saveLoading = false;
-          this.logout();
+          this.expireAdminSession();
           return;
         }
       }
@@ -453,7 +476,7 @@ export class AppComponent implements OnDestroy {
   async confirmSave(): Promise<void> {
     if (!this.pendingSaveMatch || this.saveLoading) return;
     if (!this.adminToken) {
-      this.logout();
+      this.expireAdminSession();
       return;
     }
 
@@ -478,10 +501,8 @@ export class AppComponent implements OnDestroy {
       void this.loadAdminRankingOnly();
     } catch (error: any) {
       if (error?.status === 401) {
-        this.saveError = 'Sua sessão expirou. Entre novamente na área administrativa.';
-        this.adminToken = '';
-        localStorage.removeItem('jogos-admin-token');
-        sessionStorage.removeItem('jogos-admin-token');
+        this.expireAdminSession();
+        return;
       } else if (error?.status === 409) {
         this.saveError = correction
           ? 'Este resultado não pode ser alterado neste momento.'
@@ -503,7 +524,11 @@ export class AppComponent implements OnDestroy {
       const state = await this.api.adminStateAsync(this.adminPeriod, this.adminDay, this.adminCourt, this.adminSport, this.adminGender);
       this.adminStandings = state.standings;
       this.renderNow();
-    } catch {
+    } catch (error: any) {
+      if (error?.status === 401) {
+        this.expireAdminSession();
+        return;
+      }
       // O card já foi atualizado localmente; ranking será sincronizado na próxima ação.
     }
   }
@@ -516,7 +541,7 @@ export class AppComponent implements OnDestroy {
 
   saveResult(match: Match, correction = false): void {
     if (!this.adminToken) {
-      this.logout();
+      this.expireAdminSession();
       return;
     }
     const draft = this.scoreDrafts[match.id] ?? { a: match.scoreA, b: match.scoreB };
@@ -527,8 +552,7 @@ export class AppComponent implements OnDestroy {
       },
       error: error => {
         if (error?.status === 401) {
-          this.showToast('Sua sessão expirou. Entre novamente.');
-          this.logout();
+          this.expireAdminSession();
           return;
         }
         this.showToast(match.status === 'FINALIZADO' ? 'Use Editar para corrigir um resultado finalizado.' : 'Não foi possível salvar o resultado.');
