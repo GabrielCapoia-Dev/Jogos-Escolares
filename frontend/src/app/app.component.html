@@ -261,15 +261,6 @@
       </div>
     </section>
 
-    <section id="admin-ranking" class="admin-ranking-section" aria-label="Placar geral do período">
-      <div class="admin-ranking-heading"><div><p class="eyebrow blue">Acompanhamento</p><h2>Placar geral</h2></div><span class="period-badge">Período: {{ periodName(adminPeriod) }}</span></div>
-      <div class="panel ranking-panel"><div class="table-wrap"><table class="ranking-table"><thead><tr><th>Posição</th><th>Cor</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead><tbody><tr class="team-row" *ngFor="let row of adminStandings" [style.--team-color]="row.hex"><td class="position"><strong>{{ row.position }}º</strong></td><td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small></span></span></td><td><strong>{{ row.points }}</strong></td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td></tr></tbody></table></div></div>
-    </section>
-
-    <section class="correction-panel">
-      <div><p class="eyebrow">Acesso restrito</p><h2>Correção de resultados</h2><p>Resultados finalizados protegidos</p></div>
-      <button class="correction-button" type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('correction')">Editar resultados finalizados</button>
-    </section>
   </main>
 
   <div id="toast" class="toast" [class.show]="toast" role="status" aria-live="polite">{{ toast }}</div>
