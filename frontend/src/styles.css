@@ -3575,3 +3575,145 @@ body:not(:has(#admin-app)) .site-header.public-header{
     display:none!important;
   }
 }
+
+
+/* Correção Admin desktop: cards contidos e grade estável. */
+@media (min-width:700px){
+  body:has(#admin-app){
+    overflow-x:hidden!important;
+  }
+
+  body:has(#admin-app) #admin-app.page-shell{
+    width:min(1440px,calc(100% - 40px))!important;
+    max-width:1440px!important;
+    margin-inline:auto!important;
+    padding-left:0!important;
+    padding-right:0!important;
+  }
+
+  body:has(#admin-app) .matches-area{
+    width:100%!important;
+    min-width:0!important;
+  }
+
+  body:has(#admin-app) .matches-list{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:12px!important;
+    width:100%!important;
+    min-width:0!important;
+  }
+
+  body:has(#admin-app) .match-card{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+    display:grid!important;
+    grid-template-rows:auto 1fr auto!important;
+    padding:12px!important;
+  }
+
+  body:has(#admin-app) .match-top{
+    min-width:0!important;
+    margin-bottom:10px!important;
+  }
+
+  body:has(#admin-app) .match-labels{
+    min-width:0!important;
+    max-width:55%!important;
+  }
+
+  body:has(#admin-app) .match-score-row{
+    width:100%!important;
+    min-width:0!important;
+    grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr)!important;
+    gap:8px!important;
+  }
+
+  body:has(#admin-app) .admin-team{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+  }
+
+  body:has(#admin-app) .admin-team-name{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+  }
+
+  body:has(#admin-app) .admin-team-name>span:last-child{
+    display:grid!important;
+    min-width:0!important;
+    max-width:100%!important;
+  }
+
+  body:has(#admin-app) .admin-team-name strong,
+  body:has(#admin-app) .admin-team-name small{
+    display:block!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    text-align:center!important;
+  }
+
+  body:has(#admin-app) .admin-team-name .team-emblem{
+    width:48px!important;
+    height:48px!important;
+    flex-basis:48px!important;
+  }
+
+  body:has(#admin-app) .score-control{
+    grid-template-columns:34px 38px 34px!important;
+    gap:4px!important;
+    margin-inline:auto!important;
+  }
+
+  body:has(#admin-app) .score-control button{
+    width:34px!important;
+    min-width:34px!important;
+  }
+
+  body:has(#admin-app) .score-control output{
+    width:38px!important;
+    min-width:38px!important;
+  }
+
+  body:has(#admin-app) .versus{
+    width:22px!important;
+    min-width:22px!important;
+    text-align:center!important;
+  }
+
+  body:has(#admin-app) .match-actions{
+    width:100%!important;
+    min-width:0!important;
+    margin-top:10px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:10px!important;
+  }
+
+  body:has(#admin-app) .match-actions .status{
+    min-width:0!important;
+    max-width:60%!important;
+  }
+
+  body:has(#admin-app) .match-actions .save-button{
+    flex:0 0 auto!important;
+    min-width:88px!important;
+    margin:0!important;
+  }
+}
+
+@media (min-width:700px) and (max-width:1050px){
+  body:has(#admin-app) .matches-list{
+    grid-template-columns:1fr!important;
+  }
+}
