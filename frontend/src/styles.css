@@ -4527,3 +4527,62 @@ body:has(.save-confirm-modal) main{
   outline:0!important;
   box-shadow:none!important;
 }
+
+
+/* Ajuste final — tela inicial: zonas clicáveis transparentes alinhadas à nova arte. */
+.welcome-click-zones button,
+.welcome-click-zones button:first-child,
+.welcome-click-zones button:last-child,
+.welcome-click-zones button:hover,
+.welcome-click-zones button:active{
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  border:0!important;
+  outline:0!important;
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  color:transparent!important;
+  -webkit-text-fill-color:transparent!important;
+  text-shadow:none!important;
+  opacity:.01!important;
+  filter:none!important;
+  transform:none!important;
+}
+
+@media (min-width:700px){
+  .welcome-click-zones{
+    left:30.35%!important;
+    right:30.35%!important;
+    bottom:8.05%!important;
+    height:13.85%!important;
+    gap:1.55%!important;
+  }
+}
+
+/* Selos MANHÃ/TARDE dos títulos com o mesmo destaque azul do "Ao vivo". */
+.classification-period{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  margin-left:8px!important;
+  padding:6px 12px!important;
+  min-height:28px!important;
+  border:1px solid var(--ji-blue-800)!important;
+  border-radius:999px!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  background:var(--ji-blue-800)!important;
+  font-size:.78rem!important;
+  font-weight:900!important;
+  line-height:1!important;
+  letter-spacing:.02em!important;
+  vertical-align:middle!important;
+}
+
+@media (min-width:700px){
+  .classification-period{
+    padding:6px 13px!important;
+    font-size:.82rem!important;
+  }
+}
