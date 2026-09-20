@@ -4624,3 +4624,10 @@ body:has(.save-confirm-modal) main{
     z-index:10002!important;
   }
 }
+
+
+/* Correção de resultados: botão marcado para envio no Confirmar do próprio pop. */
+.admin-edit-modal .save-button.queued-correction{
+  background:var(--ji-blue-900)!important;
+  color:#fff!important;
+}
