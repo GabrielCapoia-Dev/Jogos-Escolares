@@ -2624,3 +2624,97 @@ je-root:has(.public-topbar){
   position:relative!important;
   z-index:1!important;
 }
+
+
+/* Cabeçalho Admin mobile: compacto, com Início visível e sem espaço vazio. */
+@media (max-width:699px){
+  body:has(#admin-app){
+    padding-top:88px!important;
+  }
+
+  body:has(#admin-app) .public-topbar{
+    position:fixed!important;
+    top:0!important;
+    left:0!important;
+    right:0!important;
+    z-index:150!important;
+    height:32px!important;
+    min-height:32px!important;
+  }
+  body:has(#admin-app) .public-topbar>div{
+    min-height:32px!important;
+    height:32px!important;
+    padding:0 10px!important;
+    display:flex!important;
+    align-items:center!important;
+  }
+
+  body:has(#admin-app) .admin-header{
+    position:fixed!important;
+    top:32px!important;
+    left:0!important;
+    right:0!important;
+    z-index:145!important;
+    height:56px!important;
+    min-height:56px!important;
+    border-bottom:3px solid var(--ji-blue-700)!important;
+    background:#fff!important;
+  }
+  body:has(#admin-app) .admin-header::before,
+  body:has(#admin-app) .admin-header::after{
+    display:none!important;
+    content:none!important;
+  }
+  body:has(#admin-app) .admin-header .header-inner{
+    width:100%!important;
+    height:56px!important;
+    min-height:56px!important;
+    padding:0 12px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:10px!important;
+  }
+  body:has(#admin-app) .admin-header .header-inner>div:first-child,
+  body:has(#admin-app) .admin-header .public-brand{
+    display:flex!important;
+    visibility:visible!important;
+    height:auto!important;
+    padding:0!important;
+    margin:0!important;
+  }
+  body:has(#admin-app) .admin-header .header-home{
+    display:inline-flex!important;
+    visibility:visible!important;
+    align-items:center!important;
+    min-height:36px!important;
+    padding:0 10px!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:10px!important;
+    color:var(--ji-blue-900)!important;
+    background:#eef5fb!important;
+    font-size:.72rem!important;
+    font-weight:850!important;
+    text-transform:none!important;
+  }
+  body:has(#admin-app) .admin-header .admin-button{
+    display:inline-flex!important;
+    align-items:center!important;
+    min-height:36px!important;
+    padding:0 10px!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:10px!important;
+    color:var(--ji-blue-900)!important;
+    background:#eef5fb!important;
+    font-size:.70rem!important;
+    font-weight:750!important;
+    text-transform:none!important;
+  }
+
+  /* O conteúdo começa logo abaixo do cabeçalho compacto. */
+  #admin-app.page-shell{
+    padding-top:12px!important;
+  }
+}
