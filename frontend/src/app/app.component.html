@@ -45,6 +45,14 @@
         <span class="filter-icon">☷</span><span>Filtros</span>
       </button>
 
+      <div class="public-loading-overlay" *ngIf="loading" role="status" aria-live="polite" aria-busy="true">
+        <div class="public-loading-card">
+          <span class="public-loading-spinner" aria-hidden="true"></span>
+          <strong>Carregando...</strong>
+          <small>Aguarde um instante</small>
+        </div>
+      </div>
+
     <div class="page-shell scoreboard-shell">
       <nav class="tabs public-view-tabs legacy-view-tabs" aria-label="Seções do placar público">
         <button class="tab" [class.active]="view === 'CLASSIFICACAO'" (click)="setView('CLASSIFICACAO')">Classificação</button>
@@ -53,7 +61,6 @@
       </nav>
 
       <p class="legacy-error" *ngIf="error">{{ error }}</p>
-      <p class="updated-at" *ngIf="loading">Carregando…</p>
 
       <section *ngIf="view === 'CLASSIFICACAO'" class="scoreboard-heading">
         <div><p class="eyebrow blue">Acompanhe em tempo real</p><h2>Classificação geral <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div>
