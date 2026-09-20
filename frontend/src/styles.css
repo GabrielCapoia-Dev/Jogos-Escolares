@@ -4412,3 +4412,11 @@ body:has(.save-confirm-modal) main{
     pointer-events:none!important;
   }
 }
+
+
+/* Selo "Ao vivo" no padrão azul do sistema. */
+.live-badge{
+  color:#fff!important;
+  background:var(--ji-blue-800)!important;
+  border:1px solid var(--ji-blue-800)!important;
+}
