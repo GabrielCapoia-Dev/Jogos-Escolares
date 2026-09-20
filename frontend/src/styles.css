@@ -2718,3 +2718,33 @@ je-root:has(.public-topbar){
     padding-top:12px!important;
   }
 }
+
+
+/* Histórico de resultados separado por dia. */
+.history-results-by-day{
+  display:grid!important;
+  gap:14px!important;
+}
+.history-day-section{
+  display:grid!important;
+  gap:8px!important;
+}
+.history-day-heading{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  padding:8px 10px!important;
+  border-radius:10px!important;
+  background:var(--ji-blue-800)!important;
+  color:#fff!important;
+}
+.history-day-heading strong{
+  font-size:.82rem!important;
+  text-transform:uppercase;
+}
+.history-day-heading span{
+  font-size:.62rem!important;
+  font-weight:800!important;
+  opacity:.9;
+}
