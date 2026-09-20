@@ -4586,3 +4586,41 @@ body:has(.save-confirm-modal) main{
     font-size:.82rem!important;
   }
 }
+
+
+/* Admin mobile: qualquer modal fica acima do menu inferior. */
+@media (max-width:699px){
+  body:has(.admin-filter-modal) .admin-registration-nav,
+  body:has(.admin-ranking-modal) .admin-registration-nav,
+  body:has(.admin-edit-modal) .admin-registration-nav,
+  body:has(.save-confirm-modal) .admin-registration-nav,
+  body:has(.jogos-login-modal) .admin-registration-nav{
+    visibility:hidden!important;
+    opacity:0!important;
+    pointer-events:none!important;
+  }
+
+  .admin-filter-modal,
+  .admin-ranking-modal,
+  .admin-edit-modal,
+  .save-confirm-modal,
+  .jogos-login-modal{
+    z-index:10000!important;
+  }
+
+  .admin-filter-modal .mobile-filter-backdrop,
+  .admin-ranking-modal .admin-ranking-backdrop,
+  .admin-edit-modal .admin-edit-backdrop,
+  .save-confirm-modal .mobile-filter-backdrop,
+  .jogos-login-modal .mobile-filter-backdrop{
+    z-index:10001!important;
+  }
+
+  .admin-filter-modal .mobile-filter-sheet,
+  .admin-ranking-modal .admin-ranking-sheet,
+  .admin-edit-modal .admin-edit-sheet,
+  .save-confirm-modal .mobile-filter-sheet,
+  .jogos-login-modal .mobile-filter-sheet{
+    z-index:10002!important;
+  }
+}
