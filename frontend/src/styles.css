@@ -3717,3 +3717,52 @@ body:not(:has(#admin-app)) .site-header.public-header{
     grid-template-columns:1fr!important;
   }
 }
+
+
+/* Bloqueia a tela de fundo quando qualquer modal/pop estiver aberto. */
+body:has(.jogos-login-modal),
+body:has(.mobile-filter-modal),
+body:has(.admin-ranking-modal),
+body:has(.admin-edit-modal),
+body:has(.save-confirm-modal){
+  overflow:hidden!important;
+  height:100dvh!important;
+}
+
+/* Evita rolagem dos containers principais por trás do modal. */
+body:has(.jogos-login-modal) .page-shell,
+body:has(.mobile-filter-modal) .page-shell,
+body:has(.admin-ranking-modal) .page-shell,
+body:has(.admin-edit-modal) .page-shell,
+body:has(.save-confirm-modal) .page-shell,
+body:has(.jogos-login-modal) main,
+body:has(.mobile-filter-modal) main,
+body:has(.admin-ranking-modal) main,
+body:has(.admin-edit-modal) main,
+body:has(.save-confirm-modal) main{
+  overflow:hidden!important;
+}
+
+/* Modais sempre ocupam a viewport e não deixam o fundo receber scroll. */
+.jogos-login-modal,
+.mobile-filter-modal,
+.admin-ranking-modal,
+.admin-edit-modal,
+.save-confirm-modal{
+  position:fixed!important;
+  inset:0!important;
+  width:100%!important;
+  height:100dvh!important;
+  overflow:hidden!important;
+}
+
+/* O conteúdo do modal continua podendo rolar internamente quando necessário. */
+.mobile-filter-sheet,
+.admin-ranking-sheet,
+.admin-edit-sheet,
+.save-confirm-sheet{
+  max-height:calc(100dvh - 24px)!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+}
