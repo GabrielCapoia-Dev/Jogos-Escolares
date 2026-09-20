@@ -6,7 +6,7 @@ html:has(.welcome-screen),body:has(.welcome-screen){overflow:hidden!important;he
 html,body{min-height:100%;}
 je-root{display:block;min-height:100dvh;}
 je-root:has(.public-topbar){display:flex;flex-direction:column;min-height:100dvh;}
-je-root:has(.public-topbar) .scoreboard-shell{flex:1 0 auto;width:100%;}
+je-root:has(.public-topbar) .scoreboard-shell{flex:1 0 auto;}
 je-root:has(.public-topbar) .public-footer{margin-top:auto;flex:none;width:100%;}
 
 @media (max-width:699px){
@@ -17,4 +17,4513 @@ je-root:has(.public-topbar) .public-footer{margin-top:auto;flex:none;width:100%;
   je-root:has(.public-topbar) .public-main-nav{display:flex;overflow-x:auto;}
   je-root:has(.public-topbar) .public-main-nav button{flex:1 0 auto;}
   je-root:has(.public-topbar) .public-footer{margin-top:1rem;}
+}
+
+.team-picker-choice.team-picker-all{display:grid;place-items:center;text-align:center;}
+
+
+/* Ajustes mobile da réplica oficial */
+@media (max-width:699px){
+  /* Tela inicial: quadro centralizado e logo maior */
+  .welcome-screen{
+    min-height:calc(100svh - 6px)!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:.7rem .45rem!important;
+  }
+  .welcome-content{
+    width:min(100%,460px)!important;
+    max-height:none!important;
+    min-height:0!important;
+    overflow:visible!important;
+    justify-content:center!important;
+    margin:auto!important;
+    padding:.8rem .7rem 1rem!important;
+  }
+  .welcome-logo{
+    width:min(72vw,300px,39svh)!important;
+    margin:0 auto .45rem!important;
+  }
+
+  /* O cabeçalho público é fixo: reserva o espaço real antes do conteúdo. */
+  je-root:has(.public-topbar) .scoreboard-shell{
+    box-sizing:border-box;
+    padding-top:calc(132px + .8rem)!important;
+  }
+
+  /* Filtro de equipes: mascote acima do nome, cinza quando inativo. */
+  .mobile-team-filter-options{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:.4rem!important;
+  }
+  .mobile-team-filter-options button{
+    min-height:82px!important;
+    display:grid!important;
+    place-items:center!important;
+    align-content:center!important;
+    gap:.25rem!important;
+    padding:.4rem .2rem!important;
+    text-align:center!important;
+  }
+  .mobile-team-filter-choice .team-emblem{
+    width:42px!important;
+    height:42px!important;
+    flex-basis:42px!important;
+    filter:grayscale(1)!important;
+    opacity:.48!important;
+    transition:filter .15s ease,opacity .15s ease!important;
+  }
+  .mobile-team-filter-choice strong{
+    display:block;
+    max-width:100%;
+    overflow:hidden;
+    color:#708196;
+    font-size:.68rem;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .mobile-team-filter-choice.active .team-emblem{
+    filter:none!important;
+    opacity:1!important;
+  }
+  .mobile-team-filter-choice.active strong{
+    color:#fff!important;
+  }
+  .mobile-team-filter-all{
+    min-height:82px!important;
+  }
+}
+
+
+/* Correção de resultados: modal funcional em desktop e celular. */
+.admin-edit-modal{
+  position:fixed;
+  z-index:140;
+  inset:0;
+  display:grid;
+  align-items:center;
+  justify-items:center;
+  padding:1rem;
+}
+.admin-edit-modal .admin-ranking-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,24,60,.56);
+}
+.admin-edit-sheet{
+  position:relative;
+  z-index:1;
+  width:min(920px,100%);
+  max-height:min(88dvh,900px);
+  overflow:auto;
+  padding:1rem;
+  background:#fff;
+  box-shadow:0 16px 50px rgba(0,24,60,.28);
+}
+.admin-edit-sheet>h2{
+  margin:0 0 .8rem;
+  color:#003b82;
+}
+.admin-edit-list{
+  display:grid;
+  gap:.65rem;
+}
+.admin-edit-actions{
+  position:sticky;
+  bottom:0;
+  margin-top:.8rem;
+  padding-top:.65rem;
+  background:#fff;
+}
+.admin-edit-confirm{
+  width:100%;
+  min-height:44px;
+  border:0;
+  color:#fff;
+  background:#0056ad;
+  font-weight:800;
+}
+.results-selected-team{
+  margin:.55rem 0 .9rem;
+}
+
+@media (max-width:699px){
+  .admin-edit-modal{
+    align-items:end;
+    padding:0;
+  }
+  .admin-edit-sheet{
+    width:100%;
+    max-height:88dvh;
+    padding:.85rem .7rem calc(1rem + env(safe-area-inset-bottom));
+    border-radius:18px 18px 0 0!important;
+  }
+  .admin-edit-list .match-card{
+    min-width:0;
+  }
+  .admin-edit-list .admin-team{
+    min-width:0;
+  }
+  .admin-edit-list .admin-team-name{
+    min-width:0;
+  }
+  .results-selected-team{
+    margin:.45rem 0 .7rem;
+  }
+}
+
+
+/* Confirmação do placar antes de salvar. */
+.save-confirm-modal{
+  position:fixed;
+  z-index:170;
+  inset:0;
+  display:grid;
+  place-items:center;
+  padding:1rem;
+}
+.save-confirm-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,24,60,.58);
+}
+.save-confirm-sheet{
+  position:relative;
+  z-index:1;
+  width:min(560px,100%);
+  padding:1.15rem;
+  background:#fff;
+  box-shadow:0 18px 55px rgba(0,24,60,.32);
+}
+.save-confirm-sheet h2{
+  margin:.15rem 0 .9rem;
+  color:#003b82;
+  font-size:1.15rem;
+}
+.save-confirm-game{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  align-items:center;
+  gap:.7rem;
+  padding:1rem .4rem;
+  border-block:1px solid #d7e2ef;
+}
+.save-confirm-team{
+  display:grid;
+  justify-items:center;
+  gap:.35rem;
+  min-width:0;
+  color:#003b82;
+  text-align:center;
+}
+.save-confirm-team .team-emblem{
+  width:58px;
+  height:58px;
+  flex-basis:58px;
+}
+.save-confirm-team strong{
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.save-confirm-score{
+  display:grid;
+  grid-template-columns:auto auto auto;
+  align-items:center;
+  gap:.45rem;
+  color:#003b82;
+}
+.save-confirm-score strong{
+  display:grid;
+  place-items:center;
+  min-width:52px;
+  min-height:52px;
+  border:2px solid #9db5ce;
+  background:#f6faff;
+  font-size:1.65rem;
+}
+.save-confirm-score span{
+  font-weight:900;
+}
+.save-confirm-meta{
+  margin:.75rem 0 0;
+  color:#61748b;
+  text-align:center;
+  font-size:.8rem;
+}
+.save-confirm-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:.55rem;
+  margin-top:1rem;
+}
+.save-confirm-actions button{
+  min-height:46px;
+  border:0;
+  font-weight:850;
+}
+.save-confirm-primary{
+  color:#fff;
+  background:#0056ad;
+}
+.save-confirm-secondary{
+  color:#003b82;
+  background:#e9eef4;
+}
+
+/* Editor finalizado usa a mesma leitura horizontal do lançamento. */
+.admin-edit-sheet{
+  width:min(1080px,100%);
+}
+.admin-edit-list .match-card.editing{
+  padding:.85rem 1rem;
+}
+.admin-edit-list .edit-score-row{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:1rem!important;
+}
+.admin-edit-list .edit-score-row .admin-team{
+  min-width:0;
+}
+.admin-edit-list .edit-score-row .admin-team:first-child{
+  justify-items:end;
+}
+.admin-edit-list .edit-score-row .admin-team:last-child{
+  justify-items:start;
+}
+.admin-edit-list .edit-score-row .admin-team-name{
+  max-width:100%;
+}
+
+@media (max-width:699px){
+  .save-confirm-modal{
+    align-items:end;
+    padding:0;
+  }
+  .save-confirm-sheet{
+    width:100%;
+    padding:1rem .8rem calc(1rem + env(safe-area-inset-bottom));
+    border-radius:18px 18px 0 0!important;
+  }
+  .save-confirm-team .team-emblem{
+    width:48px;
+    height:48px;
+    flex-basis:48px;
+  }
+  .save-confirm-score strong{
+    min-width:42px;
+    min-height:46px;
+    font-size:1.35rem;
+  }
+  .admin-edit-list .match-card.editing{
+    padding:.65rem .55rem;
+  }
+  .admin-edit-list .edit-score-row{
+    grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr)!important;
+    gap:.3rem!important;
+  }
+  .admin-edit-list .edit-score-row .admin-team{
+    display:grid!important;
+    justify-items:center!important;
+    gap:.4rem!important;
+    text-align:center;
+  }
+  .admin-edit-list .edit-score-row .admin-team-name{
+    display:grid!important;
+    justify-items:center!important;
+    gap:.2rem!important;
+    text-align:center!important;
+  }
+  .admin-edit-list .edit-score-row .admin-team-name .team-emblem{
+    width:46px!important;
+    height:46px!important;
+    flex-basis:46px!important;
+  }
+  .admin-edit-list .edit-score-row .score-control{
+    grid-template-columns:30px 34px 30px!important;
+  }
+  .admin-edit-list .edit-score-row .score-control button{
+    width:30px!important;
+    height:34px!important;
+  }
+}
+
+.save-confirm-error{
+  margin:.75rem 0 0;
+  color:#b42318;
+  font-weight:800;
+  text-align:center;
+}
+.save-confirm-actions button:disabled{
+  opacity:.6;
+  cursor:wait;
+}
+
+/* Entrada simplificada e seletor de período público. */
+.simple-welcome{
+  display:grid!important;
+  place-items:center!important;
+  min-height:100dvh!important;
+  padding:1rem!important;
+}
+.welcome-logo-button{
+  display:grid;
+  place-items:center;
+  width:min(92vw,760px);
+  min-height:min(70vh,620px);
+  padding:0;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+}
+.welcome-logo-button .welcome-logo{
+  display:block;
+  width:min(86vw,680px)!important;
+  margin:0!important;
+}
+.welcome-logo-button img{
+  display:block;
+  width:100%;
+  height:auto;
+}
+.public-period-switcher{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:.45rem;
+  width:min(420px,100%);
+  margin:0 0 .55rem;
+}
+.public-period-switcher button{
+  min-height:40px;
+  border:1px solid #cbd8e7;
+  border-radius:9px;
+  color:#2f5e91;
+  background:#eef3f8;
+  font-weight:850;
+}
+.public-period-switcher button.active{
+  color:#fff;
+  background:#0753a4;
+  border-color:#0753a4;
+}
+@media (max-width:699px){
+  .simple-welcome{
+    min-height:100svh!important;
+    padding:.65rem!important;
+  }
+  .welcome-logo-button{
+    width:100%;
+    min-height:78svh;
+  }
+  .welcome-logo-button .welcome-logo{
+    width:min(78vw,330px)!important;
+  }
+  .public-period-switcher{
+    width:100%;
+    margin:.2rem 0 .35rem;
+    padding:0 .2rem;
+  }
+  .public-period-switcher button{
+    min-height:38px;
+  }
+}
+
+/* Aviso da partida imediatamente anterior na tela Por time. */
+.team-before-notice{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.45rem;
+  margin:-.15rem -.15rem .65rem;
+  padding:.45rem .6rem;
+  border:1px solid #bfd2e8;
+  background:#edf5ff;
+  color:#0a4b91;
+  font-size:.78rem;
+  font-weight:800;
+}
+.team-before-notice span{
+  padding:.12rem .4rem;
+  background:#0a55a7;
+  color:#fff;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  font-size:.68rem;
+}
+.team-before-notice strong{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+@media (max-width:699px){
+  .team-before-notice{
+    gap:.3rem;
+    padding:.4rem .45rem;
+    font-size:.7rem;
+  }
+  .team-before-notice span{
+    font-size:.62rem;
+  }
+}
+
+/* Classificação: cor e mascote em linhas separadas para melhorar leitura. */
+.ranking-table .team-name{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  gap:.12rem!important;
+  line-height:1.05!important;
+}
+.ranking-table .team-name strong{
+  display:block!important;
+  margin:0!important;
+}
+.ranking-table .team-name small{
+  display:block!important;
+  margin:0!important;
+  opacity:.82;
+  line-height:1.1!important;
+}
+
+
+/* ==========================================================================
+   REDESIGN 2026 — MOBILE FIRST
+   Aplicado sobre o tema legado para preservar a lógica atual do sistema.
+   ========================================================================== */
+
+:root{
+  --ji-blue-950:#062f63;
+  --ji-blue-900:#083e7d;
+  --ji-blue-800:#0a4e99;
+  --ji-blue-700:#0f63ba;
+  --ji-blue-600:#2e84dd;
+  --ji-blue-500:#4a9be8;
+  --ji-blue-300:#9bc7f3;
+  --ji-blue-200:#cfe4f8;
+  --ji-blue-100:#eaf4fd;
+  --ji-blue-50:#f5faff;
+  --ji-ink:#17324d;
+  --ji-muted:#6d8196;
+  --ji-line:#dce8f3;
+  --ji-surface:#ffffff;
+  --ji-success:#1f9d62;
+  --ji-warning:#d78a11;
+  --ji-danger:#c23c45;
+  --ji-shadow:0 8px 28px rgba(17,73,126,.10);
+  --ji-shadow-strong:0 14px 38px rgba(17,73,126,.18);
+  --ji-radius:18px;
+  --ji-radius-sm:12px;
+}
+
+html,body{
+  margin:0;
+  min-height:100%;
+  background:var(--ji-blue-50);
+  color:var(--ji-ink);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+body{overflow-x:hidden}
+button,input,select,textarea{font:inherit}
+button{touch-action:manipulation}
+*{box-sizing:border-box}
+
+/* ===== TELA INICIAL ====================================================== */
+
+.welcome-screen{
+  min-height:100svh!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:18px!important;
+  overflow:hidden;
+  background:#f3f8fe!important;
+}
+
+.welcome-content{
+  width:min(100%,430px)!important;
+  min-height:0!important;
+  max-height:none!important;
+  margin:0 auto!important;
+  padding:18px 16px 20px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  justify-content:center!important;
+  gap:12px!important;
+  border:1px solid rgba(155,199,243,.45);
+  border-radius:28px!important;
+  background:rgba(255,255,255,.92)!important;
+  box-shadow:var(--ji-shadow-strong)!important;
+  overflow:hidden!important;
+  position:relative;
+}
+
+.welcome-content::before,
+.welcome-content::after{
+  content:"";
+  position:absolute;
+  width:180px;
+  height:180px;
+  border-radius:50%;
+  background:rgba(74,155,232,.10);
+  z-index:0;
+}
+.welcome-content::before{top:-100px;right:-70px}
+.welcome-content::after{bottom:-120px;left:-75px}
+.welcome-content>*{position:relative;z-index:1}
+
+.welcome-logo{
+  width:min(78vw,310px)!important;
+  margin:0 auto!important;
+  display:block!important;
+}
+.welcome-logo img{
+  display:block!important;
+  width:100%!important;
+  height:auto!important;
+  object-fit:contain!important;
+}
+
+.welcome-period-choice{
+  width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  border:0!important;
+}
+.welcome-period-choice h2{
+  margin:2px 0 10px!important;
+  color:var(--ji-blue-900)!important;
+  font-size:.86rem!important;
+  font-weight:800!important;
+  letter-spacing:.14em!important;
+  text-align:center!important;
+  text-transform:uppercase!important;
+}
+.welcome-screen .choice-grid{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:10px!important;
+}
+.welcome-screen .choice-button{
+  min-height:54px!important;
+  border:0!important;
+  border-radius:16px!important;
+  color:#fff!important;
+  background:var(--ji-blue-800)!important;
+  box-shadow:0 7px 18px rgba(15,99,186,.22)!important;
+  font-size:1.04rem!important;
+  font-weight:850!important;
+  letter-spacing:.01em!important;
+}
+.welcome-screen .choice-button:nth-child(2){
+  background:var(--ji-blue-600)!important;
+}
+.welcome-screen .choice-button:active{transform:translateY(1px)}
+
+/* ===== ESTRUTURA PÚBLICA ================================================= */
+
+je-root:has(.public-topbar){
+  min-height:100svh;
+  display:flex;
+  flex-direction:column;
+  background:#f5faff;
+}
+
+.public-topbar{
+  position:sticky!important;
+  top:0;
+  z-index:70!important;
+  background:var(--ji-blue-950)!important;
+  color:#fff!important;
+  border:0!important;
+  box-shadow:0 4px 16px rgba(4,45,91,.12)!important;
+}
+.public-topbar>div{
+  width:100%!important;
+  min-height:42px!important;
+  padding:0 14px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+.public-topbar strong{
+  font-size:.76rem!important;
+  letter-spacing:.08em!important;
+  white-space:nowrap;
+}
+.public-topbar strong+strong{display:none!important}
+
+.site-header.public-header{
+  position:sticky!important;
+  top:42px!important;
+  z-index:65!important;
+  min-height:52px!important;
+  padding:0!important;
+  border:0!important;
+  background:rgba(255,255,255,.96)!important;
+  backdrop-filter:blur(14px);
+  box-shadow:0 1px 0 var(--ji-line)!important;
+}
+
+.header-inner{
+  width:100%!important;
+  min-height:52px!important;
+  padding:0 12px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+}
+.header-home,
+.admin-button{
+  min-height:36px!important;
+  border:0!important;
+  border-radius:12px!important;
+  font-weight:800!important;
+}
+.header-home{
+  padding:0 14px!important;
+  color:var(--ji-blue-800)!important;
+  background:var(--ji-blue-100)!important;
+}
+.admin-button{
+  padding:0 12px!important;
+  color:var(--ji-muted)!important;
+  background:#f2f6fa!important;
+  font-size:.72rem!important;
+}
+
+.public-main-nav{
+  position:fixed!important;
+  left:10px!important;
+  right:10px!important;
+  bottom:calc(10px + env(safe-area-inset-bottom))!important;
+  z-index:100!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,1fr)!important;
+  gap:4px!important;
+  min-height:64px!important;
+  padding:6px!important;
+  border:1px solid rgba(155,199,243,.48)!important;
+  border-radius:20px!important;
+  background:rgba(255,255,255,.96)!important;
+  backdrop-filter:blur(18px);
+  box-shadow:0 10px 30px rgba(13,73,129,.20)!important;
+  overflow:visible!important;
+}
+.public-main-nav button{
+  min-width:0!important;
+  min-height:50px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:3px!important;
+  padding:4px 2px!important;
+  border:0!important;
+  border-radius:14px!important;
+  color:#7a8da0!important;
+  background:transparent!important;
+  font-size:.64rem!important;
+  font-weight:800!important;
+  white-space:nowrap!important;
+}
+.public-main-nav button.active{
+  color:var(--ji-blue-800)!important;
+  background:var(--ji-blue-100)!important;
+}
+.public-main-nav .nav-icon{
+  font-size:1.05rem!important;
+  line-height:1!important;
+}
+
+.mobile-filter-fab{
+  position:fixed!important;
+  right:18px!important;
+  bottom:calc(86px + env(safe-area-inset-bottom))!important;
+  z-index:95!important;
+  width:46px!important;
+  height:46px!important;
+  border:0!important;
+  border-radius:50%!important;
+  color:#fff!important;
+  background:var(--ji-blue-700)!important;
+  box-shadow:0 10px 24px rgba(15,99,186,.28)!important;
+}
+
+.scoreboard-shell{
+  width:100%!important;
+  max-width:none!important;
+  padding:14px 12px calc(96px + env(safe-area-inset-bottom))!important;
+  flex:1 0 auto!important;
+}
+.public-view-tabs,
+.legacy-view-tabs{display:none!important}
+
+.scoreboard-heading{
+  margin:0 0 12px!important;
+  padding:0!important;
+}
+.scoreboard-heading .eyebrow{
+  margin:0 0 4px!important;
+  color:var(--ji-blue-600)!important;
+  font-size:.68rem!important;
+  font-weight:800!important;
+  letter-spacing:.08em!important;
+  text-transform:uppercase!important;
+}
+.scoreboard-heading h2{
+  margin:0!important;
+  color:var(--ji-blue-950)!important;
+  font-size:1.34rem!important;
+  line-height:1.1!important;
+}
+.classification-period{
+  display:inline-flex!important;
+  margin-left:4px!important;
+  padding:4px 8px!important;
+  border-radius:999px!important;
+  color:var(--ji-blue-800)!important;
+  background:var(--ji-blue-100)!important;
+  font-size:.62rem!important;
+  vertical-align:middle!important;
+}
+
+.panel,
+.choice-panel{
+  border:1px solid var(--ji-line)!important;
+  border-radius:var(--ji-radius)!important;
+  background:var(--ji-surface)!important;
+  box-shadow:var(--ji-shadow)!important;
+}
+.dashboard-grid{display:block!important}
+.dashboard-grid>.results-section{display:none!important}
+
+/* ===== CLASSIFICAÇÃO ===================================================== */
+
+.ranking-panel{
+  overflow:hidden!important;
+  padding:0!important;
+}
+.table-wrap{
+  width:100%!important;
+  overflow-x:auto!important;
+  border-radius:inherit!important;
+}
+.ranking-table{
+  width:100%!important;
+  min-width:0!important;
+  border-collapse:separate!important;
+  border-spacing:0!important;
+  table-layout:fixed!important;
+  background:#fff!important;
+}
+.ranking-table thead th{
+  padding:10px 4px!important;
+  border:0!important;
+  border-bottom:1px solid var(--ji-line)!important;
+  color:#6f8499!important;
+  background:#f7fbff!important;
+  font-size:.62rem!important;
+  font-weight:850!important;
+  text-transform:uppercase!important;
+}
+.ranking-table th:nth-child(1){width:42px}
+.ranking-table th:nth-child(2){width:auto;text-align:left!important}
+.ranking-table th:nth-child(n+3){width:34px}
+.ranking-table tbody td{
+  height:58px!important;
+  padding:7px 3px!important;
+  border:0!important;
+  border-bottom:1px solid #edf3f8!important;
+  color:#38516a!important;
+  text-align:center!important;
+  font-size:.72rem!important;
+}
+.ranking-table tbody tr:last-child td{border-bottom:0!important}
+.ranking-table tbody tr:nth-child(-n+4){
+  background:rgba(74,155,232,.055)!important;
+}
+.ranking-table .position strong{
+  color:var(--ji-blue-900)!important;
+  font-size:.82rem!important;
+}
+.ranking-table .team-ident{
+  display:flex!important;
+  align-items:center!important;
+  gap:7px!important;
+  min-width:0!important;
+}
+.ranking-table .team-emblem{
+  width:36px!important;
+  height:36px!important;
+  flex:0 0 36px!important;
+}
+.ranking-table .team-name{
+  min-width:0!important;
+  align-items:flex-start!important;
+}
+.ranking-table .team-name strong{
+  max-width:100%;
+  color:var(--ji-blue-950)!important;
+  font-size:.76rem!important;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.ranking-table .team-name small{
+  max-width:100%;
+  color:#7b90a5!important;
+  font-size:.60rem!important;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.ranking-table tbody td:nth-child(3) strong{
+  display:inline-grid!important;
+  place-items:center!important;
+  min-width:28px!important;
+  height:28px!important;
+  border-radius:9px!important;
+  color:var(--ji-blue-900)!important;
+  background:var(--ji-blue-100)!important;
+  font-size:.82rem!important;
+}
+
+/* ===== RESULTADOS ======================================================== */
+
+.results-section{min-width:0!important}
+.section-heading.editorial-heading{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  margin-bottom:10px!important;
+}
+.section-heading.editorial-heading h2{
+  margin:0!important;
+  color:var(--ji-blue-950)!important;
+  font-size:1.18rem!important;
+}
+.section-heading.editorial-heading>div>p:last-child{display:none!important}
+.live-badge{
+  padding:5px 9px!important;
+  border-radius:999px!important;
+  color:#fff!important;
+  background:var(--ji-success)!important;
+  font-size:.62rem!important;
+  font-weight:800!important;
+}
+.results-list,
+.history-results-grid{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:10px!important;
+}
+.result-card,
+.history-result-card{
+  margin:0!important;
+  padding:12px!important;
+  border:1px solid var(--ji-line)!important;
+  border-radius:16px!important;
+  background:#fff!important;
+  box-shadow:0 6px 18px rgba(25,78,128,.07)!important;
+}
+.result-meta,
+.history-result-meta{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  gap:6px!important;
+  margin-bottom:8px!important;
+  color:#72879a!important;
+  font-size:.65rem!important;
+}
+.sport-pill{
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:24px!important;
+  padding:3px 8px!important;
+  border-radius:999px!important;
+  color:var(--ji-blue-800)!important;
+  background:var(--ji-blue-100)!important;
+  font-size:.62rem!important;
+  font-weight:800!important;
+}
+.fixture-row{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:8px!important;
+}
+.fixture-team{
+  display:flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  min-width:0!important;
+}
+.fixture-team.home{justify-content:flex-end!important;text-align:right!important}
+.fixture-team.away{justify-content:flex-start!important;text-align:left!important}
+.fixture-team-copy{
+  display:grid!important;
+  gap:1px!important;
+  min-width:0!important;
+}
+.fixture-team-copy strong{
+  color:var(--ji-blue-950)!important;
+  font-size:.72rem!important;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.fixture-team-copy small{
+  color:#8496a7!important;
+  font-size:.58rem!important;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.fixture-row .team-emblem{
+  width:36px!important;
+  height:36px!important;
+  flex:0 0 36px!important;
+}
+.fixture-score{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:5px!important;
+  min-width:66px!important;
+  color:var(--ji-blue-950)!important;
+}
+.fixture-score b{
+  font-size:1.15rem!important;
+  line-height:1!important;
+}
+.fixture-score small{color:#92a2b2!important}
+.winner-score{color:var(--ji-blue-700)!important}
+.result-card>p{
+  margin:8px 0 0!important;
+  padding-top:8px!important;
+  border-top:1px dashed var(--ji-line)!important;
+  color:#7a8da0!important;
+  text-align:center!important;
+  font-size:.62rem!important;
+}
+
+/* ===== CRONOGRAMA ======================================================== */
+
+.schedule-view,
+.team-view,
+.history-heading{min-width:0!important}
+
+.schedule-days{
+  display:flex!important;
+  gap:7px!important;
+  margin:0 0 10px!important;
+  padding:2px 0 4px!important;
+  overflow-x:auto!important;
+  scrollbar-width:none;
+}
+.schedule-days::-webkit-scrollbar{display:none}
+.schedule-day{
+  flex:0 0 auto!important;
+  min-height:36px!important;
+  padding:0 14px!important;
+  border:1px solid var(--ji-line)!important;
+  border-radius:999px!important;
+  color:#61778c!important;
+  background:#fff!important;
+  font-size:.70rem!important;
+  font-weight:800!important;
+}
+.schedule-day.active{
+  border-color:var(--ji-blue-700)!important;
+  color:#fff!important;
+  background:var(--ji-blue-700)!important;
+}
+
+.schedule-selectors{margin-bottom:10px!important}
+.schedule-selectors .choice-panel{
+  padding:10px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+}
+.section-title-block .eyebrow{margin:0!important}
+.section-title-block h3{
+  margin:2px 0 0!important;
+  color:var(--ji-blue-950)!important;
+  font-size:.92rem!important;
+}
+.court-buttons{
+  display:flex!important;
+  gap:6px!important;
+}
+.court-choice,
+.filter-choice{
+  min-height:34px!important;
+  padding:0 10px!important;
+  border:1px solid var(--ji-line)!important;
+  border-radius:10px!important;
+  color:#647b91!important;
+  background:#f7fbff!important;
+  font-size:.68rem!important;
+  font-weight:800!important;
+}
+.court-choice.active,
+.filter-choice.active{
+  color:#fff!important;
+  border-color:var(--ji-blue-700)!important;
+  background:var(--ji-blue-700)!important;
+}
+
+.activity-grid{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:12px!important;
+}
+.activity-column{
+  border:1px solid var(--ji-line)!important;
+  border-radius:18px!important;
+  background:#fff!important;
+  box-shadow:var(--ji-shadow)!important;
+  overflow:hidden!important;
+}
+.activity-heading{
+  padding:10px 12px!important;
+  border-bottom:1px solid var(--ji-line)!important;
+  background:#f7fbff!important;
+}
+.activity-heading span{
+  display:block!important;
+  color:#7c8fa2!important;
+  font-size:.60rem!important;
+  font-weight:800!important;
+  text-transform:uppercase!important;
+}
+.activity-heading h3{
+  margin:2px 0 0!important;
+  color:var(--ji-blue-950)!important;
+  font-size:1rem!important;
+}
+.gender-grid{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:0!important;
+}
+.gender-lane{
+  padding:10px!important;
+  border-bottom:1px solid #edf3f8!important;
+}
+.gender-lane:last-child{border-bottom:0!important}
+.gender-lane-heading{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  margin-bottom:8px!important;
+}
+.gender-lane-heading h4{
+  margin:0!important;
+  color:var(--ji-blue-900)!important;
+  font-size:.76rem!important;
+}
+.gender-lane-heading span{
+  color:#8396a8!important;
+  font-size:.62rem!important;
+}
+.gender-games{
+  display:grid!important;
+  gap:8px!important;
+}
+.schedule-card{
+  padding:10px!important;
+  border:1px solid var(--ji-line)!important;
+  border-radius:14px!important;
+  background:#fff!important;
+  box-shadow:none!important;
+}
+.schedule-card.finished{background:#fbfdfc!important}
+.schedule-card.happening{
+  border-color:#8dc0ed!important;
+  box-shadow:0 0 0 2px rgba(46,132,221,.08)!important;
+}
+.schedule-card-top{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  margin-bottom:8px!important;
+}
+.schedule-card-top>div{
+  display:flex!important;
+  align-items:center!important;
+  gap:7px!important;
+}
+.schedule-card time{
+  color:var(--ji-blue-950)!important;
+  font-size:.78rem!important;
+  font-weight:900!important;
+}
+.status{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:23px!important;
+  padding:2px 7px!important;
+  border-radius:999px!important;
+  color:#6d8195!important;
+  background:#eef3f7!important;
+  font-size:.57rem!important;
+  font-weight:800!important;
+}
+.schedule-card.finished .status{
+  color:#197c4f!important;
+  background:#e8f7ef!important;
+}
+.schedule-card.happening .status{
+  color:#0f63ba!important;
+  background:#e6f2fd!important;
+}
+
+/* ===== POR EQUIPE ======================================================== */
+
+.team-schedule-picker{
+  padding:12px!important;
+  margin-bottom:12px!important;
+}
+.picker-heading{
+  margin-bottom:10px!important;
+}
+.picker-heading .eyebrow{margin:0 0 2px!important}
+.picker-heading h3{
+  margin:0!important;
+  color:var(--ji-blue-950)!important;
+}
+.picker-heading>span{
+  color:#7a8fa2!important;
+  font-size:.68rem!important;
+}
+.team-picker-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:8px!important;
+}
+.team-picker-choice{
+  min-height:76px!important;
+  display:grid!important;
+  place-items:center!important;
+  align-content:center!important;
+  gap:4px!important;
+  padding:7px 4px!important;
+  border:1px solid var(--ji-line)!important;
+  border-radius:14px!important;
+  color:#687d92!important;
+  background:#f8fbfe!important;
+  font-size:.66rem!important;
+  font-weight:800!important;
+}
+.team-picker-choice .team-emblem{
+  width:40px!important;
+  height:40px!important;
+  filter:grayscale(.85)!important;
+  opacity:.55!important;
+}
+.team-picker-choice.active{
+  color:#fff!important;
+  border-color:var(--ji-blue-700)!important;
+  background:var(--ji-blue-800)!important;
+  box-shadow:0 7px 18px rgba(15,99,186,.18)!important;
+}
+.team-picker-choice.active .team-emblem{
+  filter:none!important;
+  opacity:1!important;
+}
+.team-picker-all{font-size:.72rem!important}
+
+.team-schedule-heading{
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  margin:0 0 10px!important;
+  padding:11px 12px!important;
+  border:1px solid var(--ji-line)!important;
+  border-radius:16px!important;
+  background:#fff!important;
+}
+.team-schedule-heading .team-emblem{
+  width:48px!important;
+  height:48px!important;
+  flex:0 0 48px!important;
+}
+.team-schedule-heading span,
+.team-schedule-heading small{color:#7d91a4!important}
+.team-schedule-heading h3{
+  margin:1px 0!important;
+  color:var(--ji-blue-950)!important;
+}
+.team-schedule-grid{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:10px!important;
+}
+.team-schedule-card{
+  padding:11px!important;
+  border:1px solid var(--ji-line)!important;
+  border-radius:16px!important;
+  background:#fff!important;
+  box-shadow:0 5px 17px rgba(25,78,128,.07)!important;
+}
+.team-schedule-card-top,
+.team-schedule-location{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+}
+.team-schedule-card-top time{
+  color:var(--ji-blue-950)!important;
+  font-weight:900!important;
+}
+.team-schedule-location{
+  margin:7px 0!important;
+  padding:7px 0!important;
+  border-block:1px solid #edf3f8!important;
+  color:#6e8296!important;
+  font-size:.65rem!important;
+}
+.team-schedule-versus{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:8px!important;
+}
+.team-schedule-versus>div{
+  display:flex!important;
+  align-items:center!important;
+  gap:6px!important;
+}
+.team-schedule-versus>div:last-child{justify-content:flex-end!important;text-align:right!important}
+.team-schedule-versus .team-emblem{
+  width:38px!important;
+  height:38px!important;
+}
+.team-schedule-versus b{color:var(--ji-blue-950)!important;font-size:.72rem!important}
+.team-schedule-versus small{display:block!important;color:#8396a8!important;font-size:.58rem!important}
+.team-schedule-score{
+  color:var(--ji-blue-900)!important;
+  font-size:1rem!important;
+}
+
+/* ===== HISTÓRICO DE RESULTADOS ========================================== */
+
+.history-result-meta{
+  padding-bottom:8px!important;
+  border-bottom:1px solid #edf3f8!important;
+}
+.history-result-meta strong{color:var(--ji-blue-900)!important}
+
+/* ===== ESTADOS E RODAPÉ ================================================= */
+
+.empty-state{
+  padding:20px 14px!important;
+  border:1px dashed #bfd2e4!important;
+  border-radius:15px!important;
+  color:#71879a!important;
+  background:#f8fbfe!important;
+  text-align:center!important;
+  font-size:.74rem!important;
+}
+.updated-at{
+  color:#8799aa!important;
+  text-align:center!important;
+  font-size:.64rem!important;
+}
+.public-footer{
+  padding:18px 12px calc(92px + env(safe-area-inset-bottom))!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  gap:3px!important;
+  color:#7690a7!important;
+  background:transparent!important;
+  font-size:.65rem!important;
+}
+.public-footer strong{color:var(--ji-blue-900)!important}
+
+/* ===== OVERLAYS / FILTROS ================================================= */
+
+.mobile-filter-modal,
+.admin-filter-modal,
+.admin-ranking-modal,
+.admin-edit-modal,
+.save-confirm-modal,
+.jogos-login-modal{
+  z-index:180!important;
+}
+.mobile-filter-backdrop,
+.admin-ranking-backdrop,
+.save-confirm-backdrop{
+  background:rgba(5,39,77,.55)!important;
+  backdrop-filter:blur(3px);
+}
+.mobile-filter-sheet,
+.admin-ranking-sheet,
+.admin-edit-sheet,
+.save-confirm-sheet{
+  border-radius:22px 22px 0 0!important;
+  border:1px solid rgba(155,199,243,.36)!important;
+  background:#fff!important;
+  box-shadow:0 -12px 34px rgba(6,47,99,.18)!important;
+}
+.mobile-filter-sheet-head{
+  padding-bottom:10px!important;
+  border-bottom:1px solid var(--ji-line)!important;
+}
+.mobile-filter-group{margin-top:12px!important}
+.mobile-filter-group>strong,
+.filter-group legend{
+  color:var(--ji-blue-900)!important;
+  font-size:.72rem!important;
+  font-weight:850!important;
+}
+.mobile-filter-options{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:7px!important;
+}
+.mobile-filter-options button{
+  min-height:40px!important;
+  border:1px solid var(--ji-line)!important;
+  border-radius:11px!important;
+  color:#657b90!important;
+  background:#f8fbfe!important;
+  font-weight:800!important;
+}
+.mobile-filter-options button.active{
+  color:#fff!important;
+  border-color:var(--ji-blue-700)!important;
+  background:var(--ji-blue-700)!important;
+}
+
+/* ===== LOGIN ============================================================== */
+
+.jogos-login-modal .login-form{
+  border-radius:22px!important;
+  border:1px solid var(--ji-line)!important;
+  background:#fff!important;
+  box-shadow:var(--ji-shadow-strong)!important;
+}
+.login-form h2{
+  color:var(--ji-blue-950)!important;
+}
+.login-form input{
+  min-height:46px!important;
+  border:1px solid var(--ji-line)!important;
+  border-radius:12px!important;
+  background:#f9fcff!important;
+}
+.login-actions button{
+  min-height:44px!important;
+  border:0!important;
+  border-radius:12px!important;
+  font-weight:850!important;
+}
+
+/* ===== ADMINISTRAÇÃO ====================================================== */
+
+.admin-header .header-inner{min-height:52px!important}
+.admin-registration-nav{
+  position:sticky!important;
+  top:94px!important;
+  left:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  z-index:60!important;
+  width:100%!important;
+  min-height:50px!important;
+  padding:6px 10px!important;
+  display:grid!important;
+  grid-template-columns:repeat(3,1fr)!important;
+  gap:6px!important;
+  border:0!important;
+  border-bottom:1px solid var(--ji-line)!important;
+  border-radius:0!important;
+  background:rgba(255,255,255,.98)!important;
+  box-shadow:none!important;
+}
+.admin-registration-nav button{
+  min-height:38px!important;
+  border:1px solid var(--ji-line)!important;
+  border-radius:11px!important;
+  color:#63798e!important;
+  background:#f7fbff!important;
+  font-size:.68rem!important;
+  font-weight:850!important;
+}
+.admin-registration-nav button.active{
+  color:#fff!important;
+  border-color:var(--ji-blue-700)!important;
+  background:var(--ji-blue-700)!important;
+}
+
+#admin-app.page-shell{
+  width:100%!important;
+  max-width:none!important;
+  padding:14px 12px 34px!important;
+}
+.admin-intro{margin-bottom:10px!important}
+.admin-intro h2{
+  margin:0!important;
+  color:var(--ji-blue-950)!important;
+  font-size:1.32rem!important;
+}
+.filters-panel{
+  padding:12px!important;
+  display:grid!important;
+  gap:10px!important;
+}
+.filter-group{
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+}
+.segmented{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:6px!important;
+}
+.segment{
+  min-height:36px!important;
+  padding:0 11px!important;
+  border:1px solid var(--ji-line)!important;
+  border-radius:10px!important;
+  color:#687d91!important;
+  background:#f8fbfe!important;
+  font-size:.67rem!important;
+  font-weight:800!important;
+}
+.segment.active{
+  color:#fff!important;
+  border-color:var(--ji-blue-700)!important;
+  background:var(--ji-blue-700)!important;
+}
+.admin-filter-confirm{
+  min-height:42px!important;
+  width:100%!important;
+  border:0!important;
+  border-radius:12px!important;
+  color:#fff!important;
+  background:var(--ji-blue-800)!important;
+  font-weight:850!important;
+}
+
+.matches-area{margin-top:12px!important}
+.matches-heading{
+  display:grid!important;
+  gap:8px!important;
+  margin-bottom:10px!important;
+}
+.selected-court-title h2{
+  margin:0!important;
+  color:var(--ji-blue-950)!important;
+  font-size:1.16rem!important;
+}
+.selection-summary{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:5px!important;
+}
+.selection-summary span{
+  display:inline-flex!important;
+  min-height:25px!important;
+  align-items:center!important;
+  padding:3px 8px!important;
+  border-radius:999px!important;
+  color:#60778c!important;
+  background:#eaf3fb!important;
+  font-size:.60rem!important;
+  font-weight:800!important;
+}
+.matches-list{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:10px!important;
+}
+.match-card{
+  padding:11px!important;
+  border:1px solid var(--ji-line)!important;
+  border-radius:17px!important;
+  background:#fff!important;
+  box-shadow:0 5px 17px rgba(25,78,128,.07)!important;
+}
+.match-card.current-match{
+  border-color:#7cb8ec!important;
+  box-shadow:0 0 0 3px rgba(46,132,221,.09),0 7px 20px rgba(25,78,128,.08)!important;
+}
+.match-card.next-match{background:#f8fbff!important}
+.match-card.finished{opacity:.74!important}
+.match-top{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  margin-bottom:9px!important;
+}
+.match-top>div:first-child{
+  display:flex!important;
+  align-items:center!important;
+  gap:7px!important;
+}
+.match-top time{
+  color:var(--ji-blue-950)!important;
+  font-weight:900!important;
+}
+.match-labels{display:flex!important;gap:5px!important;flex-wrap:wrap!important;justify-content:flex-end!important}
+.current-badge,
+.next-badge,
+.period-badge{
+  padding:4px 7px!important;
+  border-radius:999px!important;
+  font-size:.57rem!important;
+  font-weight:850!important;
+}
+.current-badge{color:#fff!important;background:var(--ji-blue-700)!important}
+.next-badge{color:var(--ji-blue-800)!important;background:var(--ji-blue-100)!important}
+.match-score-row,
+.edit-score-row{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:8px!important;
+}
+.admin-team{
+  display:grid!important;
+  place-items:center!important;
+  gap:6px!important;
+  min-width:0!important;
+  text-align:center!important;
+}
+.admin-team-name{
+  display:grid!important;
+  place-items:center!important;
+  gap:3px!important;
+  min-width:0!important;
+}
+.admin-team-name .team-emblem{
+  width:46px!important;
+  height:46px!important;
+}
+.admin-team-name strong{
+  max-width:100%;
+  color:var(--ji-blue-950)!important;
+  font-size:.72rem!important;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.score-control{
+  display:grid!important;
+  grid-template-columns:34px 40px 34px!important;
+  align-items:center!important;
+  gap:4px!important;
+}
+.score-control button{
+  width:34px!important;
+  height:38px!important;
+  border:1px solid var(--ji-line)!important;
+  border-radius:10px!important;
+  color:var(--ji-blue-800)!important;
+  background:var(--ji-blue-100)!important;
+  font-size:1rem!important;
+  font-weight:900!important;
+}
+.score-control strong{
+  display:grid!important;
+  place-items:center!important;
+  min-height:40px!important;
+  border:1px solid var(--ji-line)!important;
+  border-radius:10px!important;
+  color:var(--ji-blue-950)!important;
+  background:#fff!important;
+  font-size:1.15rem!important;
+}
+.versus{
+  color:#8496a8!important;
+  font-size:.70rem!important;
+  font-weight:900!important;
+}
+.match-actions{
+  margin-top:10px!important;
+  display:grid!important;
+}
+.save-button,
+.correction-button{
+  min-height:42px!important;
+  border:0!important;
+  border-radius:12px!important;
+  color:#fff!important;
+  background:var(--ji-blue-800)!important;
+  font-weight:850!important;
+}
+.correction-button{background:#eaf3fb!important;color:var(--ji-blue-800)!important}
+
+/* ===== CONFIRMAÇÃO / EDIÇÃO / RANKING ADMIN ============================== */
+
+.save-confirm-sheet{
+  width:min(560px,100%)!important;
+  padding:16px!important;
+}
+.save-confirm-sheet h2{
+  margin:0 0 10px!important;
+  color:var(--ji-blue-950)!important;
+}
+.save-confirm-game{
+  border-block:1px solid var(--ji-line)!important;
+}
+.save-confirm-team strong{color:var(--ji-blue-950)!important}
+.save-confirm-score strong{
+  border:1px solid var(--ji-line)!important;
+  border-radius:12px!important;
+  background:var(--ji-blue-50)!important;
+}
+.save-confirm-actions button{
+  border-radius:12px!important;
+}
+.save-confirm-primary{background:var(--ji-blue-700)!important}
+.save-confirm-secondary{background:#edf3f8!important;color:var(--ji-blue-900)!important}
+
+.admin-ranking-sheet,
+.admin-edit-sheet{
+  width:100%!important;
+  max-width:980px!important;
+}
+.admin-ranking-sheet-head,
+.admin-ranking-heading{
+  color:var(--ji-blue-950)!important;
+}
+
+/* ===== TABLET / DESKTOP =================================================== */
+
+@media (min-width:700px){
+  .welcome-screen{
+    min-height:100vh!important;
+    padding:30px!important;
+    background:#f3f8fe!important;
+  }
+  .welcome-content{
+    width:min(92vw,1040px)!important;
+    min-height:560px!important;
+    padding:36px 42px!important;
+    border-radius:34px!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr)!important;
+    align-items:center!important;
+    gap:34px!important;
+  }
+  .welcome-logo{
+    width:min(100%,650px)!important;
+    max-height:470px!important;
+  }
+  .welcome-logo img{
+    max-height:470px!important;
+    object-fit:contain!important;
+  }
+  .welcome-period-choice{
+    align-self:center!important;
+    max-width:360px!important;
+  }
+  .welcome-period-choice h2{
+    margin-bottom:14px!important;
+    font-size:.92rem!important;
+  }
+  .welcome-screen .choice-grid{
+    grid-template-columns:1fr 1fr!important;
+  }
+  .welcome-screen .choice-button{
+    min-height:58px!important;
+  }
+
+  .public-topbar>div,
+  .header-inner,
+  .scoreboard-shell,
+  #admin-app.page-shell{
+    width:min(1180px,calc(100% - 40px))!important;
+    margin-inline:auto!important;
+  }
+
+  .site-header.public-header{
+    top:42px!important;
+  }
+  .public-main-nav{
+    position:static!important;
+    width:min(1180px,calc(100% - 40px))!important;
+    margin:0 auto!important;
+    min-height:52px!important;
+    padding:5px 0 8px!important;
+    grid-template-columns:repeat(4,max-content)!important;
+    justify-content:start!important;
+    gap:6px!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    backdrop-filter:none!important;
+  }
+  .public-main-nav button{
+    min-height:38px!important;
+    padding:0 14px!important;
+    flex-direction:row!important;
+    gap:7px!important;
+    font-size:.72rem!important;
+  }
+  .public-main-nav .nav-icon{font-size:.95rem!important}
+  .mobile-filter-fab{display:none!important}
+  .scoreboard-shell{
+    padding:22px 0 34px!important;
+  }
+  .scoreboard-heading h2{font-size:1.55rem!important}
+
+  .dashboard-grid{
+    display:grid!important;
+    grid-template-columns:minmax(0,1.55fr) minmax(330px,.75fr)!important;
+    align-items:start!important;
+    gap:18px!important;
+  }
+  .dashboard-grid>.results-section{
+    display:block!important;
+    min-width:0!important;
+  }
+  .ranking-table thead th{font-size:.68rem!important}
+  .ranking-table tbody td{
+    height:64px!important;
+    font-size:.78rem!important;
+  }
+  .ranking-table .team-emblem{
+    width:42px!important;
+    height:42px!important;
+    flex-basis:42px!important;
+  }
+  .ranking-table .team-name strong{font-size:.82rem!important}
+  .ranking-table .team-name small{font-size:.64rem!important}
+
+  .results-list{gap:9px!important}
+  .dashboard-grid .result-card{padding:10px!important}
+  .dashboard-grid .fixture-row .team-emblem{
+    width:32px!important;
+    height:32px!important;
+    flex-basis:32px!important;
+  }
+
+  .activity-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    align-items:start!important;
+  }
+  .gender-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .gender-lane{
+    border-bottom:0!important;
+    border-right:1px solid #edf3f8!important;
+  }
+  .gender-lane:last-child{border-right:0!important}
+  .team-picker-grid{
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  }
+  .team-schedule-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .history-results-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .public-footer{
+    padding:24px 12px 32px!important;
+  }
+
+  .admin-registration-nav{
+    position:sticky!important;
+    top:94px!important;
+    width:min(1180px,calc(100% - 40px))!important;
+    margin:0 auto!important;
+    border:0!important;
+    border-bottom:1px solid var(--ji-line)!important;
+  }
+  .filters-panel{
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    align-items:end!important;
+  }
+  .admin-filter-actions{
+    grid-column:1/-1!important;
+  }
+  .matches-heading{
+    grid-template-columns:1fr auto!important;
+    align-items:end!important;
+  }
+  .selection-summary{justify-content:flex-end!important}
+  .matches-list{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .admin-ranking-sheet,
+  .admin-edit-sheet{
+    border-radius:22px!important;
+  }
+}
+
+@media (min-width:1100px){
+  .welcome-content{
+    grid-template-columns:minmax(0,1.6fr) minmax(350px,.65fr)!important;
+  }
+  .activity-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .team-picker-grid{grid-template-columns:repeat(8,minmax(0,1fr))!important}
+}
+
+/* Segurança visual para telas estreitas */
+@media (max-width:380px){
+  .public-main-nav button{font-size:.58rem!important}
+  .ranking-table th:nth-child(1){width:36px}
+  .ranking-table th:nth-child(n+3){width:31px}
+  .ranking-table .team-emblem{
+    width:32px!important;
+    height:32px!important;
+    flex-basis:32px!important;
+  }
+  .ranking-table .team-name small{display:none!important}
+  .team-picker-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+
+/* ==========================================================================
+   AJUSTE TELA INICIAL — fiel ao conceito aprovado
+   ========================================================================== */
+
+.welcome-screen{
+  min-height:100svh!important;
+  padding:0!important;
+  display:grid!important;
+  place-items:center!important;
+  background:#f3f8fe!important;
+}
+
+.welcome-content{
+  width:min(100%,440px)!important;
+  min-height:100svh!important;
+  padding:18px 18px 24px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:12px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+
+.welcome-content::before,
+.welcome-content::after{
+  display:none!important;
+}
+
+.welcome-logo{
+  width:min(78vw,330px)!important;
+  max-width:330px!important;
+  margin:0 auto 4px!important;
+}
+
+.welcome-logo img{
+  display:block!important;
+  width:100%!important;
+  height:auto!important;
+  max-height:none!important;
+  object-fit:contain!important;
+}
+
+.welcome-period-choice{
+  width:min(100%,330px)!important;
+  max-width:330px!important;
+  margin:0 auto!important;
+}
+
+.welcome-period-choice h2{
+  margin:0 0 10px!important;
+  text-align:center!important;
+  color:var(--ji-blue-900)!important;
+  font-size:.82rem!important;
+  font-weight:900!important;
+  letter-spacing:.14em!important;
+  text-transform:uppercase!important;
+}
+
+.welcome-screen .choice-grid{
+  grid-template-columns:1fr!important;
+  gap:10px!important;
+}
+
+.welcome-screen .choice-button{
+  min-height:56px!important;
+  border-radius:16px!important;
+  font-size:1.02rem!important;
+  box-shadow:0 8px 20px rgba(15,99,186,.20)!important;
+}
+
+@media (min-width:700px){
+  .welcome-screen{
+    min-height:100vh!important;
+    padding:28px!important;
+  }
+
+  .welcome-content{
+    width:min(92vw,980px)!important;
+    min-height:auto!important;
+    padding:30px 36px 34px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:14px!important;
+    border:1px solid rgba(155,199,243,.48)!important;
+    border-radius:28px!important;
+    background:rgba(255,255,255,.94)!important;
+    box-shadow:0 18px 48px rgba(17,73,126,.14)!important;
+    position:relative!important;
+    overflow:hidden!important;
+  }
+
+  .welcome-content::before,
+  .welcome-content::after{
+    display:block!important;
+    content:"";
+    position:absolute;
+    border-radius:50%;
+    background:rgba(74,155,232,.08);
+    z-index:0;
+  }
+
+  .welcome-content::before{
+    width:220px;
+    height:220px;
+    right:-90px;
+    top:-100px;
+  }
+
+  .welcome-content::after{
+    width:190px;
+    height:190px;
+    left:-90px;
+    bottom:-100px;
+  }
+
+  .welcome-content>*{
+    position:relative!important;
+    z-index:1!important;
+  }
+
+  .welcome-logo{
+    width:min(46vw,470px)!important;
+    max-width:470px!important;
+    margin:0 auto!important;
+  }
+
+  .welcome-period-choice{
+    width:min(100%,520px)!important;
+    max-width:520px!important;
+  }
+
+  .welcome-period-choice h2{
+    margin:0 0 12px!important;
+    font-size:.92rem!important;
+  }
+
+  .welcome-screen .choice-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:14px!important;
+  }
+
+  .welcome-screen .choice-button{
+    min-height:58px!important;
+    font-size:1.05rem!important;
+  }
+}
+
+
+/* ==========================================================================
+   AJUSTES MOBILE — navegação inferior, espaçamento, filtros e contraste
+   ========================================================================== */
+
+@media (max-width:699px){
+
+  /* remove o grande espaço herdado do CSS legado */
+  je-root:has(.public-topbar) .scoreboard-shell{
+    padding-top:12px!important;
+    padding-left:10px!important;
+    padding-right:10px!important;
+    padding-bottom:calc(94px + env(safe-area-inset-bottom))!important;
+  }
+
+  .scoreboard-heading{
+    margin-top:0!important;
+    margin-bottom:10px!important;
+  }
+
+  .schedule-view,
+  .team-view,
+  .history-heading{
+    margin-top:0!important;
+    padding-top:0!important;
+  }
+
+  /* navegação principal realmente fixa no rodapé */
+  .public-main-nav{
+    position:fixed!important;
+    left:8px!important;
+    right:8px!important;
+    top:auto!important;
+    bottom:calc(8px + env(safe-area-inset-bottom))!important;
+    z-index:130!important;
+    width:auto!important;
+    margin:0!important;
+    padding:6px!important;
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:4px!important;
+    border:1px solid rgba(155,199,243,.48)!important;
+    border-radius:18px!important;
+    background:rgba(255,255,255,.97)!important;
+    box-shadow:0 10px 28px rgba(9,61,114,.22)!important;
+    backdrop-filter:blur(16px)!important;
+  }
+
+  .public-main-nav button{
+    min-height:48px!important;
+    padding:4px 2px!important;
+    border:0!important;
+    border-radius:12px!important;
+    background:transparent!important;
+    color:#7e8fa0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:3px!important;
+    font-size:.60rem!important;
+    font-weight:800!important;
+    white-space:nowrap!important;
+  }
+
+  .public-main-nav button.active{
+    color:var(--ji-blue-800)!important;
+    background:var(--ji-blue-100)!important;
+  }
+
+  .public-main-nav .nav-icon{
+    font-size:1rem!important;
+    line-height:1!important;
+  }
+
+  /* botão claro e visível para abrir filtros */
+  .mobile-filter-fab{
+    position:fixed!important;
+    right:14px!important;
+    bottom:calc(82px + env(safe-area-inset-bottom))!important;
+    z-index:128!important;
+    width:auto!important;
+    min-width:88px!important;
+    height:42px!important;
+    padding:0 13px!important;
+    border:0!important;
+    border-radius:999px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:6px!important;
+    color:#fff!important;
+    background:var(--ji-blue-800)!important;
+    box-shadow:0 9px 22px rgba(15,99,186,.28)!important;
+    font-size:.68rem!important;
+    font-weight:850!important;
+  }
+
+  .mobile-filter-fab .filter-icon{
+    font-size:.9rem!important;
+  }
+
+  /* bottom sheet real: surge de baixo para cima */
+  .mobile-filter-modal,
+  .admin-filter-modal,
+  .jogos-login-modal{
+    position:fixed!important;
+    inset:0!important;
+    z-index:220!important;
+    display:flex!important;
+    align-items:flex-end!important;
+    justify-content:center!important;
+    padding:0!important;
+  }
+
+  .mobile-filter-backdrop{
+    position:absolute!important;
+    inset:0!important;
+    background:rgba(4,32,65,.56)!important;
+    backdrop-filter:blur(3px)!important;
+  }
+
+  .mobile-filter-sheet{
+    position:relative!important;
+    z-index:1!important;
+    width:100%!important;
+    max-width:none!important;
+    max-height:88svh!important;
+    margin:0!important;
+    padding:14px 12px calc(14px + env(safe-area-inset-bottom))!important;
+    border:0!important;
+    border-radius:22px 22px 0 0!important;
+    background:#fff!important;
+    box-shadow:0 -14px 38px rgba(6,47,99,.22)!important;
+    overflow:auto!important;
+    animation:ji-sheet-up .18s ease-out both;
+  }
+
+  .mobile-filter-sheet::before{
+    content:"";
+    display:block;
+    width:42px;
+    height:4px;
+    margin:0 auto 12px;
+    border-radius:999px;
+    background:#d6e3ef;
+  }
+
+  .mobile-filter-sheet-head{
+    padding:0 2px 10px!important;
+    border-bottom:1px solid var(--ji-line)!important;
+  }
+
+  .mobile-filter-sheet-head h2{
+    margin:0!important;
+    color:var(--ji-blue-950)!important;
+    font-size:1.05rem!important;
+  }
+
+  .mobile-filter-body{
+    padding-top:2px!important;
+  }
+
+  .mobile-filter-group{
+    margin-top:14px!important;
+  }
+
+  .mobile-filter-group h3{
+    margin:0 0 7px!important;
+    color:var(--ji-blue-900)!important;
+    font-size:.72rem!important;
+    font-weight:850!important;
+  }
+
+  .mobile-filter-options{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:7px!important;
+  }
+
+  .mobile-filter-options button{
+    min-height:42px!important;
+    border:1px solid var(--ji-line)!important;
+    border-radius:12px!important;
+    color:#63798e!important;
+    background:#f8fbfe!important;
+    font-size:.68rem!important;
+    font-weight:800!important;
+  }
+
+  .mobile-filter-options button.active{
+    color:#fff!important;
+    border-color:var(--ji-blue-700)!important;
+    background:var(--ji-blue-700)!important;
+  }
+
+  .mobile-team-filter-options{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+
+  .mobile-team-filter-options button{
+    min-height:84px!important;
+  }
+
+  .mobile-team-filter-choice .team-emblem{
+    width:42px!important;
+    height:42px!important;
+    flex-basis:42px!important;
+  }
+
+  .mobile-filter-actions{
+    position:sticky!important;
+    bottom:calc(-14px - env(safe-area-inset-bottom))!important;
+    margin-top:14px!important;
+    padding:10px 0 calc(2px + env(safe-area-inset-bottom))!important;
+    background:#f3f3f3!important;
+  }
+
+  .mobile-filter-close{
+    width:100%!important;
+    min-height:44px!important;
+    border:0!important;
+    border-radius:12px!important;
+    color:#fff!important;
+    background:var(--ji-blue-800)!important;
+    font-weight:850!important;
+  }
+
+  /* no mobile, filtros de equipe ficam no bottom sheet; evita bloco duplicado */
+  .team-schedule-picker,
+  .history-team-picker{
+    display:none!important;
+  }
+
+  /* vencedor com texto branco sobre fundo azul */
+  .winner-score{
+    color:#fff!important;
+    background:var(--ji-blue-700)!important;
+    border-radius:8px!important;
+    min-width:30px!important;
+    min-height:30px!important;
+    display:inline-grid!important;
+    place-items:center!important;
+    padding:0 6px!important;
+  }
+
+  .fixture-score b.winner-score{
+    color:#fff!important;
+  }
+
+  /* garante que o placar não seja cortado */
+  .fixture-score{
+    min-width:76px!important;
+    overflow:visible!important;
+  }
+
+  .fixture-row{
+    overflow:visible!important;
+  }
+}
+
+@keyframes ji-sheet-up{
+  from{transform:translateY(24px);opacity:.7}
+  to{transform:translateY(0);opacity:1}
+}
+
+
+/* ==========================================================================
+   AJUSTES FINAIS APROVADOS — 19/09/2026
+   ========================================================================== */
+
+/* Tela inicial usa a arte aprovada como composição inteira. */
+.welcome-screen{
+  min-height:100svh!important;
+  padding:0!important;
+  margin:0!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:hidden!important;
+  background:#eaf4fd!important;
+}
+.welcome-hero{
+  position:relative!important;
+  width:100%!important;
+  min-height:100svh!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:hidden!important;
+  background:#eaf4fd!important;
+}
+.welcome-hero-art{
+  display:block!important;
+  width:100%!important;
+  height:100svh!important;
+}
+.welcome-hero-art img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center center!important;
+}
+.welcome-click-zones{
+  position:absolute!important;
+  z-index:4!important;
+  left:18%!important;
+  right:18%!important;
+  bottom:8.2%!important;
+  height:18.5%!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:3.5%!important;
+}
+.welcome-click-zones button{
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:18px!important;
+  background:transparent!important;
+  color:transparent!important;
+  opacity:.01!important;
+  cursor:pointer!important;
+}
+
+@media (min-width:700px){
+  .welcome-hero{
+    width:min(100vw,177.68vh)!important;
+    min-height:0!important;
+    height:min(100vh,56.28vw)!important;
+    aspect-ratio:1672 / 941!important;
+    margin:auto!important;
+  }
+  .welcome-hero-art{
+    width:100%!important;
+    height:100%!important;
+  }
+  .welcome-hero-art img{
+    object-fit:contain!important;
+  }
+  .welcome-click-zones{
+    left:26.2%!important;
+    right:26.2%!important;
+    bottom:7.2%!important;
+    height:12.7%!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:2.8%!important;
+  }
+}
+
+/* Vencedor: todo texto legível no fundo azul. */
+.fixture-team.result-winner{
+  padding:7px 9px!important;
+  border-radius:11px!important;
+  color:#fff!important;
+  background:#2f73cc!important;
+}
+.fixture-team.result-winner .fixture-team-copy,
+.fixture-team.result-winner .fixture-team-copy strong,
+.fixture-team.result-winner .fixture-team-copy small{
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+}
+.fixture-team.result-winner .fixture-team-copy small{
+  opacity:.88!important;
+}
+.fixture-score .winner-score,
+.result-card .fixture-score .winner-score,
+.history-result-card .fixture-score .winner-score,
+.schedule-card .fixture-score .winner-score{
+  min-width:31px!important;
+  min-height:31px!important;
+  display:inline-grid!important;
+  place-items:center!important;
+  padding:0 6px!important;
+  border:0!important;
+  border-radius:7px!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  background:#1261bd!important;
+  text-shadow:none!important;
+}
+
+/* Classificação: todas as linhas recebem a tonalidade da própria equipe. */
+.ranking-table .team-row{
+  background:transparent!important;
+}
+.ranking-table .team-row td{
+  background:color-mix(in srgb,var(--team-color,#2e84dd) 17%,#fff)!important;
+  border-bottom-color:rgba(255,255,255,.78)!important;
+}
+.ranking-table .team-row:hover td{
+  background:color-mix(in srgb,var(--team-color,#2e84dd) 23%,#fff)!important;
+}
+
+/* Filtros do admin ficam acessíveis exclusivamente pelo menu inferior. */
+.filters-panel{
+  display:none!important;
+}
+#admin-app.page-shell{
+  padding-bottom:calc(92px + env(safe-area-inset-bottom))!important;
+}
+.admin-registration-nav{
+  position:fixed!important;
+  z-index:135!important;
+  left:50%!important;
+  right:auto!important;
+  top:auto!important;
+  bottom:calc(8px + env(safe-area-inset-bottom))!important;
+  transform:translateX(-50%)!important;
+  width:min(560px,calc(100% - 16px))!important;
+  margin:0!important;
+  min-height:62px!important;
+  padding:6px!important;
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:5px!important;
+  border:1px solid rgba(155,199,243,.5)!important;
+  border-radius:18px!important;
+  background:rgba(255,255,255,.97)!important;
+  box-shadow:0 10px 28px rgba(9,61,114,.22)!important;
+  backdrop-filter:blur(16px)!important;
+}
+.admin-registration-nav button{
+  min-height:48px!important;
+  padding:4px 8px!important;
+  border:0!important;
+  border-radius:12px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:3px!important;
+  color:#70849a!important;
+  background:transparent!important;
+  font-size:.64rem!important;
+  font-weight:850!important;
+}
+.admin-registration-nav button.active{
+  color:var(--ji-blue-800)!important;
+  background:var(--ji-blue-100)!important;
+}
+
+/* Bottom sheet do admin também abre de baixo em telas grandes. */
+.admin-filter-modal{
+  position:fixed!important;
+  inset:0!important;
+  z-index:230!important;
+  display:flex!important;
+  align-items:flex-end!important;
+  justify-content:center!important;
+  padding:0!important;
+}
+.admin-filter-modal .mobile-filter-sheet{
+  width:min(720px,100%)!important;
+  max-height:88vh!important;
+  margin:0!important;
+  border-radius:22px 22px 0 0!important;
+}
+
+/* O filtro público fica sempre flutuante nas telas que possuem filtros. */
+.mobile-filter-fab{
+  z-index:155!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+@media (max-width:699px){
+  .mobile-filter-fab{
+    display:flex!important;
+    position:fixed!important;
+    right:14px!important;
+    bottom:calc(82px + env(safe-area-inset-bottom))!important;
+  }
+
+  /* Por equipe e resultados escolhem o time somente pelo bottom sheet. */
+  .team-schedule-picker,
+  .history-team-picker{
+    display:none!important;
+  }
+
+  .mobile-team-filter-options{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+  .mobile-team-filter-options button{
+    min-height:84px!important;
+  }
+}
+
+/* No desktop não precisa FAB: filtros públicos permanecem pelos controles da tela. */
+@media (min-width:700px){
+  .mobile-filter-fab{
+    display:none!important;
+  }
+}
+
+
+/* Ajustes mobile: filtros apenas no FAB e cards administrativos mais compactos. */
+@media (max-width:699px){
+
+  /* Os filtros públicos ficam somente no botão flutuante. */
+  .schedule-days,
+  .court-buttons{
+    display:none!important;
+  }
+
+  /* Cada grupo de filtro curto cabe em uma única linha. */
+  .mobile-filter-options:not(.mobile-team-filter-options){
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    gap:6px!important;
+  }
+  .mobile-filter-options:not(.mobile-team-filter-options) button{
+    flex:1 1 0!important;
+    min-width:0!important;
+    min-height:38px!important;
+    padding:.3rem .2rem!important;
+    font-size:.66rem!important;
+    white-space:nowrap!important;
+  }
+
+  /* Equipes continuam em grade, pois há muitas opções. */
+  .mobile-team-filter-options{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+
+  /* Status e botão Salvar ocupam a mesma linha no card do Admin. */
+  .match-actions{
+    margin-top:8px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:8px!important;
+  }
+  .match-actions .status{
+    flex:0 1 auto!important;
+    margin:0!important;
+  }
+  .match-actions .save-button{
+    flex:0 0 auto!important;
+    min-width:82px!important;
+    min-height:38px!important;
+    padding:0 14px!important;
+    margin:0!important;
+  }
+}
+
+
+/* A confirmação de resultado/correção deve sempre ficar acima do editor. */
+.save-confirm-modal{
+  z-index:260!important;
+}
+.save-confirm-modal .save-confirm-backdrop{
+  z-index:0!important;
+}
+.save-confirm-modal .save-confirm-sheet{
+  position:relative!important;
+  z-index:1!important;
+}
+
+
+/* Cabeçalho Admin mobile: compacto, com Início visível e sem espaço vazio. */
+@media (max-width:699px){
+  body:has(#admin-app){
+    padding-top:88px!important;
+  }
+
+  body:has(#admin-app) .public-topbar{
+    position:fixed!important;
+    top:0!important;
+    left:0!important;
+    right:0!important;
+    z-index:150!important;
+    height:32px!important;
+    min-height:32px!important;
+  }
+  body:has(#admin-app) .public-topbar>div{
+    min-height:32px!important;
+    height:32px!important;
+    padding:0 10px!important;
+    display:flex!important;
+    align-items:center!important;
+  }
+
+  body:has(#admin-app) .admin-header{
+    position:fixed!important;
+    top:32px!important;
+    left:0!important;
+    right:0!important;
+    z-index:145!important;
+    height:56px!important;
+    min-height:56px!important;
+    border-bottom:3px solid var(--ji-blue-700)!important;
+    background:#fff!important;
+  }
+  body:has(#admin-app) .admin-header::before,
+  body:has(#admin-app) .admin-header::after{
+    display:none!important;
+    content:none!important;
+  }
+  body:has(#admin-app) .admin-header .header-inner{
+    width:100%!important;
+    height:56px!important;
+    min-height:56px!important;
+    padding:0 12px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:10px!important;
+  }
+  body:has(#admin-app) .admin-header .header-inner>div:first-child,
+  body:has(#admin-app) .admin-header .public-brand{
+    display:flex!important;
+    visibility:visible!important;
+    height:auto!important;
+    padding:0!important;
+    margin:0!important;
+  }
+  body:has(#admin-app) .admin-header .header-home{
+    display:inline-flex!important;
+    visibility:visible!important;
+    align-items:center!important;
+    min-height:36px!important;
+    padding:0 10px!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:10px!important;
+    color:var(--ji-blue-900)!important;
+    background:#eef5fb!important;
+    font-size:.72rem!important;
+    font-weight:850!important;
+    text-transform:none!important;
+  }
+  body:has(#admin-app) .admin-header .admin-button{
+    display:inline-flex!important;
+    align-items:center!important;
+    min-height:36px!important;
+    padding:0 10px!important;
+    margin:0!important;
+    border:0!important;
+    border-radius:10px!important;
+    color:var(--ji-blue-900)!important;
+    background:#eef5fb!important;
+    font-size:.70rem!important;
+    font-weight:750!important;
+    text-transform:none!important;
+  }
+
+  /* O conteúdo começa logo abaixo do cabeçalho compacto. */
+  #admin-app.page-shell{
+    padding-top:12px!important;
+  }
+}
+
+
+/* Histórico de resultados separado por dia. */
+.history-results-by-day{
+  display:grid!important;
+  gap:14px!important;
+}
+.history-day-section{
+  display:grid!important;
+  gap:8px!important;
+}
+.history-day-heading{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  padding:8px 10px!important;
+  border-radius:10px!important;
+  background:var(--ji-blue-800)!important;
+  color:#fff!important;
+}
+.history-day-heading strong{
+  font-size:.82rem!important;
+  text-transform:uppercase;
+}
+.history-day-heading span{
+  font-size:.62rem!important;
+  font-weight:800!important;
+  opacity:.9;
+}
+
+
+/* Ajustes visuais: topo azul sólido e arte inicial desktop mais compacta. */
+@media (max-width:699px){
+  .public-topbar{
+    background:#1261bd!important;
+    background-image:none!important;
+  }
+}
+
+@media (min-width:700px){
+  .welcome-screen{
+    background:#eaf4fd!important;
+  }
+  .welcome-hero{
+    width:min(88vw,156vh)!important;
+    height:auto!important;
+    min-height:0!important;
+    aspect-ratio:1672 / 941!important;
+    margin:auto!important;
+  }
+  .welcome-hero-art{
+    width:100%!important;
+    height:100%!important;
+  }
+  .welcome-hero-art img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:contain!important;
+    object-position:center center!important;
+  }
+}
+
+
+/* Desktop: menu público na mesma linha de Início e Área administrativa. */
+@media (min-width:700px){
+  .public-header .header-inner{
+    width:min(1180px,calc(100% - 40px))!important;
+    min-height:72px!important;
+    display:grid!important;
+    grid-template-columns:auto 1fr auto!important;
+    align-items:center!important;
+    gap:18px!important;
+  }
+
+  .public-header .public-main-nav{
+    position:static!important;
+    width:auto!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    display:flex!important;
+    justify-content:center!important;
+    align-items:center!important;
+    gap:6px!important;
+    border:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+
+  .public-header .public-main-nav button{
+    min-width:auto!important;
+    min-height:40px!important;
+    padding:0 14px!important;
+    border:0!important;
+    border-radius:10px!important;
+    display:inline-flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:6px!important;
+    color:#758393!important;
+    background:#eef2f6!important;
+    font-size:.72rem!important;
+    white-space:nowrap!important;
+  }
+
+  .public-header .public-main-nav button.active{
+    color:#fff!important;
+    background:var(--ji-blue-800)!important;
+  }
+
+  .public-header .public-main-nav .nav-icon{
+    display:none!important;
+  }
+
+  .public-header .admin-button{
+    white-space:nowrap!important;
+  }
+}
+
+
+/* Cronograma: partidas que estão acontecendo agora. */
+.live-schedule-panel{
+  margin:12px 0 14px!important;
+  padding:12px!important;
+  border:1px solid #78b3ea!important;
+  border-radius:18px!important;
+  background:#eaf4ff!important;
+  box-shadow:0 8px 22px rgba(31,102,173,.12)!important;
+}
+.live-schedule-heading{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:10px!important;
+  margin-bottom:10px!important;
+  color:var(--ji-blue-950)!important;
+}
+.live-schedule-heading>div{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+}
+.live-schedule-heading strong{
+  font-size:.82rem!important;
+  text-transform:uppercase!important;
+  letter-spacing:.04em!important;
+}
+.live-schedule-heading small{
+  color:#5c7691!important;
+  font-size:.62rem!important;
+  font-weight:800!important;
+}
+.live-dot{
+  width:9px!important;
+  height:9px!important;
+  border-radius:50%!important;
+  background:#1785df!important;
+  box-shadow:0 0 0 5px rgba(23,133,223,.12)!important;
+}
+.live-schedule-grid{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:9px!important;
+}
+.live-schedule-card{
+  padding:10px!important;
+  border:2px solid #3f8fd8!important;
+  border-radius:14px!important;
+  background:#fff!important;
+  box-shadow:0 5px 14px rgba(24,91,159,.09)!important;
+}
+.live-schedule-meta{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  margin-bottom:8px!important;
+  color:#647c93!important;
+  font-size:.64rem!important;
+}
+.live-schedule-meta>div{
+  display:flex!important;
+  align-items:center!important;
+  gap:7px!important;
+}
+.live-schedule-meta time{
+  color:var(--ji-blue-950)!important;
+  font-size:.78rem!important;
+  font-weight:900!important;
+}
+.live-schedule-meta div span{
+  padding:3px 7px!important;
+  border-radius:999px!important;
+  color:#fff!important;
+  background:var(--ji-blue-700)!important;
+  font-weight:850!important;
+}
+.live-versus{
+  min-width:34px!important;
+}
+.live-versus b{
+  color:var(--ji-blue-800)!important;
+  background:transparent!important;
+}
+
+@media (min-width:700px){
+  .live-schedule-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+
+@media (max-width:699px){
+  .live-schedule-panel{
+    margin:10px 0 12px!important;
+    padding:9px!important;
+    border-radius:15px!important;
+  }
+  .live-schedule-heading small{
+    display:none!important;
+  }
+  .live-schedule-card{
+    padding:9px!important;
+  }
+}
+
+
+/* Carregamento público: overlay central, sem mensagem solta no topo. */
+.public-loading-overlay{
+  position:fixed!important;
+  inset:0!important;
+  z-index:320!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:20px!important;
+  background:rgba(239,247,255,.78)!important;
+  backdrop-filter:blur(3px)!important;
+  -webkit-backdrop-filter:blur(3px)!important;
+  cursor:wait!important;
+}
+.public-loading-card{
+  min-width:180px!important;
+  padding:20px 24px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+  border:1px solid #c9ddf2!important;
+  border-radius:18px!important;
+  background:#fff!important;
+  box-shadow:0 16px 40px rgba(10,65,122,.18)!important;
+  color:var(--ji-blue-950)!important;
+  text-align:center!important;
+}
+.public-loading-card strong{
+  font-size:.9rem!important;
+}
+.public-loading-card small{
+  color:#778da2!important;
+  font-size:.64rem!important;
+  font-weight:700!important;
+}
+.public-loading-spinner{
+  width:34px!important;
+  height:34px!important;
+  margin-bottom:2px!important;
+  border:4px solid #dceafa!important;
+  border-top-color:#1261bd!important;
+  border-radius:50%!important;
+  animation:public-loading-spin .72s linear infinite!important;
+}
+@keyframes public-loading-spin{
+  to{transform:rotate(360deg);}
+}
+
+@media (max-width:699px){
+  .public-loading-card{
+    min-width:166px!important;
+    padding:18px 20px!important;
+    border-radius:16px!important;
+  }
+}
+
+
+/* Por equipe: partidas finalizadas com destaque azul. */
+.team-schedule-card.finished{
+  background:#eaf4ff!important;
+  border:2px solid #3f8fd8!important;
+  box-shadow:0 5px 14px rgba(24,91,159,.10)!important;
+}
+.team-schedule-card.finished .status{
+  color:#fff!important;
+  background:#1261bd!important;
+  border-color:#1261bd!important;
+}
+.team-schedule-card.finished .team-schedule-card-top time,
+.team-schedule-card.finished .team-schedule-location strong,
+.team-schedule-card.finished .team-schedule-versus b,
+.team-schedule-card.finished .team-schedule-score{
+  color:#0a4387!important;
+}
+.team-schedule-card.finished .team-schedule-location,
+.team-schedule-card.finished .team-schedule-card-top{
+  border-color:#bfd8f2!important;
+}
+
+
+/* Cabeçalho público fixo: conteúdo rola por baixo no desktop e no mobile. */
+body:not(:has(#admin-app)) .public-topbar{
+  position:fixed!important;
+  top:0!important;
+  left:0!important;
+  right:0!important;
+  z-index:170!important;
+}
+
+body:not(:has(#admin-app)) .site-header.public-header{
+  position:fixed!important;
+  left:0!important;
+  right:0!important;
+  z-index:165!important;
+}
+
+@media (max-width:699px){
+  body:not(:has(#admin-app)) .public-topbar{
+    height:42px!important;
+    min-height:42px!important;
+  }
+
+  body:not(:has(#admin-app)) .public-topbar>div{
+    height:42px!important;
+    min-height:42px!important;
+  }
+
+  body:not(:has(#admin-app)) .site-header.public-header{
+    top:42px!important;
+    height:62px!important;
+    min-height:62px!important;
+  }
+
+  body:not(:has(#admin-app)) .site-header.public-header .header-inner{
+    height:62px!important;
+    min-height:62px!important;
+  }
+
+  body:not(:has(#admin-app)) .scoreboard-shell{
+    margin-top:104px!important;
+  }
+}
+
+@media (min-width:700px){
+  body:not(:has(#admin-app)) .public-topbar{
+    height:42px!important;
+    min-height:42px!important;
+  }
+
+  body:not(:has(#admin-app)) .site-header.public-header{
+    top:42px!important;
+    height:72px!important;
+    min-height:72px!important;
+  }
+
+  body:not(:has(#admin-app)) .scoreboard-shell{
+    margin-top:114px!important;
+  }
+}
+
+
+/* Correção mobile: header fixo em cima e navegação principal fixa no rodapé. */
+@media (max-width:699px){
+  body:not(:has(#admin-app)) .site-header.public-header{
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+    overflow:visible!important;
+  }
+
+  body:not(:has(#admin-app)) .site-header.public-header .header-inner{
+    position:relative!important;
+    overflow:visible!important;
+  }
+
+  body:not(:has(#admin-app)) .public-main-nav{
+    position:fixed!important;
+    top:auto!important;
+    left:8px!important;
+    right:8px!important;
+    bottom:calc(8px + env(safe-area-inset-bottom))!important;
+    width:auto!important;
+    margin:0!important;
+    z-index:220!important;
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:4px!important;
+    min-height:64px!important;
+    padding:6px!important;
+    border:1px solid rgba(155,199,243,.48)!important;
+    border-radius:18px!important;
+    background:rgba(255,255,255,.97)!important;
+    box-shadow:0 10px 28px rgba(9,61,114,.22)!important;
+  }
+
+  body:not(:has(#admin-app)) .public-main-nav button{
+    min-width:0!important;
+    min-height:48px!important;
+    padding:4px 2px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:3px!important;
+  }
+
+  body:not(:has(#admin-app)) .scoreboard-shell{
+    margin-top:104px!important;
+    padding-bottom:calc(96px + env(safe-area-inset-bottom))!important;
+  }
+}
+
+
+/* Desktop: agrupa Início + navegação e padroniza o tamanho dos botões. */
+@media (min-width:700px){
+  .public-header .header-inner{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:8px!important;
+  }
+
+  .public-header .public-brand{
+    flex:0 0 auto!important;
+  }
+
+  .public-header .public-main-nav{
+    flex:0 0 auto!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:8px!important;
+    margin:0!important;
+  }
+
+  .public-header .header-home,
+  .public-header .public-main-nav button{
+    width:124px!important;
+    min-width:124px!important;
+    max-width:124px!important;
+    height:40px!important;
+    min-height:40px!important;
+    padding:0 10px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    box-sizing:border-box!important;
+    white-space:nowrap!important;
+  }
+
+  .public-header .admin-button{
+    margin-left:auto!important;
+    min-height:40px!important;
+  }
+}
+
+
+/* Desktop: classificação um pouco mais compacta para caber inteira na tela. */
+@media (min-width:700px){
+  .ranking-panel{
+    margin-bottom:0!important;
+  }
+
+  .ranking-table thead th{
+    height:30px!important;
+    padding:4px 8px!important;
+    font-size:.60rem!important;
+  }
+
+  .ranking-table tbody td{
+    height:50px!important;
+    padding:4px 8px!important;
+    font-size:.70rem!important;
+  }
+
+  .ranking-table .team-emblem{
+    width:34px!important;
+    height:34px!important;
+    flex-basis:34px!important;
+  }
+
+  .ranking-table .team-ident{
+    gap:7px!important;
+  }
+
+  .ranking-table .team-name strong{
+    font-size:.74rem!important;
+    line-height:1.05!important;
+  }
+
+  .ranking-table .team-name small{
+    font-size:.55rem!important;
+    line-height:1!important;
+  }
+
+  .ranking-table .position strong{
+    font-size:.74rem!important;
+  }
+
+  .scoreboard-heading{
+    margin-bottom:8px!important;
+  }
+
+  .scoreboard-heading h2{
+    margin:0!important;
+    line-height:1.05!important;
+  }
+
+  .dashboard-grid{
+    gap:14px!important;
+  }
+}
+
+
+/* Classificação: desktop com tabela fixa e resultados rolando; mobile só tabela geral. */
+@media (min-width:700px){
+  .dashboard-grid{
+    height:calc(100vh - 150px)!important;
+    max-height:calc(100vh - 150px)!important;
+    overflow:hidden!important;
+    align-items:stretch!important;
+  }
+
+  .dashboard-grid>.ranking-panel{
+    height:100%!important;
+    max-height:100%!important;
+    overflow:hidden!important;
+    position:sticky!important;
+    top:0!important;
+  }
+
+  .dashboard-grid>.ranking-panel .table-wrap{
+    height:100%!important;
+    max-height:100%!important;
+    overflow:hidden!important;
+  }
+
+  .dashboard-grid>.results-section{
+    height:100%!important;
+    max-height:100%!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    padding-right:6px!important;
+    scrollbar-gutter:stable!important;
+  }
+
+  .dashboard-grid>.results-section::-webkit-scrollbar{
+    width:8px!important;
+  }
+
+  .dashboard-grid>.results-section::-webkit-scrollbar-thumb{
+    background:#b7cce2!important;
+    border-radius:999px!important;
+  }
+
+  .dashboard-grid>.results-section::-webkit-scrollbar-track{
+    background:transparent!important;
+  }
+}
+
+@media (max-width:699px){
+  .dashboard-grid{
+    display:block!important;
+  }
+
+  .dashboard-grid>.results-section{
+    display:none!important;
+  }
+
+  .dashboard-grid>.ranking-panel{
+    width:100%!important;
+    max-width:none!important;
+  }
+}
+
+
+/* Teste visual dos filtros de equipe: sem cards, apenas logo + nome. */
+.team-picker-grid{
+  gap:14px!important;
+  align-items:start!important;
+}
+
+.team-picker-choice{
+  min-height:auto!important;
+  padding:6px 4px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:7px!important;
+  color:#8190a0!important;
+}
+
+.team-picker-choice:hover{
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+.team-picker-choice .team-emblem{
+  width:58px!important;
+  height:58px!important;
+  flex-basis:58px!important;
+  opacity:.45!important;
+  filter:grayscale(1)!important;
+  transition:transform .18s ease, opacity .18s ease, filter .18s ease!important;
+}
+
+.team-picker-choice strong{
+  font-size:.72rem!important;
+  line-height:1.05!important;
+  color:#8b98a5!important;
+  text-align:center!important;
+}
+
+.team-picker-choice.active{
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:var(--ji-blue-900)!important;
+}
+
+.team-picker-choice.active .team-emblem{
+  opacity:1!important;
+  filter:none!important;
+  transform:scale(1.08)!important;
+}
+
+.team-picker-choice.active strong{
+  color:var(--ji-blue-900)!important;
+  font-weight:900!important;
+}
+
+.team-picker-choice.team-picker-all{
+  min-height:74px!important;
+  padding-top:20px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+.team-picker-choice.team-picker-all.active{
+  color:var(--ji-blue-900)!important;
+  text-decoration:underline!important;
+  text-underline-offset:4px!important;
+}
+
+@media (max-width:699px){
+  .team-picker-choice .team-emblem{
+    width:52px!important;
+    height:52px!important;
+    flex-basis:52px!important;
+  }
+}
+
+
+/* Login admin: checkbox "Lembrar de mim" compacto e alinhado ao texto. */
+.login-remember{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:9px!important;
+  width:100%!important;
+  margin:2px 0 0!important;
+  color:var(--ji-blue-900)!important;
+  font-size:.78rem!important;
+  font-weight:600!important;
+  line-height:1.2!important;
+  cursor:pointer!important;
+}
+
+.jogos-login-modal .login-form .login-remember input[type="checkbox"]{
+  appearance:auto!important;
+  -webkit-appearance:checkbox!important;
+  width:18px!important;
+  height:18px!important;
+  min-width:18px!important;
+  min-height:18px!important;
+  max-width:18px!important;
+  max-height:18px!important;
+  margin:0!important;
+  padding:0!important;
+  border-radius:3px!important;
+  flex:0 0 18px!important;
+  box-shadow:none!important;
+}
+
+.login-remember span{
+  display:inline!important;
+  margin:0!important;
+  padding:0!important;
+}
+
+@media (max-width:699px){
+  .login-remember{
+    gap:8px!important;
+    font-size:.74rem!important;
+  }
+
+  .jogos-login-modal .login-form .login-remember input[type="checkbox"]{
+    width:17px!important;
+    height:17px!important;
+    min-width:17px!important;
+    min-height:17px!important;
+    max-width:17px!important;
+    max-height:17px!important;
+    flex-basis:17px!important;
+  }
+}
+
+
+/* Desktop classificação: viewport travado, tabela geral fixa e só resultados rolam. */
+@media (min-width:700px){
+  body:not(:has(#admin-app)):has(.dashboard-grid){
+    overflow:hidden!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .scoreboard-shell{
+    height:calc(100vh - 114px)!important;
+    max-height:calc(100vh - 114px)!important;
+    min-height:0!important;
+    padding-top:16px!important;
+    padding-bottom:12px!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .scoreboard-heading{
+    flex:0 0 auto!important;
+    margin-bottom:10px!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid{
+    flex:1 1 auto!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    overflow:hidden!important;
+    align-items:stretch!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.ranking-panel{
+    position:relative!important;
+    top:auto!important;
+    height:100%!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:hidden!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.ranking-panel .table-wrap{
+    height:100%!important;
+    max-height:none!important;
+    overflow:hidden!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.results-section{
+    height:100%!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+  }
+
+  /* devolve um pouco do tamanho retirado no ajuste anterior */
+  body:not(:has(#admin-app)):has(.dashboard-grid) .ranking-table thead th{
+    height:32px!important;
+    padding:5px 8px!important;
+    font-size:.62rem!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .ranking-table tbody td{
+    height:55px!important;
+    padding:5px 8px!important;
+    font-size:.73rem!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .ranking-table .team-emblem{
+    width:38px!important;
+    height:38px!important;
+    flex-basis:38px!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .ranking-table .team-name strong{
+    font-size:.77rem!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .ranking-table .team-name small{
+    font-size:.58rem!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .ranking-table .position strong{
+    font-size:.77rem!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .public-footer{
+    display:none!important;
+  }
+}
+
+
+/* Mobile: fundo sólido somente atrás da navegação inferior do Admin. */
+@media (max-width:699px){
+  body:has(#admin-app)::after{
+    content:""!important;
+    position:fixed!important;
+    left:0!important;
+    right:0!important;
+    bottom:0!important;
+    height:calc(82px + env(safe-area-inset-bottom))!important;
+    z-index:138!important;
+    background:#fff!important;
+    border-top:1px solid #d8e6f4!important;
+    box-shadow:0 -6px 18px rgba(8,54,104,.08)!important;
+    pointer-events:none!important;
+  }
+
+  body:has(#admin-app) .admin-registration-nav{
+    position:fixed!important;
+    left:8px!important;
+    right:8px!important;
+    bottom:calc(8px + env(safe-area-inset-bottom))!important;
+    top:auto!important;
+    z-index:145!important;
+    width:auto!important;
+    margin:0!important;
+    background:#fff!important;
+    border:1px solid rgba(155,199,243,.48)!important;
+    border-radius:18px!important;
+    box-shadow:0 10px 28px rgba(9,61,114,.20)!important;
+  }
+
+  body:has(#admin-app) #admin-app.page-shell{
+    padding-bottom:calc(108px + env(safe-area-inset-bottom))!important;
+  }
+
+  body:not(:has(#admin-app))::after{
+    content:none!important;
+    display:none!important;
+  }
+}
+
+
+/* Correção Admin desktop: cards contidos e grade estável. */
+@media (min-width:700px){
+  body:has(#admin-app){
+    overflow-x:hidden!important;
+  }
+
+  body:has(#admin-app) #admin-app.page-shell{
+    width:min(1440px,calc(100% - 40px))!important;
+    max-width:1440px!important;
+    margin-inline:auto!important;
+    padding-left:0!important;
+    padding-right:0!important;
+  }
+
+  body:has(#admin-app) .matches-area{
+    width:100%!important;
+    min-width:0!important;
+  }
+
+  body:has(#admin-app) .matches-list{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:12px!important;
+    width:100%!important;
+    min-width:0!important;
+  }
+
+  body:has(#admin-app) .match-card{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+    display:grid!important;
+    grid-template-rows:auto 1fr auto!important;
+    padding:12px!important;
+  }
+
+  body:has(#admin-app) .match-top{
+    min-width:0!important;
+    margin-bottom:10px!important;
+  }
+
+  body:has(#admin-app) .match-labels{
+    min-width:0!important;
+    max-width:55%!important;
+  }
+
+  body:has(#admin-app) .match-score-row{
+    width:100%!important;
+    min-width:0!important;
+    grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr)!important;
+    gap:8px!important;
+  }
+
+  body:has(#admin-app) .admin-team{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+  }
+
+  body:has(#admin-app) .admin-team-name{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+  }
+
+  body:has(#admin-app) .admin-team-name>span:last-child{
+    display:grid!important;
+    min-width:0!important;
+    max-width:100%!important;
+  }
+
+  body:has(#admin-app) .admin-team-name strong,
+  body:has(#admin-app) .admin-team-name small{
+    display:block!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    text-align:center!important;
+  }
+
+  body:has(#admin-app) .admin-team-name .team-emblem{
+    width:48px!important;
+    height:48px!important;
+    flex-basis:48px!important;
+  }
+
+  body:has(#admin-app) .score-control{
+    grid-template-columns:34px 38px 34px!important;
+    gap:4px!important;
+    margin-inline:auto!important;
+  }
+
+  body:has(#admin-app) .score-control button{
+    width:34px!important;
+    min-width:34px!important;
+  }
+
+  body:has(#admin-app) .score-control output{
+    width:38px!important;
+    min-width:38px!important;
+  }
+
+  body:has(#admin-app) .versus{
+    width:22px!important;
+    min-width:22px!important;
+    text-align:center!important;
+  }
+
+  body:has(#admin-app) .match-actions{
+    width:100%!important;
+    min-width:0!important;
+    margin-top:10px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:10px!important;
+  }
+
+  body:has(#admin-app) .match-actions .status{
+    min-width:0!important;
+    max-width:60%!important;
+  }
+
+  body:has(#admin-app) .match-actions .save-button{
+    flex:0 0 auto!important;
+    min-width:88px!important;
+    margin:0!important;
+  }
+}
+
+@media (min-width:700px) and (max-width:1050px){
+  body:has(#admin-app) .matches-list{
+    grid-template-columns:1fr!important;
+  }
+}
+
+
+/* Bloqueia a tela de fundo quando qualquer modal/pop estiver aberto. */
+body:has(.jogos-login-modal),
+body:has(.mobile-filter-modal),
+body:has(.admin-ranking-modal),
+body:has(.admin-edit-modal),
+body:has(.save-confirm-modal){
+  overflow:hidden!important;
+  height:100dvh!important;
+}
+
+/* Evita rolagem dos containers principais por trás do modal. */
+body:has(.jogos-login-modal) .page-shell,
+body:has(.mobile-filter-modal) .page-shell,
+body:has(.admin-ranking-modal) .page-shell,
+body:has(.admin-edit-modal) .page-shell,
+body:has(.save-confirm-modal) .page-shell,
+body:has(.jogos-login-modal) main,
+body:has(.mobile-filter-modal) main,
+body:has(.admin-ranking-modal) main,
+body:has(.admin-edit-modal) main,
+body:has(.save-confirm-modal) main{
+  overflow:hidden!important;
+}
+
+/* Modais sempre ocupam a viewport e não deixam o fundo receber scroll. */
+.jogos-login-modal,
+.mobile-filter-modal,
+.admin-ranking-modal,
+.admin-edit-modal,
+.save-confirm-modal{
+  position:fixed!important;
+  inset:0!important;
+  width:100%!important;
+  height:100dvh!important;
+  overflow:hidden!important;
+}
+
+/* O conteúdo do modal continua podendo rolar internamente quando necessário. */
+.mobile-filter-sheet,
+.admin-ranking-sheet,
+.admin-edit-sheet,
+.save-confirm-sheet{
+  max-height:calc(100dvh - 24px)!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+
+
+/* Filtros de equipe sem quadros: desktop e mobile. */
+.team-picker-grid .team-picker-choice,
+.team-picker-grid .team-picker-choice:hover,
+.team-picker-grid .team-picker-choice:focus,
+.team-picker-grid .team-picker-choice:active,
+.team-picker-grid .team-picker-choice.active,
+.team-picker-grid .team-picker-choice.team-picker-all,
+.team-picker-grid .team-picker-choice.team-picker-all.active{
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  border:0!important;
+  outline:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+
+.mobile-team-filter-options button,
+.mobile-team-filter-options button:hover,
+.mobile-team-filter-options button:focus,
+.mobile-team-filter-options button:active,
+.mobile-team-filter-options button.active,
+.mobile-team-filter-all,
+.mobile-team-filter-all.active{
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  border:0!important;
+  outline:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+
+.mobile-team-filter-choice.active strong,
+.mobile-team-filter-all.active strong{
+  color:var(--ji-blue-900)!important;
+}
+
+.mobile-team-filter-choice .team-emblem{
+  width:54px!important;
+  height:54px!important;
+  flex-basis:54px!important;
+}
+
+.mobile-team-filter-choice.active .team-emblem{
+  transform:scale(1.08)!important;
+}
+
+@media (max-width:699px){
+  .mobile-team-filter-options{
+    gap:10px!important;
+  }
+
+  .mobile-team-filter-options button{
+    min-height:74px!important;
+    padding:4px 2px!important;
+  }
+}
+
+
+/* Desktop — classificação com altura natural e resultados com scroll independente. */
+@media (min-width:700px){
+  body:not(:has(#admin-app)):has(.dashboard-grid){
+    overflow:hidden!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .scoreboard-shell{
+    height:calc(100vh - 114px)!important;
+    max-height:calc(100vh - 114px)!important;
+    min-height:0!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .scoreboard-heading{
+    flex:0 0 auto!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid{
+    flex:1 1 auto!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    overflow:hidden!important;
+    align-items:start!important;
+  }
+
+  /* Esquerda: termina exatamente no final da tabela. */
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.ranking-panel{
+    position:relative!important;
+    top:auto!important;
+    align-self:start!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:hidden!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.ranking-panel .table-wrap{
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:hidden!important;
+  }
+
+  /* Direita: única área rolável. */
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.results-section{
+    align-self:stretch!important;
+    height:100%!important;
+    min-height:0!important;
+    max-height:100%!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    overscroll-behavior:contain!important;
+    scrollbar-gutter:stable!important;
+    padding-right:8px!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.results-section::-webkit-scrollbar{
+    width:8px!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.results-section::-webkit-scrollbar-track{
+    background:#edf4fb!important;
+    border-radius:999px!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.results-section::-webkit-scrollbar-thumb{
+    background:#9dbbd8!important;
+    border-radius:999px!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .public-footer{
+    display:none!important;
+  }
+}
+
+
+/* Desktop — remove qualquer rolagem residual da tela de Classificação. */
+@media (min-width:700px){
+  html:has(body:not(:has(#admin-app)) .dashboard-grid),
+  body:not(:has(#admin-app)):has(.dashboard-grid){
+    height:100dvh!important;
+    max-height:100dvh!important;
+    overflow:hidden!important;
+    overscroll-behavior:none!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) je-root{
+    display:block!important;
+    height:100dvh!important;
+    max-height:100dvh!important;
+    overflow:hidden!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .scoreboard-shell{
+    box-sizing:border-box!important;
+    height:calc(100dvh - 114px)!important;
+    max-height:calc(100dvh - 114px)!important;
+    margin-bottom:0!important;
+    overflow:hidden!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid{
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+  }
+}
+
+
+/* Cronograma: partidas finalizadas com destaque azul forte. */
+.schedule-card.finished{
+  background:#dcecff!important;
+  border:2px solid #1565d8!important;
+  box-shadow:0 5px 14px rgba(21,101,216,.14)!important;
+}
+
+.schedule-card.finished .schedule-card-top{
+  border-color:#9fc5ef!important;
+}
+
+.schedule-card.finished .status,
+.schedule-card.finished .status.done,
+.schedule-card.finished .status.waiting{
+  color:#fff!important;
+  background:#1565d8!important;
+  border-color:#1565d8!important;
+}
+
+.schedule-card.finished .fixture-score b{
+  color:#0b3f91!important;
+  border-color:#4e8fd9!important;
+  background:#fff!important;
+}
+
+.schedule-card.finished .fixture-team-copy strong,
+.schedule-card.finished .schedule-card-top time{
+  color:#083f86!important;
+}
+
+.schedule-card.finished .fixture-team-copy small{
+  color:#537393!important;
+}
+
+@media (max-width:699px){
+  .schedule-card.finished{
+    background:#dcecff!important;
+    border:2px solid #1565d8!important;
+  }
+}
+
+
+/* Cronograma: cabeçalhos de gênero legíveis e com cantos arredondados. */
+.gender-lane-heading{
+  padding:8px 10px!important;
+  border-radius:14px!important;
+  background:var(--ji-blue-900)!important;
+}
+
+.gender-lane-heading h4,
+.gender-lane-heading span{
+  color:#fff!important;
+}
+
+@media (max-width:699px){
+  .gender-lane-heading{
+    border-radius:14px!important;
+  }
+}
+
+
+/* RESTAURAÇÃO — menu inferior do Admin mobile sempre visível. */
+@media (max-width:699px){
+  body:has(#admin-app)::after{
+    content:""!important;
+    display:block!important;
+    position:fixed!important;
+    left:0!important;
+    right:0!important;
+    bottom:0!important;
+    height:calc(82px + env(safe-area-inset-bottom))!important;
+    z-index:390!important;
+    background:#fff!important;
+    border-top:1px solid #d8e6f4!important;
+    box-shadow:0 -6px 18px rgba(8,54,104,.08)!important;
+    pointer-events:none!important;
+  }
+
+  body:has(#admin-app) .admin-registration-nav{
+    display:grid!important;
+    visibility:visible!important;
+    opacity:1!important;
+    pointer-events:auto!important;
+    position:fixed!important;
+    left:8px!important;
+    right:8px!important;
+    top:auto!important;
+    bottom:calc(8px + env(safe-area-inset-bottom))!important;
+    transform:none!important;
+    width:auto!important;
+    max-width:none!important;
+    min-height:64px!important;
+    margin:0!important;
+    padding:6px!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:5px!important;
+    z-index:400!important;
+    border:1px solid rgba(155,199,243,.52)!important;
+    border-radius:18px!important;
+    background:#fff!important;
+    box-shadow:0 10px 28px rgba(9,61,114,.20)!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+
+  body:has(#admin-app) .admin-registration-nav button{
+    display:flex!important;
+    visibility:visible!important;
+    opacity:1!important;
+    min-width:0!important;
+    min-height:48px!important;
+    padding:4px 6px!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:3px!important;
+    border:0!important;
+    border-radius:12px!important;
+    color:#70849a!important;
+    background:#f1f4f7!important;
+    font-size:.64rem!important;
+    font-weight:850!important;
+  }
+
+  body:has(#admin-app) .admin-registration-nav button.active{
+    color:#fff!important;
+    background:var(--ji-blue-800)!important;
+  }
+
+  body:has(#admin-app) .admin-registration-nav .nav-icon{
+    display:block!important;
+    font-size:.9rem!important;
+    line-height:1!important;
+  }
+
+  body:has(#admin-app) #admin-app.page-shell{
+    padding-bottom:calc(112px + env(safe-area-inset-bottom))!important;
+  }
+}
+
+
+/* Login administrativo: mais respiro interno e alinhamento consistente. */
+.jogos-login-modal .mobile-filter-sheet{
+  padding-left:14px!important;
+  padding-right:14px!important;
+  box-sizing:border-box!important;
+}
+
+.jogos-login-modal .mobile-filter-sheet-head{
+  padding-left:2px!important;
+  padding-right:2px!important;
+}
+
+.jogos-login-modal .login-form{
+  padding:12px!important;
+  border-radius:18px!important;
+  box-sizing:border-box!important;
+}
+
+.jogos-login-modal .login-form > input{
+  width:100%!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+}
+
+.jogos-login-modal .login-form > input + input{
+  margin-top:10px!important;
+}
+
+.jogos-login-modal .login-remember{
+  width:auto!important;
+  margin:10px 4px 0!important;
+  padding:0!important;
+  box-sizing:border-box!important;
+}
+
+.jogos-login-modal .login-error{
+  margin:8px 4px 0!important;
+}
+
+.jogos-login-modal .login-actions{
+  padding-left:0!important;
+  padding-right:0!important;
+}
+
+@media (max-width:699px){
+  .jogos-login-modal .mobile-filter-sheet{
+    padding-left:12px!important;
+    padding-right:12px!important;
+  }
+
+  .jogos-login-modal .login-form{
+    padding:12px!important;
+  }
+
+  .jogos-login-modal .login-remember{
+    margin-left:4px!important;
+    margin-right:4px!important;
+  }
+}
+
+
+/* Admin desktop — menu superior padrão e cards totalmente contidos. */
+@media (min-width:700px){
+
+  /* Menu administrativo volta para o topo no desktop. */
+  body:has(#admin-app) .admin-registration-nav{
+    position:sticky!important;
+    top:114px!important;
+    left:auto!important;
+    right:auto!important;
+    bottom:auto!important;
+    transform:none!important;
+    z-index:120!important;
+    width:min(1440px,calc(100% - 40px))!important;
+    max-width:1440px!important;
+    min-height:52px!important;
+    margin:0 auto!important;
+    padding:6px 0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:8px!important;
+    border:0!important;
+    border-bottom:1px solid var(--ji-line)!important;
+    border-radius:0!important;
+    background:#fff!important;
+    box-shadow:none!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+
+  body:has(#admin-app) .admin-registration-nav button{
+    width:124px!important;
+    min-width:124px!important;
+    max-width:124px!important;
+    min-height:40px!important;
+    height:40px!important;
+    padding:0 12px!important;
+    display:inline-flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:6px!important;
+    border:0!important;
+    border-radius:12px!important;
+    color:#6d8296!important;
+    background:#eef3f7!important;
+    font-size:.70rem!important;
+    font-weight:850!important;
+  }
+
+  body:has(#admin-app) .admin-registration-nav button.active{
+    color:#fff!important;
+    background:var(--ji-blue-800)!important;
+  }
+
+  body:has(#admin-app) .admin-registration-nav .nav-icon{
+    display:inline-block!important;
+    font-size:.82rem!important;
+    line-height:1!important;
+  }
+
+  /* No desktop não existe rodapé branco do menu admin. */
+  body:has(#admin-app)::after{
+    content:none!important;
+    display:none!important;
+  }
+
+  body:has(#admin-app) #admin-app.page-shell{
+    width:min(1440px,calc(100% - 40px))!important;
+    max-width:1440px!important;
+    padding-bottom:40px!important;
+  }
+
+  /* Grade dos jogos. */
+  body:has(#admin-app) .matches-list{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:14px!important;
+    width:100%!important;
+  }
+
+  body:has(#admin-app) .match-card{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    min-height:220px!important;
+    padding:14px!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+    display:grid!important;
+    grid-template-rows:auto 1fr auto!important;
+    align-content:stretch!important;
+  }
+
+  body:has(#admin-app) .match-top{
+    width:100%!important;
+    min-width:0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:10px!important;
+    margin-bottom:12px!important;
+  }
+
+  body:has(#admin-app) .match-top>div:first-child,
+  body:has(#admin-app) .match-labels{
+    min-width:0!important;
+  }
+
+  body:has(#admin-app) .match-labels{
+    max-width:none!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:7px!important;
+    flex-wrap:wrap!important;
+  }
+
+  /* Miolo: duas equipes iguais e o X central. */
+  body:has(#admin-app) .match-score-row{
+    width:100%!important;
+    min-width:0!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr)!important;
+    align-items:center!important;
+    gap:12px!important;
+  }
+
+  body:has(#admin-app) .admin-team{
+    min-width:0!important;
+    width:100%!important;
+    max-width:100%!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    justify-items:center!important;
+    align-content:center!important;
+    gap:10px!important;
+    overflow:hidden!important;
+  }
+
+  body:has(#admin-app) .admin-team-name{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:5px!important;
+    overflow:hidden!important;
+    text-align:center!important;
+  }
+
+  body:has(#admin-app) .admin-team-name .team-emblem{
+    width:54px!important;
+    height:54px!important;
+    flex:0 0 54px!important;
+  }
+
+  body:has(#admin-app) .admin-team-name>span:last-child{
+    width:100%!important;
+    min-width:0!important;
+    display:block!important;
+    text-align:center!important;
+  }
+
+  body:has(#admin-app) .admin-team-name strong,
+  body:has(#admin-app) .admin-team-name small{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    text-align:center!important;
+  }
+
+  body:has(#admin-app) .admin-team-name strong{
+    font-size:.78rem!important;
+  }
+
+  body:has(#admin-app) .admin-team-name small{
+    margin-top:2px!important;
+    font-size:.62rem!important;
+  }
+
+  body:has(#admin-app) .score-control{
+    display:grid!important;
+    grid-template-columns:36px 42px 36px!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:5px!important;
+    width:auto!important;
+    margin:0 auto!important;
+  }
+
+  body:has(#admin-app) .score-control button{
+    width:36px!important;
+    min-width:36px!important;
+    height:36px!important;
+    min-height:36px!important;
+    padding:0!important;
+  }
+
+  body:has(#admin-app) .score-control output{
+    width:42px!important;
+    min-width:42px!important;
+    text-align:center!important;
+    font-size:1rem!important;
+    font-weight:900!important;
+  }
+
+  body:has(#admin-app) .versus{
+    width:28px!important;
+    min-width:28px!important;
+    align-self:center!important;
+    justify-self:center!important;
+    text-align:center!important;
+  }
+
+  /* Rodapé do card sempre dentro do quadro. */
+  body:has(#admin-app) .match-actions{
+    width:100%!important;
+    min-width:0!important;
+    margin-top:12px!important;
+    padding-top:10px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:12px!important;
+    border-top:1px solid #e5eef7!important;
+    box-sizing:border-box!important;
+  }
+
+  body:has(#admin-app) .match-actions .status{
+    flex:0 1 auto!important;
+    max-width:55%!important;
+    margin:0!important;
+  }
+
+  body:has(#admin-app) .match-actions .save-button{
+    flex:0 0 auto!important;
+    min-width:92px!important;
+    min-height:40px!important;
+    margin:0!important;
+    padding:0 16px!important;
+  }
+}
+
+/* Desktop intermediário: uma coluna para não apertar os cards. */
+@media (min-width:700px) and (max-width:1120px){
+  body:has(#admin-app) .matches-list{
+    grid-template-columns:1fr!important;
+  }
+}
+
+
+/* Admin mobile: remove a placa branca grande atrás do menu inferior. */
+@media (max-width:699px){
+  body:has(#admin-app)::after{
+    content:none!important;
+    display:none!important;
+  }
+
+  body:has(#admin-app) .admin-registration-nav{
+    background:#fff!important;
+    box-shadow:0 8px 22px rgba(9,61,114,.18)!important;
+  }
+
+  /* Com modal aberto, o menu inferior não deve aparecer por cima do pop. */
+  body:has(.save-confirm-modal) .admin-registration-nav,
+  body:has(.admin-filter-modal) .admin-registration-nav,
+  body:has(.admin-ranking-modal) .admin-registration-nav,
+  body:has(.admin-edit-modal) .admin-registration-nav{
+    visibility:hidden!important;
+    opacity:0!important;
+    pointer-events:none!important;
+  }
+}
+
+
+/* Selo "Ao vivo" no padrão azul do sistema. */
+.live-badge{
+  color:#fff!important;
+  background:var(--ji-blue-800)!important;
+  border:1px solid var(--ji-blue-800)!important;
+}
+
+
+/* ==========================================================================
+   SPLASH FINAL — botões reais, sem ícones, texto centralizado
+   Mantém as artes HQ e cobre integralmente os botões desenhados na imagem.
+   ========================================================================== */
+.welcome-click-zones{
+  pointer-events:auto!important;
+}
+.welcome-click-zones button{
+  position:relative!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0 14px!important;
+  border:0!important;
+  border-radius:18px!important;
+  opacity:1!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  font-size:clamp(1.05rem,5.2vw,1.55rem)!important;
+  line-height:1!important;
+  font-weight:900!important;
+  letter-spacing:.015em!important;
+  text-align:center!important;
+  text-transform:uppercase!important;
+  text-shadow:0 1px 1px rgba(0,48,105,.18)!important;
+  box-shadow:0 8px 20px rgba(7,83,164,.16)!important;
+  overflow:hidden!important;
+  cursor:pointer!important;
+}
+.welcome-click-zones button:first-child{
+  background:linear-gradient(135deg,#0753a4 0%,#0d68c9 100%)!important;
+}
+.welcome-click-zones button:last-child{
+  background:linear-gradient(135deg,#2389e8 0%,#41a4f4 100%)!important;
+}
+.welcome-click-zones button:hover{
+  filter:brightness(1.04)!important;
+}
+.welcome-click-zones button:active{
+  transform:translateY(1px)!important;
+  filter:brightness(.98)!important;
+}
+.welcome-click-zones button:focus-visible{
+  outline:3px solid rgba(255,255,255,.95)!important;
+  outline-offset:-5px!important;
+}
+
+@media (max-width:699px){
+  .welcome-click-zones{
+    left:18.2%!important;
+    right:18.2%!important;
+    bottom:8.1%!important;
+    height:18.7%!important;
+    gap:4.0%!important;
+  }
+  .welcome-click-zones button{
+    border-radius:18px!important;
+    font-size:clamp(1.18rem,6vw,1.65rem)!important;
+  }
+}
+
+@media (min-width:700px){
+  .welcome-click-zones{
+    left:30.35%!important;
+    right:30.35%!important;
+    bottom:8.15%!important;
+    height:10.9%!important;
+    gap:3.3%!important;
+  }
+  .welcome-click-zones button{
+    border-radius:18px!important;
+    font-size:clamp(1rem,1.8vw,1.45rem)!important;
+  }
+}
+
+
+/* Tela inicial: botões de turno voltam a ser apenas zonas clicáveis invisíveis. */
+.welcome-click-zones button,
+.welcome-click-zones button:first-child,
+.welcome-click-zones button:last-child,
+.welcome-click-zones button:hover,
+.welcome-click-zones button:active{
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  border:0!important;
+  outline:0!important;
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  color:transparent!important;
+  -webkit-text-fill-color:transparent!important;
+  text-shadow:none!important;
+  opacity:.01!important;
+  filter:none!important;
+  transform:none!important;
+}
+
+.welcome-click-zones button:focus-visible{
+  outline:0!important;
+  box-shadow:none!important;
 }

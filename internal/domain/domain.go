@@ -1,6 +1,9 @@
 package domain
 
-import "sort"
+import (
+	"math/rand"
+	"sort"
+)
 
 const (
 	StatusAguardando  = "AGUARDANDO"
@@ -85,7 +88,7 @@ var Stations = []Station{{"AMARIO_PETECA_FEM", "QUADRA_1", "PETECA", "FEMININO",
 
 type teamSeed struct{ code, color, hex, mascot, sprite string }
 
-var teamSeeds = []teamSeed{{"AMARELO", "Amarelo", "#F3C515", "Onça", "mascote-amarelo"}, {"LARANJA", "Laranja", "#EF8615", "Mico-leão-dourado", "mascote-laranja"}, {"VERMELHO", "Vermelho", "#D84247", "Lobo-guará", "mascote-vermelho"}, {"MARROM", "Marrom", "#986347", "Capivara", "mascote-marrom"}, {"BRANCO", "Branco", "#F7F7F2", "Tamanduá", "mascote-branco"}, {"PRETO", "Preto", "#29313B", "Tucano", "mascote-preto"}, {"CINZA", "Cinza", "#8D9AA6", "Tubarão", "mascote-cinza"}, {"VERDE_CLARO", "Verde-claro", "#31BD75", "Sapo", "mascote-verde-claro"}, {"VERDE_ESCURO", "Verde-escuro", "#087D4B", "Jacaré", "mascote-verde-escuro"}, {"AZUL_ESCURO", "Azul-escuro", "#0753A4", "Arara-azul", "mascote-azul-escuro"}, {"AZUL_CLARO", "Azul-claro", "#35ACE0", "Boto", "mascote-azul-claro"}}
+var teamSeeds = []teamSeed{{"AMARELO", "Amarelo", "#F3C515", "Onça", "mascote-amarelo"}, {"LARANJA", "Laranja", "#EF8615", "Mico-leão-dourado", "mascote-laranja"}, {"VERMELHO", "Vermelho", "#D84247", "Lobo-guará", "mascote-vermelho"}, {"MARROM", "Marrom", "#986347", "Capivara", "mascote-marrom"}, {"BRANCO", "Branco", "#F7F7F2", "Tamanduá", "mascote-branco"}, {"PRETO", "Preto", "#29313B", "Tucano", "mascote-preto"}, {"CINZA", "Cinza", "#8D9AA6", "Tubarão", "mascote-cinza"}, {"VERDE_CLARO", "Verde-claro", "#31BD75", "Maritaca", "mascote-verde-claro"}, {"VERDE_ESCURO", "Verde-escuro", "#087D4B", "Jacaré", "mascote-verde-escuro"}, {"AZUL_ESCURO", "Azul-escuro", "#0753A4", "Arara-azul", "mascote-azul-escuro"}, {"AZUL_CLARO", "Azul-claro", "#35ACE0", "Boto", "mascote-azul-claro"}}
 
 func SeedTeams() []Team {
 	teams := make([]Team, 0, 21)
@@ -104,25 +107,54 @@ func SeedMatches() []Match {
 	teams := SeedTeams()
 	matches := make([]Match, 0, 504)
 	n := 1
-	for _, p := range Periods {
+
+	for periodIndex, p := range Periods {
 		periodTeams := make([]Team, 0)
 		for _, t := range teams {
 			if t.Period == p.ID {
 				periodTeams = append(periodTeams, t)
 			}
 		}
-		step := 3
-		if len(periodTeams) == 11 {
-			step = 5
-		}
+
+		// Ciclo-base usado apenas para escolher as partidas que poderão
+		// aparecer como resultados simulados. Cada equipe aparece em 2 arestas.
+		finalCycle := shuffledTeams(periodTeams, int64(202600+periodIndex*1000))
+
 		for dayIndex, d := range Days {
 			for stationIndex, st := range Stations {
-				offset := (dayIndex*3 + stationIndex*2) % len(periodTeams)
-				for order := range periodTeams {
-					a := periodTeams[(offset+order*step)%len(periodTeams)]
-					b := periodTeams[(offset+(order+1)*step)%len(periodTeams)]
+				cycle := shuffledTeams(periodTeams, int64(202600+periodIndex*1000+dayIndex*100+stationIndex*7+1))
+
+				// Espalha as arestas do ciclo de resultados pelos 3 dias e
+				// pelas 8 estações. A partida forçada fica sempre na ordem 1.
+				for edgeIndex := range finalCycle {
+					targetDay := edgeIndex % len(Days)
+					targetStation := (edgeIndex * 5) % len(Stations)
+					if targetDay == dayIndex && targetStation == stationIndex {
+						a := finalCycle[edgeIndex]
+						b := finalCycle[(edgeIndex+1)%len(finalCycle)]
+						cycle = forcePairAtStart(cycle, a.ID, b.ID)
+						break
+					}
+				}
+
+				for order := range cycle {
+					a := cycle[order]
+					b := cycle[(order+1)%len(cycle)]
 					minute := 8*60 + 30 + order*13
-					matches = append(matches, Match{ID: formatID(n), Period: p.ID, Day: d.ID, Court: st.CourtID, Time: formatTime(minute), SportID: st.SportID, Gender: st.Gender, TeamAID: a.ID, TeamBID: b.ID, Status: StatusAguardando, StationID: st.ID, Order: order + 1})
+					matches = append(matches, Match{
+						ID:        formatID(n),
+						Period:    p.ID,
+						Day:       d.ID,
+						Court:     st.CourtID,
+						Time:      formatTime(minute),
+						SportID:   st.SportID,
+						Gender:    st.Gender,
+						TeamAID:   a.ID,
+						TeamBID:   b.ID,
+						Status:    StatusAguardando,
+						StationID: st.ID,
+						Order:     order + 1,
+					})
 					n++
 				}
 			}
@@ -130,6 +162,34 @@ func SeedMatches() []Match {
 	}
 	return matches
 }
+
+func shuffledTeams(in []Team, seed int64) []Team {
+	out := append([]Team(nil), in...)
+	r := rand.New(rand.NewSource(seed))
+	r.Shuffle(len(out), func(i, j int) { out[i], out[j] = out[j], out[i] })
+	return out
+}
+
+func forcePairAtStart(in []Team, aID, bID string) []Team {
+	out := make([]Team, 0, len(in))
+	var a, b Team
+	for _, team := range in {
+		switch team.ID {
+		case aID:
+			a = team
+		case bID:
+			b = team
+		}
+	}
+	out = append(out, a, b)
+	for _, team := range in {
+		if team.ID != aID && team.ID != bID {
+			out = append(out, team)
+		}
+	}
+	return out
+}
+
 func formatID(n int) string { return "PARTIDA_" + pad3(n) }
 func pad3(n int) string {
 	if n < 10 {
