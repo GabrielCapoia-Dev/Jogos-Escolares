@@ -3026,3 +3026,64 @@ je-root:has(.public-topbar){
 .team-schedule-card.finished .team-schedule-card-top{
   border-color:#bfd8f2!important;
 }
+
+
+/* Cabeçalho público fixo: conteúdo rola por baixo no desktop e no mobile. */
+body:not(:has(#admin-app)) .public-topbar{
+  position:fixed!important;
+  top:0!important;
+  left:0!important;
+  right:0!important;
+  z-index:170!important;
+}
+
+body:not(:has(#admin-app)) .site-header.public-header{
+  position:fixed!important;
+  left:0!important;
+  right:0!important;
+  z-index:165!important;
+}
+
+@media (max-width:699px){
+  body:not(:has(#admin-app)) .public-topbar{
+    height:42px!important;
+    min-height:42px!important;
+  }
+
+  body:not(:has(#admin-app)) .public-topbar>div{
+    height:42px!important;
+    min-height:42px!important;
+  }
+
+  body:not(:has(#admin-app)) .site-header.public-header{
+    top:42px!important;
+    height:62px!important;
+    min-height:62px!important;
+  }
+
+  body:not(:has(#admin-app)) .site-header.public-header .header-inner{
+    height:62px!important;
+    min-height:62px!important;
+  }
+
+  body:not(:has(#admin-app)) .scoreboard-shell{
+    margin-top:104px!important;
+  }
+}
+
+@media (min-width:700px){
+  body:not(:has(#admin-app)) .public-topbar{
+    height:42px!important;
+    min-height:42px!important;
+  }
+
+  body:not(:has(#admin-app)) .site-header.public-header{
+    top:42px!important;
+    height:72px!important;
+    min-height:72px!important;
+  }
+
+  body:not(:has(#admin-app)) .scoreboard-shell{
+    margin-top:114px!important;
+  }
+}
