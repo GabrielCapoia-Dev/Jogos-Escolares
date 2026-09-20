@@ -3766,3 +3766,65 @@ body:has(.save-confirm-modal) main{
   overscroll-behavior:contain!important;
   -webkit-overflow-scrolling:touch!important;
 }
+
+
+/* Filtros de equipe sem quadros: desktop e mobile. */
+.team-picker-grid .team-picker-choice,
+.team-picker-grid .team-picker-choice:hover,
+.team-picker-grid .team-picker-choice:focus,
+.team-picker-grid .team-picker-choice:active,
+.team-picker-grid .team-picker-choice.active,
+.team-picker-grid .team-picker-choice.team-picker-all,
+.team-picker-grid .team-picker-choice.team-picker-all.active{
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  border:0!important;
+  outline:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+
+.mobile-team-filter-options button,
+.mobile-team-filter-options button:hover,
+.mobile-team-filter-options button:focus,
+.mobile-team-filter-options button:active,
+.mobile-team-filter-options button.active,
+.mobile-team-filter-all,
+.mobile-team-filter-all.active{
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  border:0!important;
+  outline:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+
+.mobile-team-filter-choice.active strong,
+.mobile-team-filter-all.active strong{
+  color:var(--ji-blue-900)!important;
+}
+
+.mobile-team-filter-choice .team-emblem{
+  width:54px!important;
+  height:54px!important;
+  flex-basis:54px!important;
+}
+
+.mobile-team-filter-choice.active .team-emblem{
+  transform:scale(1.08)!important;
+}
+
+@media (max-width:699px){
+  .mobile-team-filter-options{
+    gap:10px!important;
+  }
+
+  .mobile-team-filter-options button{
+    min-height:74px!important;
+    padding:4px 2px!important;
+  }
+}
