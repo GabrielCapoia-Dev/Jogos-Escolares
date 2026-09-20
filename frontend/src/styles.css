@@ -4131,3 +4131,260 @@ body:has(.save-confirm-modal) main{
     margin-right:4px!important;
   }
 }
+
+
+/* Admin desktop — menu superior padrão e cards totalmente contidos. */
+@media (min-width:700px){
+
+  /* Menu administrativo volta para o topo no desktop. */
+  body:has(#admin-app) .admin-registration-nav{
+    position:sticky!important;
+    top:114px!important;
+    left:auto!important;
+    right:auto!important;
+    bottom:auto!important;
+    transform:none!important;
+    z-index:120!important;
+    width:min(1440px,calc(100% - 40px))!important;
+    max-width:1440px!important;
+    min-height:52px!important;
+    margin:0 auto!important;
+    padding:6px 0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:8px!important;
+    border:0!important;
+    border-bottom:1px solid var(--ji-line)!important;
+    border-radius:0!important;
+    background:#fff!important;
+    box-shadow:none!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+
+  body:has(#admin-app) .admin-registration-nav button{
+    width:124px!important;
+    min-width:124px!important;
+    max-width:124px!important;
+    min-height:40px!important;
+    height:40px!important;
+    padding:0 12px!important;
+    display:inline-flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:6px!important;
+    border:0!important;
+    border-radius:12px!important;
+    color:#6d8296!important;
+    background:#eef3f7!important;
+    font-size:.70rem!important;
+    font-weight:850!important;
+  }
+
+  body:has(#admin-app) .admin-registration-nav button.active{
+    color:#fff!important;
+    background:var(--ji-blue-800)!important;
+  }
+
+  body:has(#admin-app) .admin-registration-nav .nav-icon{
+    display:inline-block!important;
+    font-size:.82rem!important;
+    line-height:1!important;
+  }
+
+  /* No desktop não existe rodapé branco do menu admin. */
+  body:has(#admin-app)::after{
+    content:none!important;
+    display:none!important;
+  }
+
+  body:has(#admin-app) #admin-app.page-shell{
+    width:min(1440px,calc(100% - 40px))!important;
+    max-width:1440px!important;
+    padding-bottom:40px!important;
+  }
+
+  /* Grade dos jogos. */
+  body:has(#admin-app) .matches-list{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:14px!important;
+    width:100%!important;
+  }
+
+  body:has(#admin-app) .match-card{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    min-height:220px!important;
+    padding:14px!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+    display:grid!important;
+    grid-template-rows:auto 1fr auto!important;
+    align-content:stretch!important;
+  }
+
+  body:has(#admin-app) .match-top{
+    width:100%!important;
+    min-width:0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:10px!important;
+    margin-bottom:12px!important;
+  }
+
+  body:has(#admin-app) .match-top>div:first-child,
+  body:has(#admin-app) .match-labels{
+    min-width:0!important;
+  }
+
+  body:has(#admin-app) .match-labels{
+    max-width:none!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:7px!important;
+    flex-wrap:wrap!important;
+  }
+
+  /* Miolo: duas equipes iguais e o X central. */
+  body:has(#admin-app) .match-score-row{
+    width:100%!important;
+    min-width:0!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr)!important;
+    align-items:center!important;
+    gap:12px!important;
+  }
+
+  body:has(#admin-app) .admin-team{
+    min-width:0!important;
+    width:100%!important;
+    max-width:100%!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    justify-items:center!important;
+    align-content:center!important;
+    gap:10px!important;
+    overflow:hidden!important;
+  }
+
+  body:has(#admin-app) .admin-team-name{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:5px!important;
+    overflow:hidden!important;
+    text-align:center!important;
+  }
+
+  body:has(#admin-app) .admin-team-name .team-emblem{
+    width:54px!important;
+    height:54px!important;
+    flex:0 0 54px!important;
+  }
+
+  body:has(#admin-app) .admin-team-name>span:last-child{
+    width:100%!important;
+    min-width:0!important;
+    display:block!important;
+    text-align:center!important;
+  }
+
+  body:has(#admin-app) .admin-team-name strong,
+  body:has(#admin-app) .admin-team-name small{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    text-align:center!important;
+  }
+
+  body:has(#admin-app) .admin-team-name strong{
+    font-size:.78rem!important;
+  }
+
+  body:has(#admin-app) .admin-team-name small{
+    margin-top:2px!important;
+    font-size:.62rem!important;
+  }
+
+  body:has(#admin-app) .score-control{
+    display:grid!important;
+    grid-template-columns:36px 42px 36px!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:5px!important;
+    width:auto!important;
+    margin:0 auto!important;
+  }
+
+  body:has(#admin-app) .score-control button{
+    width:36px!important;
+    min-width:36px!important;
+    height:36px!important;
+    min-height:36px!important;
+    padding:0!important;
+  }
+
+  body:has(#admin-app) .score-control output{
+    width:42px!important;
+    min-width:42px!important;
+    text-align:center!important;
+    font-size:1rem!important;
+    font-weight:900!important;
+  }
+
+  body:has(#admin-app) .versus{
+    width:28px!important;
+    min-width:28px!important;
+    align-self:center!important;
+    justify-self:center!important;
+    text-align:center!important;
+  }
+
+  /* Rodapé do card sempre dentro do quadro. */
+  body:has(#admin-app) .match-actions{
+    width:100%!important;
+    min-width:0!important;
+    margin-top:12px!important;
+    padding-top:10px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:12px!important;
+    border-top:1px solid #e5eef7!important;
+    box-sizing:border-box!important;
+  }
+
+  body:has(#admin-app) .match-actions .status{
+    flex:0 1 auto!important;
+    max-width:55%!important;
+    margin:0!important;
+  }
+
+  body:has(#admin-app) .match-actions .save-button{
+    flex:0 0 auto!important;
+    min-width:92px!important;
+    min-height:40px!important;
+    margin:0!important;
+    padding:0 16px!important;
+  }
+}
+
+/* Desktop intermediário: uma coluna para não apertar os cards. */
+@media (min-width:700px) and (max-width:1120px){
+  body:has(#admin-app) .matches-list{
+    grid-template-columns:1fr!important;
+  }
+}
