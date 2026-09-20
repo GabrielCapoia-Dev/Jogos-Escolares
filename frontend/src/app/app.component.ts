@@ -521,9 +521,21 @@ export class AppComponent implements OnDestroy {
   }
 
   resultMatches(): Match[] {
-    return this.sortMatchesFinalizedLast(
-      this.matches.filter(item => !this.selectedTeam || item.teamAId === this.selectedTeam || item.teamBId === this.selectedTeam)
-    );
+    const dayOrder = new Map(this.days.map((item, index) => [item.id, index]));
+    return this.matches
+      .filter(item =>
+        item.status === 'FINALIZADO' &&
+        (!this.selectedTeam || item.teamAId === this.selectedTeam || item.teamBId === this.selectedTeam)
+      )
+      .sort((a, b) =>
+        (dayOrder.get(a.day) ?? 99) - (dayOrder.get(b.day) ?? 99) ||
+        a.time.localeCompare(b.time) ||
+        a.order - b.order
+      );
+  }
+
+  resultsForDay(dayId: string): Match[] {
+    return this.resultMatches().filter(item => item.day === dayId);
   }
 
   latestResults(): Match[] {
