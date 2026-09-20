@@ -3469,3 +3469,94 @@ body:not(:has(#admin-app)) .site-header.public-header{
     flex-basis:17px!important;
   }
 }
+
+
+/* Desktop classificação: viewport travado, tabela geral fixa e só resultados rolam. */
+@media (min-width:700px){
+  body:not(:has(#admin-app)):has(.dashboard-grid){
+    overflow:hidden!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .scoreboard-shell{
+    height:calc(100vh - 114px)!important;
+    max-height:calc(100vh - 114px)!important;
+    min-height:0!important;
+    padding-top:16px!important;
+    padding-bottom:12px!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .scoreboard-heading{
+    flex:0 0 auto!important;
+    margin-bottom:10px!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid{
+    flex:1 1 auto!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    overflow:hidden!important;
+    align-items:stretch!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.ranking-panel{
+    position:relative!important;
+    top:auto!important;
+    height:100%!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:hidden!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.ranking-panel .table-wrap{
+    height:100%!important;
+    max-height:none!important;
+    overflow:hidden!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.results-section{
+    height:100%!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+  }
+
+  /* devolve um pouco do tamanho retirado no ajuste anterior */
+  body:not(:has(#admin-app)):has(.dashboard-grid) .ranking-table thead th{
+    height:32px!important;
+    padding:5px 8px!important;
+    font-size:.62rem!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .ranking-table tbody td{
+    height:55px!important;
+    padding:5px 8px!important;
+    font-size:.73rem!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .ranking-table .team-emblem{
+    width:38px!important;
+    height:38px!important;
+    flex-basis:38px!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .ranking-table .team-name strong{
+    font-size:.77rem!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .ranking-table .team-name small{
+    font-size:.58rem!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .ranking-table .position strong{
+    font-size:.77rem!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .public-footer{
+    display:none!important;
+  }
+}
