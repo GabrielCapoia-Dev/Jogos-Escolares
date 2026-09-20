@@ -3328,3 +3328,89 @@ body:not(:has(#admin-app)) .site-header.public-header{
     padding-bottom:calc(108px + env(safe-area-inset-bottom))!important;
   }
 }
+
+
+/* Teste visual dos filtros de equipe: sem cards, apenas logo + nome. */
+.team-picker-grid{
+  gap:14px!important;
+  align-items:start!important;
+}
+
+.team-picker-choice{
+  min-height:auto!important;
+  padding:6px 4px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:7px!important;
+  color:#8190a0!important;
+}
+
+.team-picker-choice:hover{
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+.team-picker-choice .team-emblem{
+  width:58px!important;
+  height:58px!important;
+  flex-basis:58px!important;
+  opacity:.45!important;
+  filter:grayscale(1)!important;
+  transition:transform .18s ease, opacity .18s ease, filter .18s ease!important;
+}
+
+.team-picker-choice strong{
+  font-size:.72rem!important;
+  line-height:1.05!important;
+  color:#8b98a5!important;
+  text-align:center!important;
+}
+
+.team-picker-choice.active{
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:var(--ji-blue-900)!important;
+}
+
+.team-picker-choice.active .team-emblem{
+  opacity:1!important;
+  filter:none!important;
+  transform:scale(1.08)!important;
+}
+
+.team-picker-choice.active strong{
+  color:var(--ji-blue-900)!important;
+  font-weight:900!important;
+}
+
+.team-picker-choice.team-picker-all{
+  min-height:74px!important;
+  padding-top:20px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+.team-picker-choice.team-picker-all.active{
+  color:var(--ji-blue-900)!important;
+  text-decoration:underline!important;
+  text-underline-offset:4px!important;
+}
+
+@media (max-width:699px){
+  .team-picker-choice .team-emblem{
+    width:52px!important;
+    height:52px!important;
+    flex-basis:52px!important;
+  }
+}
