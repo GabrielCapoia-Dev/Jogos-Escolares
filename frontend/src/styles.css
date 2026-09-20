@@ -2559,3 +2559,55 @@ je-root:has(.public-topbar){
     display:none!important;
   }
 }
+
+
+/* Ajustes mobile: filtros apenas no FAB e cards administrativos mais compactos. */
+@media (max-width:699px){
+
+  /* Os filtros públicos ficam somente no botão flutuante. */
+  .schedule-days,
+  .court-buttons{
+    display:none!important;
+  }
+
+  /* Cada grupo de filtro curto cabe em uma única linha. */
+  .mobile-filter-options:not(.mobile-team-filter-options){
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    gap:6px!important;
+  }
+  .mobile-filter-options:not(.mobile-team-filter-options) button{
+    flex:1 1 0!important;
+    min-width:0!important;
+    min-height:38px!important;
+    padding:.3rem .2rem!important;
+    font-size:.66rem!important;
+    white-space:nowrap!important;
+  }
+
+  /* Equipes continuam em grade, pois há muitas opções. */
+  .mobile-team-filter-options{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+
+  /* Status e botão Salvar ocupam a mesma linha no card do Admin. */
+  .match-actions{
+    margin-top:8px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:8px!important;
+  }
+  .match-actions .status{
+    flex:0 1 auto!important;
+    margin:0!important;
+  }
+  .match-actions .save-button{
+    flex:0 0 auto!important;
+    min-width:82px!important;
+    min-height:38px!important;
+    padding:0 14px!important;
+    margin:0!important;
+  }
+}
