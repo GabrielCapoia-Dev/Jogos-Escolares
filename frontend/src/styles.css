@@ -2748,3 +2748,35 @@ je-root:has(.public-topbar){
   font-weight:800!important;
   opacity:.9;
 }
+
+
+/* Ajustes visuais: topo azul sólido e arte inicial desktop mais compacta. */
+@media (max-width:699px){
+  .public-topbar{
+    background:#1261bd!important;
+    background-image:none!important;
+  }
+}
+
+@media (min-width:700px){
+  .welcome-screen{
+    background:#eaf4fd!important;
+  }
+  .welcome-hero{
+    width:min(88vw,156vh)!important;
+    height:auto!important;
+    min-height:0!important;
+    aspect-ratio:1672 / 941!important;
+    margin:auto!important;
+  }
+  .welcome-hero-art{
+    width:100%!important;
+    height:100%!important;
+  }
+  .welcome-hero-art img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:contain!important;
+    object-position:center center!important;
+  }
+}
