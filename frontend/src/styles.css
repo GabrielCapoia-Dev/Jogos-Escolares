@@ -4420,3 +4420,83 @@ body:has(.save-confirm-modal) main{
   background:var(--ji-blue-800)!important;
   border:1px solid var(--ji-blue-800)!important;
 }
+
+
+/* ==========================================================================
+   SPLASH FINAL — botões reais, sem ícones, texto centralizado
+   Mantém as artes HQ e cobre integralmente os botões desenhados na imagem.
+   ========================================================================== */
+.welcome-click-zones{
+  pointer-events:auto!important;
+}
+.welcome-click-zones button{
+  position:relative!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0 14px!important;
+  border:0!important;
+  border-radius:18px!important;
+  opacity:1!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  font-size:clamp(1.05rem,5.2vw,1.55rem)!important;
+  line-height:1!important;
+  font-weight:900!important;
+  letter-spacing:.015em!important;
+  text-align:center!important;
+  text-transform:uppercase!important;
+  text-shadow:0 1px 1px rgba(0,48,105,.18)!important;
+  box-shadow:0 8px 20px rgba(7,83,164,.16)!important;
+  overflow:hidden!important;
+  cursor:pointer!important;
+}
+.welcome-click-zones button:first-child{
+  background:linear-gradient(135deg,#0753a4 0%,#0d68c9 100%)!important;
+}
+.welcome-click-zones button:last-child{
+  background:linear-gradient(135deg,#2389e8 0%,#41a4f4 100%)!important;
+}
+.welcome-click-zones button:hover{
+  filter:brightness(1.04)!important;
+}
+.welcome-click-zones button:active{
+  transform:translateY(1px)!important;
+  filter:brightness(.98)!important;
+}
+.welcome-click-zones button:focus-visible{
+  outline:3px solid rgba(255,255,255,.95)!important;
+  outline-offset:-5px!important;
+}
+
+@media (max-width:699px){
+  .welcome-click-zones{
+    left:18.2%!important;
+    right:18.2%!important;
+    bottom:8.1%!important;
+    height:18.7%!important;
+    gap:4.0%!important;
+  }
+  .welcome-click-zones button{
+    border-radius:18px!important;
+    font-size:clamp(1.18rem,6vw,1.65rem)!important;
+  }
+}
+
+@media (min-width:700px){
+  .welcome-click-zones{
+    left:30.35%!important;
+    right:30.35%!important;
+    bottom:8.15%!important;
+    height:10.9%!important;
+    gap:3.3%!important;
+  }
+  .welcome-click-zones button{
+    border-radius:18px!important;
+    font-size:clamp(1rem,1.8vw,1.45rem)!important;
+  }
+}
