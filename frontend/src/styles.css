@@ -3939,3 +3939,45 @@ body:has(.save-confirm-modal) main{
     overflow:hidden!important;
   }
 }
+
+
+/* Cronograma: partidas finalizadas com destaque azul forte. */
+.schedule-card.finished{
+  background:#dcecff!important;
+  border:2px solid #1565d8!important;
+  box-shadow:0 5px 14px rgba(21,101,216,.14)!important;
+}
+
+.schedule-card.finished .schedule-card-top{
+  border-color:#9fc5ef!important;
+}
+
+.schedule-card.finished .status,
+.schedule-card.finished .status.done,
+.schedule-card.finished .status.waiting{
+  color:#fff!important;
+  background:#1565d8!important;
+  border-color:#1565d8!important;
+}
+
+.schedule-card.finished .fixture-score b{
+  color:#0b3f91!important;
+  border-color:#4e8fd9!important;
+  background:#fff!important;
+}
+
+.schedule-card.finished .fixture-team-copy strong,
+.schedule-card.finished .schedule-card-top time{
+  color:#083f86!important;
+}
+
+.schedule-card.finished .fixture-team-copy small{
+  color:#537393!important;
+}
+
+@media (max-width:699px){
+  .schedule-card.finished{
+    background:#dcecff!important;
+    border:2px solid #1565d8!important;
+  }
+}
