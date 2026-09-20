@@ -2780,3 +2780,61 @@ je-root:has(.public-topbar){
     object-position:center center!important;
   }
 }
+
+
+/* Desktop: menu público na mesma linha de Início e Área administrativa. */
+@media (min-width:700px){
+  .public-header .header-inner{
+    width:min(1180px,calc(100% - 40px))!important;
+    min-height:72px!important;
+    display:grid!important;
+    grid-template-columns:auto 1fr auto!important;
+    align-items:center!important;
+    gap:18px!important;
+  }
+
+  .public-header .public-main-nav{
+    position:static!important;
+    width:auto!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    display:flex!important;
+    justify-content:center!important;
+    align-items:center!important;
+    gap:6px!important;
+    border:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+
+  .public-header .public-main-nav button{
+    min-width:auto!important;
+    min-height:40px!important;
+    padding:0 14px!important;
+    border:0!important;
+    border-radius:10px!important;
+    display:inline-flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:6px!important;
+    color:#758393!important;
+    background:#eef2f6!important;
+    font-size:.72rem!important;
+    white-space:nowrap!important;
+  }
+
+  .public-header .public-main-nav button.active{
+    color:#fff!important;
+    background:var(--ji-blue-800)!important;
+  }
+
+  .public-header .public-main-nav .nav-icon{
+    display:none!important;
+  }
+
+  .public-header .admin-button{
+    white-space:nowrap!important;
+  }
+}
