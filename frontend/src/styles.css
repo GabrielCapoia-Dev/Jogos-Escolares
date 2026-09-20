@@ -3087,3 +3087,54 @@ body:not(:has(#admin-app)) .site-header.public-header{
     margin-top:114px!important;
   }
 }
+
+
+/* Correção mobile: header fixo em cima e navegação principal fixa no rodapé. */
+@media (max-width:699px){
+  body:not(:has(#admin-app)) .site-header.public-header{
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+    overflow:visible!important;
+  }
+
+  body:not(:has(#admin-app)) .site-header.public-header .header-inner{
+    position:relative!important;
+    overflow:visible!important;
+  }
+
+  body:not(:has(#admin-app)) .public-main-nav{
+    position:fixed!important;
+    top:auto!important;
+    left:8px!important;
+    right:8px!important;
+    bottom:calc(8px + env(safe-area-inset-bottom))!important;
+    width:auto!important;
+    margin:0!important;
+    z-index:220!important;
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:4px!important;
+    min-height:64px!important;
+    padding:6px!important;
+    border:1px solid rgba(155,199,243,.48)!important;
+    border-radius:18px!important;
+    background:rgba(255,255,255,.97)!important;
+    box-shadow:0 10px 28px rgba(9,61,114,.22)!important;
+  }
+
+  body:not(:has(#admin-app)) .public-main-nav button{
+    min-width:0!important;
+    min-height:48px!important;
+    padding:4px 2px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:3px!important;
+  }
+
+  body:not(:has(#admin-app)) .scoreboard-shell{
+    margin-top:104px!important;
+    padding-bottom:calc(96px + env(safe-area-inset-bottom))!important;
+  }
+}
