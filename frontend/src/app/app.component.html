@@ -389,11 +389,19 @@
         </div>
 
         <div class="match-actions">
-          <button class="save-button" type="button" (click)="requestSave(match,true)">Salvar correção</button>
+          <button class="save-button" type="button"
+  [class.queued-correction]="correctionQueued(match.id)"
+  (click)="queueCorrection(match)">
+  {{ correctionQueued(match.id) ? 'Correção pronta' : 'Salvar correção' }}
+</button>
         </div>
       </article>
       <div class="empty-state" *ngIf="!filteredFinishedMatches().length">Nenhum resultado finalizado neste filtro.</div>
     </div>
-    <div class="admin-edit-actions"><button type="button" class="admin-edit-confirm" (click)="correctionOpen=false">Confirmar</button></div>
+    <div class="admin-edit-actions">
+  <button type="button" class="admin-edit-confirm" [disabled]="saveLoading" (click)="confirmCorrections()">
+    {{ saveLoading ? 'Salvando...' : 'Confirmar' }}
+  </button>
+</div>
   </section>
 </div>
