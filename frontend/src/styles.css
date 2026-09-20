@@ -3003,3 +3003,26 @@ je-root:has(.public-topbar){
     border-radius:16px!important;
   }
 }
+
+
+/* Por equipe: partidas finalizadas com destaque azul. */
+.team-schedule-card.finished{
+  background:#eaf4ff!important;
+  border:2px solid #3f8fd8!important;
+  box-shadow:0 5px 14px rgba(24,91,159,.10)!important;
+}
+.team-schedule-card.finished .status{
+  color:#fff!important;
+  background:#1261bd!important;
+  border-color:#1261bd!important;
+}
+.team-schedule-card.finished .team-schedule-card-top time,
+.team-schedule-card.finished .team-schedule-location strong,
+.team-schedule-card.finished .team-schedule-versus b,
+.team-schedule-card.finished .team-schedule-score{
+  color:#0a4387!important;
+}
+.team-schedule-card.finished .team-schedule-location,
+.team-schedule-card.finished .team-schedule-card-top{
+  border-color:#bfd8f2!important;
+}
