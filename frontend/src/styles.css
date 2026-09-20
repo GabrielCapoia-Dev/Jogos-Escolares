@@ -3239,3 +3239,65 @@ body:not(:has(#admin-app)) .site-header.public-header{
     gap:14px!important;
   }
 }
+
+
+/* Classificação: desktop com tabela fixa e resultados rolando; mobile só tabela geral. */
+@media (min-width:700px){
+  .dashboard-grid{
+    height:calc(100vh - 150px)!important;
+    max-height:calc(100vh - 150px)!important;
+    overflow:hidden!important;
+    align-items:stretch!important;
+  }
+
+  .dashboard-grid>.ranking-panel{
+    height:100%!important;
+    max-height:100%!important;
+    overflow:hidden!important;
+    position:sticky!important;
+    top:0!important;
+  }
+
+  .dashboard-grid>.ranking-panel .table-wrap{
+    height:100%!important;
+    max-height:100%!important;
+    overflow:hidden!important;
+  }
+
+  .dashboard-grid>.results-section{
+    height:100%!important;
+    max-height:100%!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    padding-right:6px!important;
+    scrollbar-gutter:stable!important;
+  }
+
+  .dashboard-grid>.results-section::-webkit-scrollbar{
+    width:8px!important;
+  }
+
+  .dashboard-grid>.results-section::-webkit-scrollbar-thumb{
+    background:#b7cce2!important;
+    border-radius:999px!important;
+  }
+
+  .dashboard-grid>.results-section::-webkit-scrollbar-track{
+    background:transparent!important;
+  }
+}
+
+@media (max-width:699px){
+  .dashboard-grid{
+    display:block!important;
+  }
+
+  .dashboard-grid>.results-section{
+    display:none!important;
+  }
+
+  .dashboard-grid>.ranking-panel{
+    width:100%!important;
+    max-width:none!important;
+  }
+}
