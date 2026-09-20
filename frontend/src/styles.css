@@ -4500,3 +4500,30 @@ body:has(.save-confirm-modal) main{
     font-size:clamp(1rem,1.8vw,1.45rem)!important;
   }
 }
+
+
+/* Tela inicial: botões de turno voltam a ser apenas zonas clicáveis invisíveis. */
+.welcome-click-zones button,
+.welcome-click-zones button:first-child,
+.welcome-click-zones button:last-child,
+.welcome-click-zones button:hover,
+.welcome-click-zones button:active{
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  border:0!important;
+  outline:0!important;
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  color:transparent!important;
+  -webkit-text-fill-color:transparent!important;
+  text-shadow:none!important;
+  opacity:.01!important;
+  filter:none!important;
+  transform:none!important;
+}
+
+.welcome-click-zones button:focus-visible{
+  outline:0!important;
+  box-shadow:none!important;
+}
