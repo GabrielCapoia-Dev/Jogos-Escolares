@@ -24,16 +24,17 @@
     <header class="site-header public-header">
       <div class="header-inner">
         <div class="public-brand"><button type="button" class="header-home" (click)="backHome()">Início</button></div>
+
+        <nav class="public-main-nav" aria-label="Menu principal">
+          <button type="button" [class.active]="view === 'CLASSIFICACAO'" (click)="setView('CLASSIFICACAO')"><span class="nav-icon">▦</span><span>Classificação</span></button>
+          <button type="button" [class.active]="view === 'CRONOGRAMA'" (click)="setView('CRONOGRAMA')"><span class="nav-icon">▤</span><span>Cronograma</span></button>
+          <button type="button" [class.active]="view === 'CRONOGRAMA_EQUIPE'" (click)="setView('CRONOGRAMA_EQUIPE')"><span class="nav-icon">♟</span><span>Por equipe</span></button>
+          <button type="button" [class.active]="view === 'RESULTADOS'" (click)="setView('RESULTADOS')"><span class="nav-icon">▥</span><span>Resultados</span></button>
+        </nav>
+
         <button class="admin-button" type="button" (click)="openLogin()">Área administrativa</button>
       </div>
     </header>
-
-      <nav class="public-main-nav" aria-label="Menu principal">
-        <button type="button" [class.active]="view === 'CLASSIFICACAO'" (click)="setView('CLASSIFICACAO')"><span class="nav-icon">▦</span><span>Classificação</span></button>
-        <button type="button" [class.active]="view === 'CRONOGRAMA'" (click)="setView('CRONOGRAMA')"><span class="nav-icon">▤</span><span>Cronograma</span></button>
-        <button type="button" [class.active]="view === 'CRONOGRAMA_EQUIPE'" (click)="setView('CRONOGRAMA_EQUIPE')"><span class="nav-icon">♟</span><span>Por equipe</span></button>
-        <button type="button" [class.active]="view === 'RESULTADOS'" (click)="setView('RESULTADOS')"><span class="nav-icon">▥</span><span>Resultados</span></button>
-      </nav>
 
       <button
         *ngIf="view === 'CRONOGRAMA' || view === 'CRONOGRAMA_EQUIPE' || view === 'RESULTADOS'"
