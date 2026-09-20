@@ -3981,3 +3981,22 @@ body:has(.save-confirm-modal) main{
     border:2px solid #1565d8!important;
   }
 }
+
+
+/* Cronograma: cabeçalhos de gênero legíveis e com cantos arredondados. */
+.gender-lane-heading{
+  padding:8px 10px!important;
+  border-radius:14px!important;
+  background:var(--ji-blue-900)!important;
+}
+
+.gender-lane-heading h4,
+.gender-lane-heading span{
+  color:#fff!important;
+}
+
+@media (max-width:699px){
+  .gender-lane-heading{
+    border-radius:14px!important;
+  }
+}
