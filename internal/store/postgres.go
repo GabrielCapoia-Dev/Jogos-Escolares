@@ -90,6 +90,7 @@ func (s *Store) initialize(ctx context.Context) error {
 		`CREATE TABLE IF NOT EXISTS users (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), email text UNIQUE NOT NULL, name text NOT NULL, password_hash text NOT NULL, role text NOT NULL DEFAULT 'ADMIN', active boolean NOT NULL DEFAULT true, created_at timestamptz NOT NULL DEFAULT now())`,
 		`CREATE TABLE IF NOT EXISTS audit_logs (id bigserial PRIMARY KEY, user_id uuid REFERENCES users(id), action text NOT NULL, match_id text NOT NULL REFERENCES matches(id), before_state jsonb NOT NULL, after_state jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`,
 		`CREATE TABLE IF NOT EXISTS access_tokens (token_hash text PRIMARY KEY, user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE, expires_at timestamptz NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`,
+		`CREATE TABLE IF NOT EXISTS result_reset_backups (id bigserial PRIMARY KEY, reset_at timestamptz NOT NULL DEFAULT now(), user_id uuid NOT NULL REFERENCES users(id), match_count integer NOT NULL, matches jsonb NOT NULL)`,
 	}
 	for _, statement := range statements {
 		if _, err := s.DB.ExecContext(ctx, statement); err != nil {
@@ -388,15 +389,23 @@ func (s *Store) SaveResult(ctx context.Context, id string, a, b int, user string
 	return m, nil
 }
 
-// ResetAllResults returns every match to its initial score and status. It is
-// intentionally separate from startup maintenance so administrators can use
-// it again before a future edition of the competition.
+// ResetAllResults stores a complete snapshot before returning every match to
+// its initial score and status. The snapshot and reset use one transaction,
+// so every recorded backup represents the exact state that was cleared.
 func (s *Store) ResetAllResults(ctx context.Context, user string) (int64, error) {
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return 0, err
 	}
 	defer tx.Rollback()
+
+	if _, err = tx.ExecContext(ctx, `
+		INSERT INTO result_reset_backups(user_id, match_count, matches)
+		SELECT $1, COUNT(*)::integer, COALESCE(jsonb_agg(to_jsonb(m) ORDER BY m.sort_order), '[]'::jsonb)
+		FROM matches m
+	`, user); err != nil {
+		return 0, err
+	}
 
 	result, err := tx.ExecContext(ctx, `
 		UPDATE matches
