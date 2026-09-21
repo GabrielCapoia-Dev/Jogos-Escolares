@@ -23,7 +23,6 @@ services:
       DATABASE_URL: postgres://jogos:jogos_dev@127.0.0.1:5432/jogos_escolares?sslmode=disable
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
-      DEMO_RESULTS: ${DEMO_RESULTS:-false}
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8080/healthz >/dev/null || exit 1"]
       interval: 5s

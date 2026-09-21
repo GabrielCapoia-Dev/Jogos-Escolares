@@ -105,7 +105,49 @@ func (s *Store) initialize(ctx context.Context) error {
 	if err := s.seedMatches(ctx); err != nil {
 		return err
 	}
-	return s.seedDemoResults(ctx)
+	return s.resetResultsOnce(ctx)
+}
+
+// resetResultsOnce clears the results that were generated before the
+// championship started. The marker and update commit together so a restart
+// never clears scores entered after this maintenance task has run.
+func (s *Store) resetResultsOnce(ctx context.Context) error {
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err = tx.ExecContext(ctx, `
+		CREATE TABLE IF NOT EXISTS maintenance_tasks (
+			name text PRIMARY KEY,
+			completed_at timestamptz NOT NULL DEFAULT now()
+		)
+	`); err != nil {
+		return err
+	}
+
+	result, err := tx.ExecContext(ctx, `
+		INSERT INTO maintenance_tasks(name)
+		VALUES('reset_all_results_20260921')
+		ON CONFLICT DO NOTHING
+	`)
+	if err != nil {
+		return err
+	}
+	inserted, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if inserted == 1 {
+		if _, err = tx.ExecContext(ctx, `
+			UPDATE matches
+			SET status = $1, score_a = 0, score_b = 0, updated_at = NULL
+		`, domain.StatusAguardando); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 func (s *Store) seedReferenceData(ctx context.Context) error {
@@ -161,81 +203,6 @@ func (s *Store) seedMatches(ctx context.Context) error {
 			return err
 		}
 	}
-	return tx.Commit()
-}
-
-func (s *Store) seedDemoResults(ctx context.Context) error {
-	if strings.ToLower(strings.TrimSpace(os.Getenv("DEMO_RESULTS"))) != "true" {
-		return nil
-	}
-
-	all := domain.SeedMatches()
-	selected := make([]domain.Match, 0, 24)
-
-	// O cronograma reserva uma aresta do ciclo-base em cada combinação
-	// dia/estação. Selecionamos exatamente uma dessas partidas por aresta.
-	// Como o ciclo fecha sobre si mesmo, cada equipe aparece exatamente
-	// duas vezes entre as partidas finalizadas.
-	for _, period := range domain.Periods {
-		teamCount := 0
-		for _, team := range domain.SeedTeams() {
-			if team.Period == period.ID {
-				teamCount++
-			}
-		}
-
-		for edgeIndex := 0; edgeIndex < teamCount; edgeIndex++ {
-			dayID := domain.Days[edgeIndex%len(domain.Days)].ID
-			stationID := domain.Stations[(edgeIndex*5)%len(domain.Stations)].ID
-
-			for _, match := range all {
-				if match.Period == period.ID &&
-					match.Day == dayID &&
-					match.StationID == stationID &&
-					match.Order == 1 {
-					selected = append(selected, match)
-					break
-				}
-			}
-		}
-	}
-
-	tx, err := s.DB.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	// Primeiro limpa completamente o estado demo.
-	if _, err = tx.ExecContext(ctx, `
-		UPDATE matches
-		   SET status = $1,
-		       score_a = 0,
-		       score_b = 0,
-		       updated_at = NULL
-	`, domain.StatusAguardando); err != nil {
-		return err
-	}
-
-	// Depois aplica somente os resultados sorteados.
-	for i, match := range selected {
-		scoreA := (i*3 + 2) % 6
-		scoreB := (i*5 + 1) % 6
-		if scoreA == 0 && scoreB == 0 {
-			scoreA = 1
-		}
-		if _, err = tx.ExecContext(ctx, `
-			UPDATE matches
-			   SET status = $1,
-			       score_a = $2,
-			       score_b = $3,
-			       updated_at = now()
-			 WHERE id = $4
-		`, domain.StatusFinalizado, scoreA, scoreB, match.ID); err != nil {
-			return err
-		}
-	}
-
 	return tx.Commit()
 }
 
