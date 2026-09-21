@@ -1,7 +1,8 @@
 package domain
 
 import (
-	"math/rand"
+	_ "embed"
+	"encoding/json"
 	"sort"
 )
 
@@ -86,137 +87,31 @@ var Courts = []Court{{"QUADRA_1", "Amário Vieira"}, {"QUADRA_2", "Mario Onken"}
 var Sports = []Sport{{"PETECA", "Peteca", "PRE_DESPORTIVA", "QUADRA_1", "08:30", true}, {"FUTSAL", "Futsal", "COLETIVA", "QUADRA_1", "08:30", true}, {"BASQUETE", "Basquete", "COLETIVA", "QUADRA_2", "08:30", true}, {"CORRIDA", "Corrida", "REVEZAMENTO", "QUADRA_2", "08:30", true}}
 var Stations = []Station{{"AMARIO_PETECA_FEM", "QUADRA_1", "PETECA", "FEMININO", "Peteca feminino", 1}, {"AMARIO_FUTSAL_MASC", "QUADRA_1", "FUTSAL", "MASCULINO", "Futsal masculino", 2}, {"AMARIO_FUTSAL_FEM", "QUADRA_1", "FUTSAL", "FEMININO", "Futsal feminino", 3}, {"AMARIO_PETECA_MASC", "QUADRA_1", "PETECA", "MASCULINO", "Peteca masculino", 4}, {"ONKEN_CORRIDA_FEM", "QUADRA_2", "CORRIDA", "FEMININO", "Corrida feminino", 1}, {"ONKEN_CORRIDA_MASC", "QUADRA_2", "CORRIDA", "MASCULINO", "Corrida masculino", 2}, {"ONKEN_BASQUETE_FEM", "QUADRA_2", "BASQUETE", "FEMININO", "Basquete feminino", 3}, {"ONKEN_BASQUETE_MASC", "QUADRA_2", "BASQUETE", "MASCULINO", "Basquete masculino", 4}}
 
-type teamSeed struct{ code, color, hex, mascot, sprite string }
+// competition_data.json contém as equipes e o cronograma oficial dos três dias.
+//go:embed competition_data.json
+var competitionDataJSON []byte
 
-var teamSeeds = []teamSeed{{"AMARELO", "Amarelo", "#F3C515", "Onça", "mascote-amarelo"}, {"LARANJA", "Laranja", "#EF8615", "Mico-leão-dourado", "mascote-laranja"}, {"VERMELHO", "Vermelho", "#D84247", "Lobo-guará", "mascote-vermelho"}, {"MARROM", "Marrom", "#986347", "Capivara", "mascote-marrom"}, {"BRANCO", "Branco", "#F7F7F2", "Tamanduá", "mascote-branco"}, {"PRETO", "Preto", "#29313B", "Tucano", "mascote-preto"}, {"CINZA", "Cinza", "#8D9AA6", "Tubarão", "mascote-cinza"}, {"VERDE_CLARO", "Verde-claro", "#31BD75", "Maritaca", "mascote-verde-claro"}, {"VERDE_ESCURO", "Verde-escuro", "#087D4B", "Jacaré", "mascote-verde-escuro"}, {"AZUL_ESCURO", "Azul-escuro", "#0753A4", "Arara-azul", "mascote-azul-escuro"}, {"AZUL_CLARO", "Azul-claro", "#35ACE0", "Boto", "mascote-azul-claro"}}
+type competitionSeedData struct {
+	Teams   []Team  `json:"teams"`
+	Matches []Match `json:"matches"`
+}
+
+var competitionSeed = mustLoadCompetitionSeed()
+
+func mustLoadCompetitionSeed() competitionSeedData {
+	var data competitionSeedData
+	if err := json.Unmarshal(competitionDataJSON, &data); err != nil {
+		panic("dados da competição inválidos: " + err.Error())
+	}
+	return data
+}
 
 func SeedTeams() []Team {
-	teams := make([]Team, 0, 21)
-	for _, p := range Periods {
-		limit := 10
-		if p.ID == "MANHA" {
-			limit = 11
-		}
-		for _, s := range teamSeeds[:limit] {
-			teams = append(teams, Team{p.ID + "_" + s.code, p.ID, s.color, s.hex, s.mascot, s.sprite, true})
-		}
-	}
-	return teams
+	return append([]Team(nil), competitionSeed.Teams...)
 }
+
 func SeedMatches() []Match {
-	teams := SeedTeams()
-	matches := make([]Match, 0, 504)
-	n := 1
-
-	for periodIndex, p := range Periods {
-		periodTeams := make([]Team, 0)
-		for _, t := range teams {
-			if t.Period == p.ID {
-				periodTeams = append(periodTeams, t)
-			}
-		}
-
-		// Ciclo-base usado apenas para escolher as partidas que poderão
-		// aparecer como resultados simulados. Cada equipe aparece em 2 arestas.
-		finalCycle := shuffledTeams(periodTeams, int64(202600+periodIndex*1000))
-
-		for dayIndex, d := range Days {
-			for stationIndex, st := range Stations {
-				cycle := shuffledTeams(periodTeams, int64(202600+periodIndex*1000+dayIndex*100+stationIndex*7+1))
-
-				// Espalha as arestas do ciclo de resultados pelos 3 dias e
-				// pelas 8 estações. A partida forçada fica sempre na ordem 1.
-				for edgeIndex := range finalCycle {
-					targetDay := edgeIndex % len(Days)
-					targetStation := (edgeIndex * 5) % len(Stations)
-					if targetDay == dayIndex && targetStation == stationIndex {
-						a := finalCycle[edgeIndex]
-						b := finalCycle[(edgeIndex+1)%len(finalCycle)]
-						cycle = forcePairAtStart(cycle, a.ID, b.ID)
-						break
-					}
-				}
-
-				for order := range cycle {
-					a := cycle[order]
-					b := cycle[(order+1)%len(cycle)]
-					minute := 8*60 + 30 + order*13
-					matches = append(matches, Match{
-						ID:        formatID(n),
-						Period:    p.ID,
-						Day:       d.ID,
-						Court:     st.CourtID,
-						Time:      formatTime(minute),
-						SportID:   st.SportID,
-						Gender:    st.Gender,
-						TeamAID:   a.ID,
-						TeamBID:   b.ID,
-						Status:    StatusAguardando,
-						StationID: st.ID,
-						Order:     order + 1,
-					})
-					n++
-				}
-			}
-		}
-	}
-	return matches
-}
-
-func shuffledTeams(in []Team, seed int64) []Team {
-	out := append([]Team(nil), in...)
-	r := rand.New(rand.NewSource(seed))
-	r.Shuffle(len(out), func(i, j int) { out[i], out[j] = out[j], out[i] })
-	return out
-}
-
-func forcePairAtStart(in []Team, aID, bID string) []Team {
-	out := make([]Team, 0, len(in))
-	var a, b Team
-	for _, team := range in {
-		switch team.ID {
-		case aID:
-			a = team
-		case bID:
-			b = team
-		}
-	}
-	out = append(out, a, b)
-	for _, team := range in {
-		if team.ID != aID && team.ID != bID {
-			out = append(out, team)
-		}
-	}
-	return out
-}
-
-func formatID(n int) string { return "PARTIDA_" + pad3(n) }
-func pad3(n int) string {
-	if n < 10 {
-		return "00" + itoa(n)
-	}
-	if n < 100 {
-		return "0" + itoa(n)
-	}
-	return itoa(n)
-}
-func itoa(n int) string {
-	if n == 0 {
-		return "0"
-	}
-	out := ""
-	for n > 0 {
-		out = string(rune('0'+n%10)) + out
-		n /= 10
-	}
-	return out
-}
-func formatTime(minutes int) string { return pad2(minutes/60) + ":" + pad2(minutes%60) }
-func pad2(n int) string {
-	if n < 10 {
-		return "0" + itoa(n)
-	}
-	return itoa(n)
+	return append([]Match(nil), competitionSeed.Matches...)
 }
 
 func CalculateStandings(teams []Team, matches []Match, period, gender string) []Standing {
