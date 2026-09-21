@@ -3017,6 +3017,28 @@ je-root:has(.public-topbar){
   border-color:#bfd8f2!important;
 }
 
+/* Por equipe: o jogo atual da equipe segue o destaque do cronograma. */
+.team-schedule-card.happening{
+  border:2px solid #3f8fd8!important;
+  background:#eaf4ff!important;
+  box-shadow:0 0 0 3px rgba(46,132,221,.12),0 8px 22px rgba(31,102,173,.14)!important;
+}
+.team-schedule-card.happening .status.live{
+  color:#fff!important;
+  background:var(--ji-blue-800)!important;
+  border-color:var(--ji-blue-800)!important;
+}
+.team-schedule-card.happening .team-schedule-card-top time,
+.team-schedule-card.happening .team-schedule-location strong,
+.team-schedule-card.happening .team-schedule-versus b,
+.team-schedule-card.happening .team-schedule-score{
+  color:#0a4387!important;
+}
+.team-schedule-card.happening .team-schedule-location,
+.team-schedule-card.happening .team-schedule-card-top{
+  border-color:#bfd8f2!important;
+}
+
 
 /* Cabeçalho público fixo: conteúdo rola por baixo no desktop e no mobile. */
 body:not(:has(#admin-app)) .public-topbar{
@@ -4634,4 +4656,63 @@ body:has(.save-confirm-modal) main{
 .admin-edit-modal .save-button.queued-correction{
   background:var(--ji-blue-900)!important;
   color:#fff!important;
+}
+
+/* Admin desktop: mantém cada equipe, placar e ação dentro do próprio card. */
+@media (min-width:700px){
+  body:has(#admin-app) .match-score-row{
+    grid-template-columns:minmax(160px,1fr) 28px minmax(160px,1fr)!important;
+  }
+
+  body:has(#admin-app) .admin-team{
+    grid-template-rows:auto auto!important;
+    align-items:center!important;
+  }
+
+  body:has(#admin-app) .admin-team-name{
+    min-height:92px!important;
+  }
+
+  body:has(#admin-app) .match-actions{
+    grid-template-columns:minmax(0,1fr) auto!important;
+  }
+
+  body:has(#admin-app) .match-actions .save-button{
+    width:92px!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+  }
+
+  body:has(#admin-app) .admin-registration-nav{
+    justify-content:center!important;
+    padding:10px 0!important;
+    gap:10px!important;
+  }
+
+  body:has(#admin-app) .admin-registration-nav button{
+    width:136px!important;
+    min-width:136px!important;
+    max-width:136px!important;
+    min-height:44px!important;
+    height:44px!important;
+    border:1px solid #d7e5f2!important;
+    background:#f3f7fb!important;
+    color:#607a91!important;
+    box-shadow:0 3px 10px rgba(25,78,128,.06)!important;
+    transition:background .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease!important;
+  }
+
+  body:has(#admin-app) .admin-registration-nav button:hover:not(:disabled){
+    color:var(--ji-blue-800)!important;
+    background:#e8f2fb!important;
+    box-shadow:0 5px 14px rgba(25,78,128,.12)!important;
+    transform:translateY(-1px)!important;
+  }
+
+  body:has(#admin-app) .admin-registration-nav button.active{
+    border-color:var(--ji-blue-800)!important;
+    color:#fff!important;
+    background:var(--ji-blue-800)!important;
+    box-shadow:0 5px 14px rgba(15,99,186,.22)!important;
+  }
 }
