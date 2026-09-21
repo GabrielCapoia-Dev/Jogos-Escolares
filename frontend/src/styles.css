@@ -3166,6 +3166,32 @@ je-root:has(.public-topbar){
   }
 }
 
+/* Indica que os horários exibidos são previsões e podem ser ajustados. */
+.time-stack{
+  display:inline-flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  gap:1px!important;
+  min-width:0!important;
+  line-height:1!important;
+}
+.time-stack time,
+.time-stack strong,
+.time-stack>span:first-child{
+  display:block!important;
+}
+.time-label{
+  display:block!important;
+  margin:0!important;
+  color:#7f92a4!important;
+  font-size:.52rem!important;
+  font-weight:500!important;
+  line-height:1!important;
+  letter-spacing:.01em!important;
+  text-transform:none!important;
+}
+
 
 /* Cabeçalho público fixo: conteúdo rola por baixo no desktop e no mobile. */
 body:not(:has(#admin-app)) .public-topbar{
@@ -4923,4 +4949,24 @@ body:has(#admin-app) .advance-button{
 body:has(#admin-app) .advance-button:hover:not(:disabled){
   color:#4f6b83!important;
   background:#eaf3fb!important;
+}
+
+/* O menu administrativo continua fixo no rodapé no celular mesmo dentro do cabeçalho. */
+@media (max-width:699px){
+  body:has(#admin-app) .admin-header{
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+  body:has(#admin-app) .admin-header .admin-registration-nav{
+    position:fixed!important;
+    left:8px!important;
+    right:8px!important;
+    top:auto!important;
+    bottom:calc(8px + env(safe-area-inset-bottom))!important;
+    width:auto!important;
+    max-width:none!important;
+    margin:0!important;
+    transform:none!important;
+    z-index:400!important;
+  }
 }
