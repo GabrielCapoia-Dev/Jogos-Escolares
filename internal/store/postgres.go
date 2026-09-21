@@ -389,9 +389,9 @@ func (s *Store) SaveResult(ctx context.Context, id string, a, b int, user string
 	return m, nil
 }
 
-// ResetAllResults stores a complete snapshot before returning every match to
-// its initial score and status. The snapshot and reset use one transaction,
-// so every recorded backup represents the exact state that was cleared.
+// ResetAllResults stores a complete snapshot before restoring the official
+// schedule. The snapshot and restore use one transaction, so every recorded
+// backup represents the exact state that was cleared.
 func (s *Store) ResetAllResults(ctx context.Context, user string) (int64, error) {
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
@@ -407,19 +407,27 @@ func (s *Store) ResetAllResults(ctx context.Context, user string) (int64, error)
 		return 0, err
 	}
 
-	result, err := tx.ExecContext(ctx, `
-		UPDATE matches
-		SET status = $1, score_a = 0, score_b = 0, updated_at = NULL
-	`, domain.StatusAguardando)
-	if err != nil {
-		return 0, err
-	}
-	count, err := result.RowsAffected()
-	if err != nil {
-		return 0, err
+	for _, m := range domain.SeedMatches() {
+		if _, err = tx.ExecContext(ctx, `
+			INSERT INTO matches(
+				id,period_id,day_id,court_id,scheduled_time,sport_id,gender,
+				team_a_id,team_b_id,status,sort_order,score_a,score_b
+			)
+			VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+			ON CONFLICT(id) DO UPDATE SET
+				period_id=EXCLUDED.period_id, day_id=EXCLUDED.day_id,
+				court_id=EXCLUDED.court_id, scheduled_time=EXCLUDED.scheduled_time,
+				sport_id=EXCLUDED.sport_id, gender=EXCLUDED.gender,
+				team_a_id=EXCLUDED.team_a_id, team_b_id=EXCLUDED.team_b_id,
+				status=EXCLUDED.status, sort_order=EXCLUDED.sort_order,
+				score_a=EXCLUDED.score_a, score_b=EXCLUDED.score_b, updated_at=NULL
+		`, m.ID, m.Period, m.Day, m.Court, m.Time, m.SportID, m.Gender,
+			m.TeamAID, m.TeamBID, m.Status, m.Order, m.ScoreA, m.ScoreB); err != nil {
+			return 0, err
+		}
 	}
 	if err := tx.Commit(); err != nil {
 		return 0, err
 	}
-	return count, nil
+	return int64(len(domain.SeedMatches())), nil
 }
