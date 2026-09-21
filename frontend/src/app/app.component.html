@@ -181,16 +181,15 @@
   <header class="site-header public-header admin-header">
     <div class="header-inner">
       <div class="public-brand"><button type="button" class="header-home" (click)="backHome()">Início</button></div>
+      <nav class="public-main-nav admin-registration-nav" aria-label="Menu administrativo">
+        <button type="button" [class.active]="adminFiltersOpen" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('filters')"><span class="nav-icon">⚙</span><span>Filtros</span></button>
+        <button type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('ranking')"><span class="nav-icon">▥</span><span>Placar</span></button>
+        <button type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('correction')"><span class="nav-icon">✎</span><span>Editar</span></button>
+        <button type="button" class="admin-reset-button" [disabled]="adminOverlayOpen()" (click)="requestResetResults()"><span class="nav-icon">↺</span><span>Zerar</span></button>
+      </nav>
       <button type="button" class="admin-button">Área administrativa</button>
     </div>
   </header>
-
-  <nav class="public-main-nav admin-registration-nav" aria-label="Menu administrativo">
-    <button type="button" [class.active]="adminFiltersOpen" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('filters')"><span class="nav-icon">⚙</span><span>Filtros</span></button>
-    <button type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('ranking')"><span class="nav-icon">▥</span><span>Placar</span></button>
-    <button type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('correction')"><span class="nav-icon">✎</span><span>Editar</span></button>
-    <button type="button" class="admin-reset-button" [disabled]="adminOverlayOpen()" (click)="requestResetResults()"><span class="nav-icon">↺</span><span>Zerar</span></button>
-  </nav>
 
   <main id="admin-app" class="page-shell">
     <section class="admin-intro"><h2>Registro de Resultados</h2></section>
