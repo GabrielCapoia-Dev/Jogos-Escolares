@@ -111,6 +111,12 @@
         <nav class="schedule-days"><button *ngFor="let item of days" class="schedule-day" [class.active]="item.id === day" (click)="applyPublicFilter('day',item.id)">{{ item.name }}</button></nav>
         <div class="schedule-selectors"><section class="choice-panel"><div class="section-title-block"><p class="eyebrow blue">{{ dayName(day) }}</p><h3>{{ courtName(court) }}</h3></div><div class="court-buttons"><button *ngFor="let item of courts" class="filter-choice court-choice" [class.active]="item.id === court" (click)="applyPublicFilter('court',item.id)">{{ item.name }}</button></div></section></div>
 
+        <div class="gym-transition-marker" role="note" aria-label="Momento de troca de ginásio">
+          <span class="gym-transition-line"></span>
+          <div><strong>Troca de ginásio</strong><small>às {{ gymTransitionTime() }} · após 8 jogos por equipe</small></div>
+          <span class="gym-transition-line"></span>
+        </div>
+
         <section class="live-schedule-panel" *ngIf="currentScheduleMatches().length">
           <div class="live-schedule-heading">
             <div><span class="live-dot"></span><strong>Partidas acontecendo agora</strong></div>

@@ -1259,6 +1259,40 @@ je-root:has(.public-topbar){
   border-radius:16px!important;
   background:#fff!important;
 }
+.gym-transition-marker{
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+  margin:12px 0!important;
+  color:var(--ji-blue-900)!important;
+}
+.gym-transition-line{
+  flex:1 1 auto!important;
+  height:2px!important;
+  background:linear-gradient(90deg,transparent,#74afe2 24%,#74afe2 76%,transparent)!important;
+}
+.gym-transition-marker>div{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  flex:0 0 auto!important;
+  padding:6px 12px!important;
+  border:1px solid #9bc7ee!important;
+  border-radius:999px!important;
+  background:#eaf4ff!important;
+  box-shadow:0 4px 12px rgba(31,102,173,.10)!important;
+}
+.gym-transition-marker strong{
+  font-size:.72rem!important;
+  font-weight:900!important;
+  text-transform:uppercase!important;
+  letter-spacing:.03em!important;
+}
+.gym-transition-marker small{
+  color:#5c7691!important;
+  font-size:.62rem!important;
+  font-weight:800!important;
+}
 .team-schedule-heading .team-emblem{
   width:48px!important;
   height:48px!important;
@@ -4661,12 +4695,20 @@ body:has(.save-confirm-modal) main{
 /* Admin desktop: mantém cada equipe, placar e ação dentro do próprio card. */
 @media (min-width:700px){
   body:has(#admin-app) .match-score-row{
-    grid-template-columns:minmax(160px,1fr) 28px minmax(160px,1fr)!important;
+    display:flex!important;
+    align-items:center!important;
+    gap:12px!important;
   }
 
   body:has(#admin-app) .admin-team{
+    flex:1 1 0!important;
+    width:auto!important;
     grid-template-rows:auto auto!important;
     align-items:center!important;
+  }
+
+  body:has(#admin-app) .match-score-row > .versus{
+    flex:0 0 28px!important;
   }
 
   body:has(#admin-app) .admin-team-name{
@@ -4674,10 +4716,19 @@ body:has(.save-confirm-modal) main{
   }
 
   body:has(#admin-app) .match-actions{
-    grid-template-columns:minmax(0,1fr) auto!important;
+    display:flex!important;
+    align-items:center!important;
+    gap:12px!important;
+  }
+
+  body:has(#admin-app) .match-actions .status{
+    flex:1 1 auto!important;
+    min-width:0!important;
+    max-width:none!important;
   }
 
   body:has(#admin-app) .match-actions .save-button{
+    flex:0 0 92px!important;
     width:92px!important;
     max-width:100%!important;
     box-sizing:border-box!important;
