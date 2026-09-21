@@ -4970,3 +4970,40 @@ body:has(#admin-app) .advance-button:hover:not(:disabled){
     z-index:400!important;
   }
 }
+
+/* Ajustes mobile: previsão antes do horário e destaque legível para jogos ao vivo. */
+@media (max-width:699px){
+  .time-stack{
+    flex-direction:row-reverse!important;
+    align-items:baseline!important;
+    gap:3px!important;
+  }
+  .live-schedule-card .live-schedule-meta time,
+  .live-schedule-card .live-schedule-meta .time-label{
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important;
+  }
+  .live-schedule-card .live-schedule-meta .time-label{
+    opacity:.82!important;
+  }
+  .team-schedule-card.happening .team-schedule-card-top time{
+    color:#fff!important;
+    -webkit-text-fill-color:#fff!important;
+  }
+  .gym-transition-marker .time-stack{
+    flex-direction:row-reverse!important;
+    align-items:baseline!important;
+  }
+
+  /* O modal de confirmação usa classes próprias, diferentes dos filtros. */
+  .save-confirm-modal .save-confirm-backdrop{
+    position:absolute!important;
+    inset:0!important;
+    z-index:10001!important;
+  }
+  .save-confirm-modal .save-confirm-sheet{
+    position:relative!important;
+    z-index:10002!important;
+    pointer-events:auto!important;
+  }
+}
