@@ -4055,6 +4055,10 @@ body:has(.save-confirm-modal) main{
     font-weight:850!important;
   }
 
+  body:has(#admin-app) .admin-registration-nav button.admin-reset-button{
+    display:none!important;
+  }
+
   body:has(#admin-app) .admin-registration-nav button.active{
     color:#fff!important;
     background:var(--ji-blue-800)!important;
