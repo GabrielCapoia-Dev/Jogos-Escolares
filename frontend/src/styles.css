@@ -3092,6 +3092,79 @@ je-root:has(.public-topbar){
   border-color:#bfd8f2!important;
 }
 
+/* Por equipe: confronto centralizado, sem reservar caixas de placar. */
+.team-schedule-versus{
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;
+  gap:10px!important;
+}
+.team-schedule-team{
+  min-width:0!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:7px!important;
+}
+.team-schedule-team-home{
+  justify-content:flex-end!important;
+  text-align:right!important;
+}
+.team-schedule-team-away{
+  justify-content:flex-start!important;
+  text-align:left!important;
+}
+.team-schedule-team>span:not(.team-emblem){
+  min-width:0!important;
+}
+.team-schedule-team b,
+.team-schedule-team small{
+  display:block!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+.team-schedule-team .team-emblem{
+  flex:0 0 42px!important;
+  width:42px!important;
+  height:42px!important;
+}
+.team-schedule-score{
+  min-width:24px!important;
+  white-space:nowrap!important;
+  text-align:center!important;
+}
+.team-gym-transition-marker{
+  width:100%!important;
+  margin:2px 0 0!important;
+}
+
+/* Admin: adianta a partida para o bloco de jogos acontecendo. */
+.advance-button{
+  min-height:42px!important;
+  min-width:92px!important;
+  padding:0 14px!important;
+  border:1px solid #1261bd!important;
+  border-radius:12px!important;
+  color:#1261bd!important;
+  background:#fff!important;
+  font-weight:850!important;
+}
+.advance-button:hover:not(:disabled){
+  background:#eaf4ff!important;
+}
+.advance-button:disabled{
+  color:#9aabba!important;
+  border-color:#d8e5ef!important;
+  background:#f7fafc!important;
+}
+
+@media (max-width:699px){
+  .match-actions .advance-button{
+    flex:0 1 auto!important;
+    min-width:82px!important;
+    min-height:38px!important;
+    padding:0 10px!important;
+  }
+}
+
 
 /* Cabeçalho público fixo: conteúdo rola por baixo no desktop e no mobile. */
 body:not(:has(#admin-app)) .public-topbar{

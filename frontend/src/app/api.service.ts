@@ -73,6 +73,17 @@ export class ApiService {
     );
   }
 
+  advanceMatchAsync(id: string, token: string): Promise<Match> {
+    return this.fetchJson<Match>(
+      `${this.base}/admin/matches/${encodeURIComponent(id)}/advance`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      },
+      8000
+    );
+  }
+
   resetResultsAsync(token: string): Promise<{ reset: number }> {
     return this.fetchJson<{ reset: number }>(`${this.base}/admin/reset-results`, {
       method: 'POST',

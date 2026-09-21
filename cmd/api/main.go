@@ -103,7 +103,7 @@ func main() {
 	mux.HandleFunc("/api/v1/snapshot", s.snapshot)
 	mux.HandleFunc("/api/v1/admin-state", s.adminState)
 	mux.HandleFunc("/api/v1/admin/reset-results", s.resetResults)
-	mux.HandleFunc("/api/v1/admin/matches/", s.result)
+	mux.HandleFunc("/api/v1/admin/matches/", s.adminMatch)
 	addr := os.Getenv("HTTP_ADDR")
 	if addr == "" {
 		addr = ":8080"
@@ -111,6 +111,15 @@ func main() {
 	log.Printf("api listening on %s", addr)
 	log.Fatal(http.ListenAndServe(addr, withCORS(mux)))
 }
+
+func (s *server) adminMatch(w http.ResponseWriter, r *http.Request) {
+	if strings.HasSuffix(r.URL.Path, "/advance") {
+		s.advance(w, r)
+		return
+	}
+	s.result(w, r)
+}
+
 func keepDatabaseWarm(s *store.Store) {
 	ticker := time.NewTicker(10 * time.Second)
 	defer ticker.Stop()
@@ -386,6 +395,48 @@ func (s *server) result(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, 200, match)
 
 	// A sincronização completa usa apenas a memória da API.
+	s.broadcastScoreboard(match.Period)
+}
+
+func (s *server) advance(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	token := strings.TrimSpace(strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer"))
+	if token == "" {
+		http.Error(w, "autenticação obrigatória", http.StatusUnauthorized)
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 6*time.Second)
+	defer cancel()
+	user, err := s.store.UserID(ctx, token)
+	if err != nil {
+		http.Error(w, "não autorizado", http.StatusUnauthorized)
+		return
+	}
+	id := strings.TrimPrefix(r.URL.Path, "/api/v1/admin/matches/")
+	id = strings.TrimSuffix(id, "/advance")
+	if id == "" {
+		http.Error(w, "partida obrigatória", http.StatusBadRequest)
+		return
+	}
+	match, err := s.store.AdvanceMatch(ctx, id, user)
+	if err != nil {
+		status := http.StatusConflict
+		if errors.Is(err, store.ErrNotFound) {
+			status = http.StatusNotFound
+		}
+		http.Error(w, err.Error(), status)
+		return
+	}
+	s.upsertCachedMatch(match)
+	s.events.publish(map[string]any{
+		"type":   "RESULT_UPDATED",
+		"period": match.Period,
+		"match":  match,
+	})
+	writeJSON(w, http.StatusOK, match)
 	s.broadcastScoreboard(match.Period)
 }
 

@@ -389,6 +389,55 @@ func (s *Store) SaveResult(ctx context.Context, id string, a, b int, user string
 	return m, nil
 }
 
+func (s *Store) AdvanceMatch(ctx context.Context, id string, user string) (domain.Match, error) {
+	var m domain.Match
+	err := s.DB.QueryRowContext(ctx, `
+		WITH old AS (
+			SELECT id, period_id, day_id, court_id, scheduled_time, sport_id, gender,
+			       team_a_id, team_b_id, status, sort_order, score_a, score_b
+			  FROM matches
+			 WHERE id = $2
+			   AND status = $3
+		),
+		updated AS (
+			UPDATE matches m
+			   SET status = $1, updated_at = now()
+			  FROM old
+			 WHERE m.id = old.id
+			RETURNING m.id,m.period_id,m.day_id,m.court_id,m.scheduled_time,m.sport_id,m.gender,
+			          m.team_a_id,m.team_b_id,m.status,m.sort_order,m.score_a,m.score_b
+		),
+		logged AS (
+			INSERT INTO audit_logs(user_id,action,match_id,before_state,after_state)
+			SELECT $4,'ADIANTAR_PARTIDA',old.id,
+			       jsonb_build_object(
+			         'id',old.id,'period',old.period_id,'day',old.day_id,'court',old.court_id,
+			         'sportId',old.sport_id,'gender',old.gender,'teamAId',old.team_a_id,'teamBId',old.team_b_id,
+			         'status',old.status,'order',old.sort_order,'scoreA',old.score_a,'scoreB',old.score_b
+			       ),
+			       jsonb_build_object(
+			         'id',updated.id,'period',updated.period_id,'day',updated.day_id,'court',updated.court_id,
+			         'sportId',updated.sport_id,'gender',updated.gender,'teamAId',updated.team_a_id,'teamBId',updated.team_b_id,
+			         'status',updated.status,'order',updated.sort_order,'scoreA',updated.score_a,'scoreB',updated.score_b
+			       )
+			  FROM old JOIN updated ON updated.id=old.id
+		)
+		SELECT id,period_id,day_id,court_id,to_char(scheduled_time,'HH24:MI'),sport_id,gender,
+		       team_a_id,team_b_id,status,sort_order,score_a,score_b
+		  FROM updated
+	`, domain.StatusEmAndamento, id, domain.StatusAguardando, user).Scan(
+		&m.ID,&m.Period,&m.Day,&m.Court,&m.Time,&m.SportID,&m.Gender,
+		&m.TeamAID,&m.TeamBID,&m.Status,&m.Order,&m.ScoreA,&m.ScoreB,
+	)
+	if err == sql.ErrNoRows {
+		return domain.Match{}, ErrProtected
+	}
+	if err != nil {
+		return domain.Match{}, err
+	}
+	return m, nil
+}
+
 // ResetAllResults stores a complete snapshot before restoring the official
 // schedule. The snapshot and restore use one transaction, so every recorded
 // backup represents the exact state that was cleared.

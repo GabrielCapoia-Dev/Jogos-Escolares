@@ -83,6 +83,7 @@ export class AppComponent implements OnDestroy {
   pendingSaveCorrection = false;
   saveLoading = false;
   saveError = '';
+  advanceLoadingId = '';
   resetConfirmOpen = false;
   resetLoading = false;
   resetError = '';
@@ -379,11 +380,7 @@ export class AppComponent implements OnDestroy {
 
       this.teams = state.teams;
       this.adminStandings = state.standings;
-      this.adminMatches = [...state.matches].sort((a, b) => {
-        const aFinished = a.status === 'FINALIZADO' ? 1 : 0;
-        const bFinished = b.status === 'FINALIZADO' ? 1 : 0;
-        return aFinished - bFinished || a.time.localeCompare(b.time) || a.order - b.order;
-      });
+      this.adminMatches = this.sortAdminMatches(state.matches);
       for (const item of this.adminMatches) {
         this.scoreDrafts[item.id] = { a: item.scoreA, b: item.scoreB };
       }
@@ -506,6 +503,34 @@ export class AppComponent implements OnDestroy {
     this.saveLoading = false;
     this.saveError = '';
     this.saveConfirmOpen = true;
+  }
+
+  async advanceMatch(match: Match): Promise<void> {
+    if (match.status !== 'AGUARDANDO' || this.advanceLoadingId) return;
+    if (!this.adminToken) {
+      this.expireAdminSession();
+      return;
+    }
+
+    this.advanceLoadingId = match.id;
+    this.renderNow();
+
+    try {
+      const advanced = await this.api.advanceMatchAsync(match.id, this.adminToken);
+      this.applySavedMatchToAdmin(advanced);
+      this.showToast('Partida adiantada: jogo acontecendo agora.');
+    } catch (error: any) {
+      if (error?.status === 401) {
+        this.expireAdminSession();
+      } else if (error?.status === 409) {
+        this.showToast('Esta partida não pode mais ser adiantada.');
+      } else {
+        this.showToast('Não foi possível adiantar a partida. Tente novamente.');
+      }
+    } finally {
+      this.advanceLoadingId = '';
+      this.renderNow();
+    }
   }
 
   cancelSave(): void {
@@ -654,12 +679,17 @@ export class AppComponent implements OnDestroy {
   }
 
   currentMatchId(): string {
-    return this.adminMatches.find(item => item.status !== 'FINALIZADO' && item.status !== 'CANCELADO')?.id ?? '';
+    return this.adminMatches.find(item => item.status === 'EM_ANDAMENTO')?.id
+      ?? this.adminMatches.find(item => item.status !== 'FINALIZADO' && item.status !== 'CANCELADO')?.id
+      ?? '';
   }
 
   nextMatchId(): string {
-    const pending = this.adminMatches.filter(item => item.status !== 'FINALIZADO' && item.status !== 'CANCELADO');
-    return pending[1]?.id ?? '';
+    const current = this.currentMatchId();
+    const pending = this.adminMatches
+      .filter(item => item.id !== current && item.status !== 'FINALIZADO' && item.status !== 'CANCELADO')
+      .sort((a, b) => a.time.localeCompare(b.time) || a.order - b.order);
+    return pending[0]?.id ?? '';
   }
 
   visibleSports(court = this.court): Sport[] {
@@ -670,11 +700,31 @@ export class AppComponent implements OnDestroy {
     return this.sports.filter(item => item.courtId === this.adminCourt);
   }
 
+  private sortAdminMatches(items: Match[]): Match[] {
+    const statusOrder: Record<string, number> = {
+      EM_ANDAMENTO: 0,
+      AGUARDANDO: 1,
+      FINALIZADO: 2,
+      CANCELADO: 3
+    };
+    return [...items].sort((a, b) =>
+      (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9) ||
+      a.time.localeCompare(b.time) ||
+      a.order - b.order
+    );
+  }
+
   private sortMatchesFinalizedLast(items: Match[]): Match[] {
+    const statusOrder: Record<string, number> = {
+      EM_ANDAMENTO: 0,
+      AGUARDANDO: 1,
+      FINALIZADO: 2,
+      CANCELADO: 3
+    };
     return [...items].sort((a, b) => {
-      const aFinished = a.status === 'FINALIZADO' ? 1 : 0;
-      const bFinished = b.status === 'FINALIZADO' ? 1 : 0;
-      return aFinished - bFinished || a.time.localeCompare(b.time) || a.order - b.order;
+      return (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9) ||
+        a.time.localeCompare(b.time) ||
+        a.order - b.order;
     });
   }
 
@@ -732,7 +782,11 @@ export class AppComponent implements OnDestroy {
     }
 
     return [...lanes.values()]
-      .map(items => [...items].sort((a, b) => a.time.localeCompare(b.time) || a.order - b.order)[0])
+      .map(items => {
+        const active = items.filter(item => item.status === 'EM_ANDAMENTO')
+          .sort((a, b) => a.time.localeCompare(b.time) || a.order - b.order);
+        return active[0] ?? [...items].sort((a, b) => a.time.localeCompare(b.time) || a.order - b.order)[0];
+      })
       .filter((item): item is Match => !!item)
       .sort((a, b) => a.time.localeCompare(b.time) || a.order - b.order || a.sportId.localeCompare(b.sportId));
   }
@@ -818,13 +872,9 @@ export class AppComponent implements OnDestroy {
 
   private applySavedMatchToAdmin(saved: Match): void {
     this.scoreDrafts[saved.id] = { a: saved.scoreA, b: saved.scoreB };
-    this.adminMatches = this.adminMatches
-      .map(item => item.id === saved.id ? { ...item, ...saved } : item)
-      .sort((a, b) => {
-        const aFinished = a.status === 'FINALIZADO' ? 1 : 0;
-        const bFinished = b.status === 'FINALIZADO' ? 1 : 0;
-        return aFinished - bFinished || a.time.localeCompare(b.time) || a.order - b.order;
-      });
+    this.adminMatches = this.sortAdminMatches(
+      this.adminMatches.map(item => item.id === saved.id ? { ...item, ...saved } : item)
+    );
   }
 
   private upsertPublicFinishedMatch(saved: Match): void {
