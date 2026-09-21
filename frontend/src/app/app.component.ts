@@ -84,6 +84,8 @@ export class AppComponent implements OnDestroy {
   saveLoading = false;
   saveError = '';
   advanceLoadingId = '';
+  advanceConfirmOpen = false;
+  pendingAdvanceMatch: Match | null = null;
   resetConfirmOpen = false;
   resetLoading = false;
   resetError = '';
@@ -505,13 +507,30 @@ export class AppComponent implements OnDestroy {
     this.saveConfirmOpen = true;
   }
 
-  async advanceMatch(match: Match): Promise<void> {
+  requestAdvance(match: Match): void {
     if (match.status !== 'AGUARDANDO' || this.advanceLoadingId) return;
+    this.pendingAdvanceMatch = match;
+    this.advanceConfirmOpen = true;
+    this.renderNow();
+  }
+
+  cancelAdvance(): void {
+    if (this.advanceLoadingId) return;
+    this.advanceConfirmOpen = false;
+    this.pendingAdvanceMatch = null;
+    this.renderNow();
+  }
+
+  async confirmAdvance(): Promise<void> {
+    const match = this.pendingAdvanceMatch;
+    if (!match || match.status !== 'AGUARDANDO' || this.advanceLoadingId) return;
     if (!this.adminToken) {
       this.expireAdminSession();
       return;
     }
 
+    this.advanceConfirmOpen = false;
+    this.pendingAdvanceMatch = null;
     this.advanceLoadingId = match.id;
     this.renderNow();
 

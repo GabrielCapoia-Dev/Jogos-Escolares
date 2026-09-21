@@ -106,7 +106,57 @@ func (s *Store) initialize(ctx context.Context) error {
 	if err := s.seedMatches(ctx); err != nil {
 		return err
 	}
+	if err := s.syncScheduleOnce(ctx); err != nil {
+		return err
+	}
 	return s.resetResultsOnce(ctx)
+}
+
+// syncScheduleOnce applies a newly published schedule to the persistent
+// database without changing it again on later restarts. The schedule file is
+// the source of truth for the one-time maintenance update, and all matches
+// return to their published waiting state with zero scores.
+func (s *Store) syncScheduleOnce(ctx context.Context) error {
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err = tx.ExecContext(ctx, `
+		CREATE TABLE IF NOT EXISTS maintenance_tasks (
+			name text PRIMARY KEY,
+			completed_at timestamptz NOT NULL DEFAULT now()
+		)
+	`); err != nil {
+		return err
+	}
+	result, err := tx.ExecContext(ctx, `
+		INSERT INTO maintenance_tasks(name)
+		VALUES('sync_schedule_sem_pausas_20260921')
+		ON CONFLICT DO NOTHING
+	`)
+	if err != nil {
+		return err
+	}
+	inserted, err := result.RowsAffected()
+	if err != nil || inserted == 0 {
+		return err
+	}
+
+	for _, m := range domain.SeedMatches() {
+		if _, err = tx.ExecContext(ctx, `
+			UPDATE matches
+			SET period_id=$2, day_id=$3, court_id=$4, scheduled_time=$5,
+				sport_id=$6, gender=$7, team_a_id=$8, team_b_id=$9,
+				status=$10, sort_order=$11, score_a=$12, score_b=$13, updated_at=NULL
+			WHERE id=$1
+		`, m.ID, m.Period, m.Day, m.Court, m.Time, m.SportID, m.Gender,
+			m.TeamAID, m.TeamBID, m.Status, m.Order, m.ScoreA, m.ScoreB); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 // resetResultsOnce clears the results that were generated before the
