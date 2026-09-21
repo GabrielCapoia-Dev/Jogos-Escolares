@@ -301,7 +301,7 @@
       <div class="mobile-filter-group"><h3>Modalidade</h3><div class="mobile-filter-options"><button [class.active]="!adminSport" (click)="setAdminFilter('sport','')">Todas</button><button *ngFor="let item of adminVisibleSports()" [class.active]="adminSport===item.id" (click)="setAdminFilter('sport',item.id)">{{ item.name }}</button></div></div>
       <div class="mobile-filter-group"><h3>Gênero</h3><div class="mobile-filter-options"><button [class.active]="!adminGender" (click)="setAdminFilter('gender','')">Todos</button><button [class.active]="adminGender==='FEMININO'" (click)="setAdminFilter('gender','FEMININO')">Feminino</button><button [class.active]="adminGender==='MASCULINO'" (click)="setAdminFilter('gender','MASCULINO')">Masculino</button></div></div>
     </div>
-    <div class="mobile-filter-actions"><button class="mobile-filter-close" type="button" (click)="confirmAdminFilters()">Confirmar</button></div>
+    <div class="mobile-filter-actions"><button class="mobile-filter-close" type="button" (click)="confirmAdminFilters()"><span class="admin-filter-confirm-mobile-label">Confirmar</span><span class="admin-filter-confirm-desktop-label">Continuar</span></button></div>
   </section>
 </div>
 
