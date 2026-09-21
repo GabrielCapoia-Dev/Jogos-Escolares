@@ -102,6 +102,7 @@ func main() {
 	mux.HandleFunc("/api/v1/standings", s.standings)
 	mux.HandleFunc("/api/v1/snapshot", s.snapshot)
 	mux.HandleFunc("/api/v1/admin-state", s.adminState)
+	mux.HandleFunc("/api/v1/admin/reset-results", s.resetResults)
 	mux.HandleFunc("/api/v1/admin/matches/", s.result)
 	addr := os.Getenv("HTTP_ADDR")
 	if addr == "" {
@@ -266,6 +267,12 @@ func (s *server) upsertCachedMatch(saved domain.Match) {
 	}
 	s.matchCache = append(s.matchCache, saved)
 }
+
+func (s *server) replaceCachedMatches(matches []domain.Match) {
+	s.matchesMu.Lock()
+	defer s.matchesMu.Unlock()
+	s.matchCache = matches
+}
 func teamsForPeriod(period string) []domain.Team {
 	out := make([]domain.Team, 0)
 	for _, team := range domain.SeedTeams() {
@@ -381,6 +388,41 @@ func (s *server) result(w http.ResponseWriter, r *http.Request) {
 	// A sincronização completa usa apenas a memória da API.
 	s.broadcastScoreboard(match.Period)
 }
+
+func (s *server) resetResults(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	token := strings.TrimSpace(strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer"))
+	if token == "" {
+		http.Error(w, "autenticação obrigatória", http.StatusUnauthorized)
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+	user, err := s.store.UserID(ctx, token)
+	if err != nil {
+		http.Error(w, "não autorizado", http.StatusUnauthorized)
+		return
+	}
+	count, err := s.store.ResetAllResults(ctx, user)
+	if err != nil {
+		serverError(w, err)
+		return
+	}
+	matches, err := s.store.Matches(ctx, "", "", "", "", "")
+	if err != nil {
+		serverError(w, err)
+		return
+	}
+	s.replaceCachedMatches(matches)
+	writeJSON(w, http.StatusOK, map[string]int64{"reset": count})
+	for _, period := range domain.Periods {
+		s.broadcastScoreboard(period.ID)
+	}
+}
+
 func (s *server) broadcastScoreboard(period string) {
 	teams := teamsForPeriod(period)
 	matches := s.cachedMatches(period, "", "", "", "")

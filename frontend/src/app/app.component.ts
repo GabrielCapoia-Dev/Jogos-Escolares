@@ -83,6 +83,9 @@ export class AppComponent implements OnDestroy {
   pendingSaveCorrection = false;
   saveLoading = false;
   saveError = '';
+  resetConfirmOpen = false;
+  resetLoading = false;
+  resetError = '';
 
   constructor() {
     this.api.periods().subscribe({ next: value => this.periods = value, error: () => undefined });
@@ -295,9 +298,11 @@ export class AppComponent implements OnDestroy {
     this.adminRankingOpen = false;
     this.correctionOpen = false;
     this.saveConfirmOpen = false;
+    this.resetConfirmOpen = false;
     this.pendingSaveMatch = null;
     this.pendingSaveCorrection = false;
     this.saveLoading = false;
+    this.resetLoading = false;
     this.queuedCorrections.clear();
 
     this.loginPassword = '';
@@ -313,6 +318,44 @@ export class AppComponent implements OnDestroy {
     localStorage.removeItem('jogos-admin-token');
     sessionStorage.removeItem('jogos-admin-token');
     this.backHome();
+  }
+
+  requestResetResults(): void {
+    if (this.adminOverlayOpen()) return;
+    this.resetError = '';
+    this.resetConfirmOpen = true;
+    this.renderNow();
+  }
+
+  cancelResetResults(): void {
+    if (this.resetLoading) return;
+    this.resetConfirmOpen = false;
+    this.resetError = '';
+  }
+
+  async confirmResetResults(): Promise<void> {
+    if (this.resetLoading) return;
+    if (!this.adminToken) {
+      this.expireAdminSession();
+      return;
+    }
+    this.resetLoading = true;
+    this.resetError = '';
+    try {
+      const response = await this.api.resetResultsAsync(this.adminToken);
+      this.resetConfirmOpen = false;
+      this.showToast(`${response.reset} partidas foram zeradas.`);
+      await this.loadAdmin();
+    } catch (error: any) {
+      if (error?.status === 401) {
+        this.expireAdminSession();
+        return;
+      }
+      this.resetError = 'Não foi possível zerar os resultados. Tente novamente.';
+    } finally {
+      this.resetLoading = false;
+      this.renderNow();
+    }
   }
 
   async loadAdmin(): Promise<void> {
@@ -579,7 +622,7 @@ export class AppComponent implements OnDestroy {
   }
 
   adminOverlayOpen(): boolean {
-    return this.adminFiltersOpen || this.adminRankingOpen || this.correctionOpen || this.saveConfirmOpen;
+    return this.adminFiltersOpen || this.adminRankingOpen || this.correctionOpen || this.saveConfirmOpen || this.resetConfirmOpen;
   }
 
   openAdminOverlay(kind: 'filters' | 'ranking' | 'correction'): void {
@@ -598,6 +641,7 @@ export class AppComponent implements OnDestroy {
     this.adminFiltersOpen = false;
     this.adminRankingOpen = false;
     this.correctionOpen = false;
+    this.resetConfirmOpen = false;
   }
 
   showToast(message: string): void {

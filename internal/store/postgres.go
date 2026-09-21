@@ -387,3 +387,30 @@ func (s *Store) SaveResult(ctx context.Context, id string, a, b int, user string
 	}
 	return m, nil
 }
+
+// ResetAllResults returns every match to its initial score and status. It is
+// intentionally separate from startup maintenance so administrators can use
+// it again before a future edition of the competition.
+func (s *Store) ResetAllResults(ctx context.Context, user string) (int64, error) {
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+
+	result, err := tx.ExecContext(ctx, `
+		UPDATE matches
+		SET status = $1, score_a = 0, score_b = 0, updated_at = NULL
+	`, domain.StatusAguardando)
+	if err != nil {
+		return 0, err
+	}
+	count, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+	return count, nil
+}

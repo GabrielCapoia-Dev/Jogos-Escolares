@@ -73,6 +73,13 @@ export class ApiService {
     );
   }
 
+  resetResultsAsync(token: string): Promise<{ reset: number }> {
+    return this.fetchJson<{ reset: number }>(`${this.base}/admin/reset-results`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }
+    }, 10000);
+  }
+
   periods(): Observable<Period[]> { return this.http.get<Period[]>(`${this.base}/periods`); }
   days(): Observable<Day[]> { return this.http.get<Day[]>(`${this.base}/days`); }
   courts(): Observable<Court[]> { return this.http.get<Court[]>(`${this.base}/courts`); }
