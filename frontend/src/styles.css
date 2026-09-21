@@ -1293,6 +1293,25 @@ je-root:has(.public-topbar){
   font-size:.62rem!important;
   font-weight:800!important;
 }
+.gym-transition-marker-column{
+  gap:6px!important;
+  margin:8px 0!important;
+}
+.gym-transition-marker-column .gym-transition-line{
+  height:1px!important;
+  background:linear-gradient(90deg,transparent,#74afe2 18%,#74afe2 82%,transparent)!important;
+}
+.gym-transition-marker-column>div{
+  gap:5px!important;
+  padding:5px 8px!important;
+  white-space:nowrap!important;
+}
+.gym-transition-marker-column strong{
+  font-size:.58rem!important;
+}
+.gym-transition-marker-column small{
+  font-size:.55rem!important;
+}
 .team-schedule-heading .team-emblem{
   width:48px!important;
   height:48px!important;
@@ -4698,6 +4717,12 @@ body:has(.save-confirm-modal) main{
     display:flex!important;
     align-items:center!important;
     gap:12px!important;
+    min-height:168px!important;
+  }
+
+  body:has(#admin-app) .match-card{
+    min-height:300px!important;
+    grid-template-rows:auto minmax(168px,1fr) auto!important;
   }
 
   body:has(#admin-app) .admin-team{
@@ -4712,7 +4737,7 @@ body:has(.save-confirm-modal) main{
   }
 
   body:has(#admin-app) .admin-team-name{
-    min-height:92px!important;
+    min-height:112px!important;
   }
 
   body:has(#admin-app) .match-actions{

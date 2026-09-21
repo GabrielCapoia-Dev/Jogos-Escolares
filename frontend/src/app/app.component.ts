@@ -757,6 +757,12 @@ export class AppComponent implements OnDestroy {
   courtName(id: string): string { return this.courts.find(item => item.id === id)?.name ?? id; }
   dayName(id: string): string { return this.days.find(item => item.id === id)?.name ?? id; }
   gymTransitionTime(): string { return this.period === 'MANHA' ? '09:42' : '14:42'; }
+  isGymTransitionBeforeMatch(matches: Match[], index: number): boolean {
+    const match = matches[index];
+    if (!match || match.time < this.gymTransitionTime()) return false;
+    const previous = matches[index - 1];
+    return !previous || previous.time < this.gymTransitionTime();
+  }
   genderName(value: string): string { return value === 'MASCULINO' ? 'Masculino' : value === 'FEMININO' ? 'Feminino' : 'Geral'; }
   statusLabel(status: string): string { return status === 'FINALIZADO' ? 'Finalizada' : status === 'EM_ANDAMENTO' ? 'Em andamento' : status === 'CANCELADO' ? 'Cancelada' : 'Aguardando'; }
   winner(match: Match, side: 'A' | 'B'): boolean { return side === 'A' ? match.scoreA > match.scoreB : match.scoreB > match.scoreA; }
