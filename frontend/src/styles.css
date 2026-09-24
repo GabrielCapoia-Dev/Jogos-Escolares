@@ -4766,6 +4766,46 @@ body:has(.save-confirm-modal) main{
   }
 }
 
+/* Classificação geral: aumento de 30% somente na tabela desktop. */
+@media (min-width:700px){
+  body:not(:has(#admin-app)):has(.ranking-table) .ranking-table thead th{
+    height:42px!important;
+    font-size:.81rem!important;
+  }
+
+  body:not(:has(#admin-app)):has(.ranking-table) .ranking-table th:nth-child(1){
+    width:78px!important;
+  }
+
+  body:not(:has(#admin-app)):has(.ranking-table) .ranking-table th:nth-child(n+3){
+    width:42px!important;
+  }
+
+  body:not(:has(#admin-app)):has(.ranking-table) .ranking-table tbody td{
+    height:72px!important;
+    font-size:.95rem!important;
+  }
+
+  body:not(:has(#admin-app)):has(.ranking-table) .ranking-table .position strong,
+  body:not(:has(#admin-app)):has(.ranking-table) .ranking-table .team-name strong{
+    font-size:1rem!important;
+  }
+
+  body:not(:has(#admin-app)):has(.ranking-table) .ranking-table .team-name small{
+    font-size:.75rem!important;
+  }
+
+  body:not(:has(#admin-app)):has(.ranking-table) .ranking-table tbody td:nth-child(3) strong{
+    font-size:1.07rem!important;
+  }
+
+  body:not(:has(#admin-app)):has(.ranking-table) .ranking-table .team-emblem{
+    width:49px!important;
+    height:49px!important;
+    flex-basis:49px!important;
+  }
+}
+
 
 /* Admin mobile: qualquer modal fica acima do menu inferior. */
 @media (max-width:699px){
