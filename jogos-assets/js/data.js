@@ -27,16 +27,16 @@ export const estacoes = CONFIG.estacoes;
 
 const coresBase = [
   ["AMARELO", "Amarelo", "#F3C515", "Onça", "mascote-amarelo"],
-  ["LARANJA", "Laranja", "#EF8615", "Mico-leão-dourado", "mascote-laranja"],
+  ["LARANJA", "Laranja", "#EF8615", "Mico-leão", "mascote-laranja"],
   ["VERMELHO", "Vermelho", "#D84247", "Lobo-guará", "mascote-vermelho"],
   ["MARROM", "Roxo", "#8E44AD", "Capivara", "mascote-marrom"],
   ["BRANCO", "Branco", "#F7F7F2", "Tamanduá", "mascote-branco"],
-  ["PRETO", "Amarelo-claro", "#F3E84D", "Papagaio", "mascote-preto"],
-  ["CINZA", "Cinza", "#8D9AA6", "Tubarão", "mascote-cinza"],
+  ["PRETO", "Amarelo-claro", "#F3E84D", "Bem-te-vi", "mascote-preto"],
+  ["CINZA", "Cinza", "#8D9AA6", "Quati", "mascote-cinza"],
   ["VERDE_CLARO", "Verde-claro", "#31BD75", "Maritaca", "mascote-verde-claro"],
   ["VERDE_ESCURO", "Verde-escuro", "#087D4B", "Jacaré", "mascote-verde-escuro"],
   ["AZUL_ESCURO", "Azul-escuro", "#0753A4", "Arara-azul", "mascote-azul-escuro"],
-  ["AZUL_CLARO", "Azul-claro", "#35ACE0", "Boto", "mascote-azul-claro"],
+  ["AZUL_CLARO", "Azul-claro", "#35ACE0", "Tartaruga", "mascote-azul-claro"],
 ];
 
 function criarEquipes(periodo, quantidade) {

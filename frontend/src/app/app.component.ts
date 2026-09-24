@@ -24,16 +24,16 @@ export class AppComponent implements OnDestroy {
 
   private readonly legacyTeams = [
     ['AMARELO', 'Amarelo', '#F3C515', 'Onça', 'mascote-amarelo'],
-    ['LARANJA', 'Laranja', '#EF8615', 'Mico-leão-dourado', 'mascote-laranja'],
+    ['LARANJA', 'Laranja', '#EF8615', 'Mico-leão', 'mascote-laranja'],
     ['VERMELHO', 'Vermelho', '#D84247', 'Lobo-guará', 'mascote-vermelho'],
     ['MARROM', 'Roxo', '#8E44AD', 'Capivara', 'mascote-marrom'],
     ['BRANCO', 'Branco', '#F7F7F2', 'Tamanduá', 'mascote-branco'],
-    ['PRETO', 'Amarelo-claro', '#F3E84D', 'Papagaio', 'mascote-preto'],
-    ['CINZA', 'Cinza', '#8D9AA6', 'Tubarão', 'mascote-cinza'],
+    ['PRETO', 'Amarelo-claro', '#F3E84D', 'Bem-te-vi', 'mascote-preto'],
+    ['CINZA', 'Cinza', '#8D9AA6', 'Quati', 'mascote-cinza'],
     ['VERDE_CLARO', 'Verde-claro', '#31BD75', 'Maritaca', 'mascote-verde-claro'],
     ['VERDE_ESCURO', 'Verde-escuro', '#087D4B', 'Jacaré', 'mascote-verde-escuro'],
     ['AZUL_ESCURO', 'Azul-escuro', '#0753A4', 'Arara-azul', 'mascote-azul-escuro'],
-    ['AZUL_CLARO', 'Azul-claro', '#35ACE0', 'Boto', 'mascote-azul-claro']
+    ['AZUL_CLARO', 'Azul-claro', '#35ACE0', 'Tartaruga', 'mascote-azul-claro']
   ] as const;
 
   periods: Period[] = [{ id: 'MANHA', name: 'Manhã' }, { id: 'TARDE', name: 'Tarde' }];
@@ -701,6 +701,37 @@ export class AppComponent implements OnDestroy {
     return this.adminMatches.find(item => item.status === 'EM_ANDAMENTO')?.id
       ?? this.adminMatches.find(item => item.status !== 'FINALIZADO' && item.status !== 'CANCELADO')?.id
       ?? '';
+  }
+
+  exportGeneralSchedulePdf(): void {
+    const selectedMatches = this.matches
+      .filter(match => match.day === this.day && match.period === this.period)
+      .sort((a, b) => a.time.localeCompare(b.time) || a.order - b.order || a.id.localeCompare(b.id));
+    const escape = (value: string): string => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char] ?? char));
+    const previousMatch = (match: Match, lane: Match[]): Match | null => {
+      const index = lane.findIndex(item => item.id === match.id);
+      return index > 0 ? lane[index - 1] : null;
+    };
+    const courtSections = this.courts.map(court => {
+      const courtMatches = selectedMatches.filter(match => match.court === court.id);
+      return `<section class="court-section"><h2>Ginásio: ${escape(court.name)}</h2>${this.sports
+        .filter(sport => courtMatches.some(match => match.sportId === sport.id))
+        .map(sport => `<section class="sport-box"><h3>${escape(sport.name)}</h3><div class="gender-columns">${['MASCULINO', 'FEMININO'].map(gender => {
+          const lane = courtMatches.filter(match => match.sportId === sport.id && match.gender === gender).sort((a, b) => a.time.localeCompare(b.time) || a.order - b.order);
+          return `<div class="gender-box"><h4>${gender === 'MASCULINO' ? 'Masculino' : 'Feminino'}</h4>${lane.map(match => {
+            const previous = previousMatch(match, lane);
+            const after = previous ? `<div class="after">Após ${escape(this.team(previous.teamAId)?.color ?? '')} x ${escape(this.team(previous.teamBId)?.color ?? '')}</div>` : '';
+            const teamA = this.team(match.teamAId); const teamB = this.team(match.teamBId);
+            return `<article class="match-row">${after}<div class="match-main"><strong>${escape(match.time)}</strong><span>Previsão</span><b>${escape(teamA?.color ?? '')}<small>${escape(teamA?.mascot ?? '')}</small></b><em>x</em><b>${escape(teamB?.color ?? '')}<small>${escape(teamB?.mascot ?? '')}</small></b></div></article>`;
+          }).join('')}</div>`;
+        }).join('')}</div></section>`).join('')}</section>`;
+    }).join('');
+    const popup = window.open('', '_blank', 'noopener,noreferrer,width=1100,height=900');
+    if (!popup) { this.showToast('Permita pop-ups para exportar o cronograma.'); return; }
+    popup.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Cronograma geral - ${escape(this.dayName(this.day))}</title><style>
+      @page{size:A4;margin:10mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#16324f;margin:0;font-size:8px}header{background:#073b78;color:#fff;padding:8px 12px;margin-bottom:12px}header strong{font-size:13px}header span{float:right;font-size:8px}.meta{color:#0b63b6;font-weight:700;margin-bottom:3px}.court-section{margin-bottom:12px}.court-section>h2{font-size:15px;color:#073b78;margin:0 0 5px;border-bottom:2px solid #0b63b6;padding-bottom:3px}.sport-box{border:1px solid #c9dcec;margin:5px 0}.sport-box>h3{background:#eaf3fb;color:#073b78;font-size:12px;margin:0;padding:4px 6px}.gender-columns{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:4px}.gender-box{border:1px solid #c9dcec}.gender-box h4{background:#073b78;color:#fff;font-size:9px;margin:0;padding:3px 5px}.match-row{border-top:1px solid #d9e5ef;padding:2px 4px}.after{font-size:6px;color:#0b63b6;font-weight:700}.match-main{display:grid;grid-template-columns:28px 30px 1fr 8px 1fr;align-items:center;gap:2px}.match-main strong{font-size:9px;color:#073b78}.match-main span{font-size:6px;color:#5b7087}.match-main b{font-size:7px}.match-main small{display:block;color:#6c8298;font-weight:400;font-size:6px}.match-main em{font-style:normal;text-align:center;font-weight:700}footer{margin-top:8px;border-top:1px solid #c9dcec;padding-top:4px;color:#5b7087;font-size:7px;text-align:center}@media print{button{display:none}}
+    </style></head><body><header><strong>JOGOS INFANTIS DE UMUARAMA 2026</strong><span>Cronograma geral</span></header><div class="meta">${escape(this.dayName(this.day))} - ${escape(this.periodName())}</div>${courtSections}<footer>Previsão de horários - página gerada pelo sistema</footer><script>window.onload=()=>{window.focus();window.print()}</script></body></html>`);
+    popup.document.close();
   }
 
   nextMatchId(): string {

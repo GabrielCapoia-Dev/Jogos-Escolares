@@ -652,7 +652,9 @@ je-root:has(.public-topbar){
   display:flex!important;
   align-items:center!important;
   justify-content:center!important;
+  gap:8px!important;
 }
+.header-sport-logo{width:58px;height:22px;object-fit:contain;display:block;filter:none}
 .public-topbar strong{
   font-size:.76rem!important;
   letter-spacing:.08em!important;
@@ -1051,6 +1053,8 @@ je-root:has(.public-topbar){
 }
 
 .schedule-selectors{margin-bottom:10px!important}
+.schedule-export-button{align-self:flex-end;border:1px solid var(--ji-blue-600);background:#fff;color:var(--ji-blue-700);border-radius:9px;padding:9px 14px;font:inherit;font-weight:700;cursor:pointer}
+.schedule-export-button:hover{background:var(--ji-blue-50)}
 .schedule-selectors .choice-panel{
   padding:10px!important;
   display:flex!important;
@@ -4803,6 +4807,38 @@ body:has(.save-confirm-modal) main{
     width:49px!important;
     height:49px!important;
     flex-basis:49px!important;
+  }
+}
+
+/* Classificação desktop: usa a rolagem da página somente quando o conteúdo ultrapassa a janela. */
+@media (min-width:700px){
+  html:has(body:not(:has(#admin-app)) .dashboard-grid),
+  body:not(:has(#admin-app)):has(.dashboard-grid){
+    height:auto!important;
+    max-height:none!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:auto!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) je-root,
+  body:not(:has(#admin-app)):has(.dashboard-grid) .scoreboard-shell,
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid,
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.ranking-panel,
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.ranking-panel .table-wrap,
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid>.results-section{
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .scoreboard-shell{
+    display:block!important;
+  }
+
+  body:not(:has(#admin-app)):has(.dashboard-grid) .dashboard-grid{
+    align-items:start!important;
   }
 }
 

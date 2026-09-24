@@ -14,7 +14,7 @@
       "period": "MANHA",
       "color": "Laranja",
       "hex": "#EF8615",
-      "mascot": "Mico-leão-dourado",
+      "mascot": "Mico-leão",
       "sprite": "mascote-laranja",
       "active": true
     },
@@ -50,7 +50,7 @@
       "period": "MANHA",
       "color": "Amarelo-claro",
       "hex": "#F3E84D",
-      "mascot": "Papagaio",
+      "mascot": "Bem-te-vi",
       "sprite": "mascote-preto",
       "active": true
     },
@@ -59,7 +59,7 @@
       "period": "MANHA",
       "color": "Cinza",
       "hex": "#8D9AA6",
-      "mascot": "Tubarão",
+      "mascot": "Quati",
       "sprite": "mascote-cinza",
       "active": true
     },
@@ -95,7 +95,7 @@
       "period": "MANHA",
       "color": "Azul-claro",
       "hex": "#35ACE0",
-      "mascot": "Boto",
+      "mascot": "Tartaruga",
       "sprite": "mascote-azul-claro",
       "active": true
     },
@@ -113,7 +113,7 @@
       "period": "TARDE",
       "color": "Laranja",
       "hex": "#EF8615",
-      "mascot": "Mico-leão-dourado",
+      "mascot": "Mico-leão",
       "sprite": "mascote-laranja",
       "active": true
     },
@@ -149,7 +149,7 @@
       "period": "TARDE",
       "color": "Amarelo-claro",
       "hex": "#F3E84D",
-      "mascot": "Papagaio",
+      "mascot": "Bem-te-vi",
       "sprite": "mascote-preto",
       "active": true
     },
@@ -158,7 +158,7 @@
       "period": "TARDE",
       "color": "Cinza",
       "hex": "#8D9AA6",
-      "mascot": "Tubarão",
+      "mascot": "Quati",
       "sprite": "mascote-cinza",
       "active": true
     },
