@@ -30,8 +30,8 @@
     {
       "id": "MANHA_MARROM",
       "period": "MANHA",
-      "color": "Marrom",
-      "hex": "#986347",
+      "color": "Roxo",
+      "hex": "#8E44AD",
       "mascot": "Capivara",
       "sprite": "mascote-marrom",
       "active": true
@@ -48,9 +48,9 @@
     {
       "id": "MANHA_PRETO",
       "period": "MANHA",
-      "color": "Preto",
-      "hex": "#29313B",
-      "mascot": "Tucano",
+      "color": "Amarelo-claro",
+      "hex": "#F3E84D",
+      "mascot": "Papagaio",
       "sprite": "mascote-preto",
       "active": true
     },
@@ -129,8 +129,8 @@
     {
       "id": "TARDE_MARROM",
       "period": "TARDE",
-      "color": "Marrom",
-      "hex": "#986347",
+      "color": "Roxo",
+      "hex": "#8E44AD",
       "mascot": "Capivara",
       "sprite": "mascote-marrom",
       "active": true
@@ -147,9 +147,9 @@
     {
       "id": "TARDE_PRETO",
       "period": "TARDE",
-      "color": "Preto",
-      "hex": "#29313B",
-      "mascot": "Tucano",
+      "color": "Amarelo-claro",
+      "hex": "#F3E84D",
+      "mascot": "Papagaio",
       "sprite": "mascote-preto",
       "active": true
     },
