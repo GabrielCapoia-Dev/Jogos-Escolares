@@ -3,17 +3,18 @@
     <section class="welcome-screen">
       <div class="welcome-hero">
         <picture class="welcome-hero-art">
-          <source media="(min-width: 700px)" srcset="/assets/hero-inicial-desktop.png?v=20260925-1">
-          <img src="/assets/hero-inicial-mobile.png?v=20260925-1" alt="Jogos Infantis de Umuarama. Escolha o turno: manhã ou tarde.">
+          <source media="(min-width: 700px)" srcset="/assets/hero-inicial-desktop.png?v=20260925-2">
+          <img src="/assets/hero-inicial-mobile.png?v=20260925-2" alt="Jogos Infantis de Umuarama. Escolha o turno: manhã ou tarde.">
         </picture>
-        <svg class="welcome-click-map welcome-click-map-desktop" viewBox="0 0 3310 1900" preserveAspectRatio="xMidYMid slice" aria-label="Escolha o turno">
-          <rect x="1200" y="900" width="470" height="250" role="button" tabindex="0" aria-label="Selecionar período Manhã" (click)="choosePeriod(periods[0])" (keydown.enter)="choosePeriod(periods[0])"></rect>
-          <rect x="1640" y="900" width="470" height="250" role="button" tabindex="0" aria-label="Selecionar período Tarde" (click)="choosePeriod(periods[1])" (keydown.enter)="choosePeriod(periods[1])"></rect>
-        </svg>
-        <svg class="welcome-click-map welcome-click-map-mobile" viewBox="0 0 1882 3344" preserveAspectRatio="xMidYMid slice" aria-label="Escolha do turno">
-          <rect x="360" y="2480" width="1160" height="390" role="button" tabindex="0" aria-label="Selecionar período Manhã" (click)="choosePeriod(periods[0])" (keydown.enter)="choosePeriod(periods[0])"></rect>
-          <rect x="360" y="2840" width="1160" height="390" role="button" tabindex="0" aria-label="Selecionar período Tarde" (click)="choosePeriod(periods[1])" (keydown.enter)="choosePeriod(periods[1])"></rect>
-        </svg>
+        <div class="welcome-click-zones" aria-label="Escolha o turno">
+          <button
+            type="button"
+            *ngFor="let item of periods"
+            (click)="choosePeriod(item)"
+            [attr.aria-label]="'Selecionar período ' + item.name">
+            {{ item.name }}
+          </button>
+        </div>
       </div>
     </section>
   </ng-container>

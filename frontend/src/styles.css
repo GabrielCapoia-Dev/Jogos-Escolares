@@ -4773,6 +4773,26 @@ body:has(.save-confirm-modal) main{
   }
 }
 
+/* Navegação pública segue o mesmo azul dos botões de turno. */
+body:not(:has(#admin-app)) .public-header .header-home,
+body:not(:has(#admin-app)) .public-header .public-main-nav button,
+body:not(:has(#admin-app)) .public-header .admin-button{
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  background:#168ff8!important;
+  background-image:linear-gradient(135deg,#126fc7 0%,#168ff8 100%)!important;
+}
+body:not(:has(#admin-app)) .public-header .public-main-nav button:hover,
+body:not(:has(#admin-app)) .public-header .header-home:hover,
+body:not(:has(#admin-app)) .public-header .admin-button:hover{
+  filter:brightness(1.06)!important;
+}
+body:not(:has(#admin-app)) .public-header .public-main-nav button.active{
+  color:#fff!important;
+  background:#126fc7!important;
+  background-image:none!important;
+}
+
 /* Azul de destaque alinhado à nova identidade visual. */
 .public-topbar{
   background:#168ff8!important;
@@ -5301,4 +5321,68 @@ body:not(:has(#admin-app)) .live-schedule-card .time-stack .time-label{
 @media (min-width:700px){
   .welcome-click-map-mobile{display:none!important}
   .welcome-click-map-desktop{display:block!important}
+}
+
+/* Botões HTML sobre a nova arte: posição e tamanho independem do conteúdo da imagem. */
+.welcome-click-zones{
+  display:grid!important;
+  position:absolute!important;
+  z-index:5!important;
+  left:36%!important;
+  right:36%!important;
+  bottom:13%!important;
+  height:20%!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:4%!important;
+  pointer-events:auto!important;
+  opacity:1!important;
+}
+.welcome-click-zones button,
+.welcome-click-zones button:first-child,
+.welcome-click-zones button:last-child,
+.welcome-click-zones button:hover,
+.welcome-click-zones button:active{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0 14px!important;
+  border:0!important;
+  border-radius:18px!important;
+  opacity:1!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  background:#168ff8!important;
+  background-image:linear-gradient(135deg,#126fc7 0%,#168ff8 100%)!important;
+  box-shadow:0 8px 20px rgba(7,83,164,.22)!important;
+  font-size:clamp(1rem,1.8vw,1.45rem)!important;
+  line-height:1!important;
+  font-weight:900!important;
+  letter-spacing:.015em!important;
+  text-align:center!important;
+  text-transform:uppercase!important;
+  text-shadow:0 1px 1px rgba(0,48,105,.18)!important;
+  cursor:pointer!important;
+  filter:none!important;
+  transform:none!important;
+}
+.welcome-click-zones button:hover{filter:brightness(1.06)!important}
+.welcome-click-zones button:active{transform:translateY(1px)!important;filter:brightness(.98)!important}
+.welcome-click-zones button:focus-visible{outline:3px solid #fff!important;outline-offset:-5px!important}
+@media (max-width:699px){
+  .welcome-click-zones{
+    left:20%!important;
+    right:20%!important;
+    bottom:7%!important;
+    height:19%!important;
+    grid-template-columns:1fr!important;
+    gap:5%!important;
+  }
+  .welcome-click-zones button{
+    border-radius:18px!important;
+    font-size:clamp(1.05rem,6vw,1.55rem)!important;
+  }
 }
