@@ -4773,6 +4773,107 @@ body:has(.save-confirm-modal) main{
   }
 }
 
+/* Tela inicial: a arte e os controles compartilham a mesma escala e o mesmo recorte. */
+.welcome-hero-canvas{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:max(100vw,177.6833svh);
+  aspect-ratio:1672 / 941;
+  transform:translate(-50%,-50%);
+}
+.welcome-hero-canvas .welcome-hero-art{
+  position:absolute;
+  inset:0;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+}
+.welcome-hero-canvas .welcome-hero-art img{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:fill!important;
+}
+.hero-turn-choice{
+  position:absolute;
+  z-index:5;
+  top:46%;
+  left:50%;
+  width:26%;
+  transform:translateX(-50%);
+  text-align:center;
+}
+.welcome-period-title{
+  margin:0 0 clamp(10px,1vw,18px)!important;
+  color:#073a7e!important;
+  font-size:clamp(17px,1.25vw,25px)!important;
+  font-weight:900!important;
+  line-height:1.1!important;
+  letter-spacing:.055em!important;
+  white-space:nowrap;
+}
+.welcome-period-buttons{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:4.5%;
+}
+.welcome-period-button{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  aspect-ratio:3.25;
+  padding:0!important;
+  border:clamp(3px,.25vw,5px) solid #fff!important;
+  border-radius:18px!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  box-shadow:0 3px 9px rgba(11,77,147,.16)!important;
+  font-size:clamp(18px,1.5vw,30px)!important;
+  font-weight:900!important;
+  line-height:1!important;
+  letter-spacing:.025em!important;
+  text-align:center!important;
+  text-transform:uppercase!important;
+  cursor:pointer;
+}
+.welcome-period-button:first-child{
+  background:linear-gradient(180deg,#1c6bbe 0%,#063e8f 100%)!important;
+}
+.welcome-period-button:last-child{
+  background:linear-gradient(180deg,#4db5fc 0%,#1982e9 100%)!important;
+}
+.welcome-period-button:hover{filter:brightness(1.06)}
+.welcome-period-button:active{transform:translateY(1px)}
+.welcome-period-button:focus-visible{outline:3px solid #073a7e!important;outline-offset:2px!important}
+@media (max-width:699px){
+  .welcome-hero-canvas{
+    width:max(100vw,56.2799svh);
+    aspect-ratio:941 / 1672;
+  }
+  .hero-turn-choice{
+    top:73%;
+    width:60%;
+  }
+  .welcome-period-title{
+    margin-bottom:clamp(8px,2vw,13px)!important;
+    font-size:clamp(14px,3.6vw,20px)!important;
+  }
+  .welcome-period-buttons{
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+  .welcome-period-button{
+    aspect-ratio:3.7;
+    border-width:3px!important;
+    border-radius:16px!important;
+    font-size:clamp(18px,5vw,25px)!important;
+  }
+}
+
 /* Acabamento idêntico ao recorte de referência: dois tons e contorno branco. */
 .welcome-click-zones button,
 .welcome-click-zones button:hover,

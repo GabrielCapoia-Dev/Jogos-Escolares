@@ -2,18 +2,24 @@
   <ng-container *ngIf="!period; else publicScoreboard">
     <section class="welcome-screen">
       <div class="welcome-hero">
-        <picture class="welcome-hero-art">
-          <source media="(min-width: 700px)" srcset="/assets/hero-inicial-desktop.png?v=20260925-2">
-          <img src="/assets/hero-inicial-mobile.png?v=20260925-2" alt="Jogos Infantis de Umuarama. Escolha o turno: manhã ou tarde.">
-        </picture>
-        <div class="welcome-click-zones" aria-label="Escolha o turno">
-          <button
-            type="button"
-            *ngFor="let item of periods"
-            (click)="choosePeriod(item)"
-            [attr.aria-label]="'Selecionar período ' + item.name">
-            {{ item.name }}
-          </button>
+        <div class="welcome-hero-canvas">
+          <picture class="welcome-hero-art">
+            <source media="(min-width: 700px)" srcset="/assets/hero-inicial-desktop.png?v=20260925-2">
+            <img src="/assets/hero-inicial-mobile.png?v=20260925-2" alt="Jogos Infantis de Umuarama">
+          </picture>
+          <div class="hero-turn-choice">
+            <p class="welcome-period-title">QUAL É O SEU TURNO?</p>
+            <div class="welcome-period-buttons" aria-label="Escolha o turno">
+              <button
+                type="button"
+                class="welcome-period-button"
+                *ngFor="let item of periods"
+                (click)="choosePeriod(item)"
+                [attr.aria-label]="'Selecionar período ' + item.name">
+                {{ item.name }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>
