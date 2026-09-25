@@ -4781,13 +4781,60 @@ body:has(.save-confirm-modal) main{
   color:#fff!important;
   background:#168ff8!important;
 }
+.schedule-day.active,
+.filter-choice.active,
+.team-picker-choice.active,
+.mobile-filter-options button.active,
+.segment.active,
+.mobile-filter-close,
+.classification-period{
+  color:#fff!important;
+  background:#168ff8!important;
+  border-color:#168ff8!important;
+}
 .mobile-filter-fab,
 .schedule-export-button,
 .save-button,
 .admin-filter-confirm,
 .save-confirm-primary{
+  color:#fff!important;
   background:#168ff8!important;
   border-color:#168ff8!important;
+}
+
+@media (max-width:699px){
+  body:has(#admin-app) .public-topbar strong:first-of-type,
+  body:not(:has(#admin-app)) .public-topbar strong:first-of-type{
+    display:block!important;
+    visibility:visible!important;
+    opacity:1!important;
+    color:#fff!important;
+    font-size:.68rem!important;
+  }
+}
+
+/* Tela inicial ocupa toda a janela sem deslocar as áreas clicáveis. */
+.welcome-screen{
+  width:100vw!important;
+  min-height:100svh!important;
+  height:100svh!important;
+  padding:0!important;
+}
+.welcome-hero{
+  width:100vw!important;
+  min-height:100svh!important;
+  height:100svh!important;
+  aspect-ratio:auto!important;
+  margin:0!important;
+}
+.welcome-hero-art,
+.welcome-hero-art img{
+  width:100%!important;
+  height:100%!important;
+}
+.welcome-hero-art img{
+  object-fit:cover!important;
+  object-position:center center!important;
 }
 
 /* Classificação geral: aumento de 30% somente na tabela desktop. */

@@ -107,7 +107,7 @@
       </div>
 
       <section *ngIf="view === 'CRONOGRAMA'" class="schedule-view">
-        <section class="scoreboard-heading schedule-heading"><div><p class="eyebrow blue">Programação dos jogos</p><h2>Cronograma <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div><button type="button" class="schedule-export-button" (click)="exportGeneralSchedulePdf()">Exportar cronograma geral</button></section>
+        <section class="scoreboard-heading schedule-heading"><div><p class="eyebrow blue">Programação dos jogos</p><h2>Cronograma <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div><button type="button" class="schedule-export-button" (click)="exportGeneralSchedulePdf()">Exportar</button></section>
         <nav class="schedule-days"><button *ngFor="let item of days" class="schedule-day" [class.active]="item.id === day" (click)="applyPublicFilter('day',item.id)">{{ item.name }}</button></nav>
         <div class="schedule-selectors"><section class="choice-panel"><div class="section-title-block"><p class="eyebrow blue">{{ dayName(day) }}</p><h3>{{ courtName(court) }}</h3></div><div class="court-buttons"><button *ngFor="let item of courts" class="filter-choice court-choice" [class.active]="item.id === court" (click)="applyPublicFilter('court',item.id)">{{ item.name }}</button></div></section></div>
 
