@@ -1772,6 +1772,9 @@ je-root:has(.public-topbar){
 /* ===== TABLET / DESKTOP =================================================== */
 
 @media (min-width:700px){
+  je-root:has(.public-topbar){
+    background:#fff url('/assets/background-telas-desktop.png?v=20260925-1') center top / cover fixed no-repeat!important;
+  }
   .welcome-screen{
     min-height:100vh!important;
     padding:30px!important;
@@ -2443,7 +2446,7 @@ je-root:has(.public-topbar){
     width:min(100vw,177.68vh)!important;
     min-height:0!important;
     height:min(100vh,56.28vw)!important;
-    aspect-ratio:1672 / 941!important;
+    aspect-ratio:3310 / 1900!important;
     margin:auto!important;
   }
   .welcome-hero-art{
@@ -2814,7 +2817,7 @@ je-root:has(.public-topbar){
     width:min(88vw,156vh)!important;
     height:auto!important;
     min-height:0!important;
-    aspect-ratio:1672 / 941!important;
+    aspect-ratio:3310 / 1900!important;
     margin:auto!important;
   }
   .welcome-hero-art{
@@ -4658,11 +4661,11 @@ body:has(.save-confirm-modal) main{
 
 @media (max-width:699px){
   .welcome-click-zones{
-    left:18.2%!important;
-    right:18.2%!important;
-    bottom:8.1%!important;
-    height:18.7%!important;
-    gap:4.0%!important;
+    left:23.5%!important;
+    right:23.5%!important;
+    bottom:8.0%!important;
+    height:15.5%!important;
+    gap:1.4%!important;
   }
   .welcome-click-zones button{
     border-radius:18px!important;
@@ -4735,11 +4738,11 @@ body:has(.save-confirm-modal) main{
 
 @media (min-width:700px){
   .welcome-click-zones{
-    left:30.35%!important;
-    right:30.35%!important;
-    bottom:8.05%!important;
-    height:13.85%!important;
-    gap:1.55%!important;
+    left:36.8%!important;
+    right:36.8%!important;
+    bottom:42.8%!important;
+    height:8.0%!important;
+    gap:1.5%!important;
   }
 }
 
@@ -4768,6 +4771,23 @@ body:has(.save-confirm-modal) main{
     padding:6px 13px!important;
     font-size:.82rem!important;
   }
+}
+
+/* Azul de destaque alinhado à nova identidade visual. */
+.public-topbar{
+  background:#168ff8!important;
+}
+.public-main-nav button.active{
+  color:#fff!important;
+  background:#168ff8!important;
+}
+.mobile-filter-fab,
+.schedule-export-button,
+.save-button,
+.admin-filter-confirm,
+.save-confirm-primary{
+  background:#168ff8!important;
+  border-color:#168ff8!important;
 }
 
 /* Classificação geral: aumento de 30% somente na tabela desktop. */
