@@ -4159,7 +4159,7 @@ body:has(.save-confirm-modal) main{
 .gender-lane-heading{
   padding:8px 10px!important;
   border-radius:14px!important;
-  background:var(--ji-blue-900)!important;
+  background:#168ff8!important;
 }
 
 .gender-lane-heading h4,
@@ -5591,5 +5591,79 @@ body:not(:has(#admin-app)) .live-schedule-card .time-stack .time-label{
   .welcome-click-zones button{
     border-radius:18px!important;
     font-size:clamp(1.05rem,6vw,1.55rem)!important;
+  }
+}
+
+/* O título permanece legível sobre as partes claras e coloridas da arte móvel. */
+@media (max-width:699px){
+  .welcome-period-title{
+    -webkit-text-stroke:2px #fff;
+    paint-order:stroke fill;
+    text-shadow:0 1px 2px rgba(255,255,255,.8);
+  }
+}
+
+/* Itens não selecionados do menu ficam brancos, com texto cinza. */
+body:not(:has(#admin-app)) .public-header .header-home,
+body:not(:has(#admin-app)) .public-header .header-home:hover,
+body:not(:has(#admin-app)) .public-header .public-main-nav button:not(.active),
+body:not(:has(#admin-app)) .public-header .public-main-nav button:not(.active):hover,
+body:not(:has(#admin-app)) .public-header .public-main-nav button:disabled{
+  color:#8b98a5!important;
+  -webkit-text-fill-color:#8b98a5!important;
+  background:#fff!important;
+  background-image:none!important;
+}
+
+/* A equipe selecionada recebe o destaque azul com cantos arredondados. */
+.team-picker-grid .team-picker-choice.active,
+.team-picker-grid .team-picker-choice.team-picker-all.active,
+.mobile-team-filter-options button.active,
+.mobile-team-filter-options .mobile-team-filter-all.active{
+  border-radius:12px!important;
+  background:#168ff8!important;
+  background-image:none!important;
+}
+
+.team-picker-grid .team-picker-choice.active strong,
+.mobile-team-filter-options button.active strong{
+  color:#073a7e!important;
+  -webkit-text-fill-color:#073a7e!important;
+}
+
+/* Ações e seleção do admin usam o mesmo azul da interface atual. */
+.admin-ranking-back,
+.admin-edit-confirm,
+body:has(#admin-app) .admin-registration-nav button.active{
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  background:#168ff8!important;
+  background-image:none!important;
+  border-color:#168ff8!important;
+}
+
+/* No desktop, o placar abre como janela centralizada. */
+@media (min-width:700px){
+  .admin-ranking-modal{
+    display:grid!important;
+    place-items:center!important;
+    padding:24px!important;
+    box-sizing:border-box!important;
+  }
+  .admin-ranking-modal .admin-ranking-sheet{
+    z-index:1!important;
+    width:min(980px,100%)!important;
+    max-height:calc(100dvh - 48px)!important;
+    margin:0!important;
+    box-sizing:border-box!important;
+    border-radius:22px!important;
+    box-shadow:0 16px 50px rgba(0,24,60,.28)!important;
+  }
+  .admin-ranking-modal .admin-ranking-back{
+    width:auto!important;
+    min-width:140px!important;
+    margin:16px auto 0!important;
+    padding:10px 22px!important;
+    border-radius:12px!important;
   }
 }
