@@ -5279,3 +5279,26 @@ body:not(:has(#admin-app)) .live-schedule-card .time-stack .time-label{
   color:var(--ji-blue-900)!important;
   -webkit-text-fill-color:var(--ji-blue-900)!important;
 }
+
+/* As áreas de turno usam as mesmas coordenadas da arte para acompanhar escala e recorte. */
+.welcome-click-zones{display:none!important}
+.welcome-click-map{
+  position:absolute!important;
+  inset:0!important;
+  z-index:4!important;
+  width:100%!important;
+  height:100%!important;
+  pointer-events:none!important;
+}
+.welcome-click-map rect{
+  fill:transparent!important;
+  pointer-events:auto!important;
+  cursor:pointer!important;
+  outline:none!important;
+}
+.welcome-click-map-mobile{display:block!important}
+.welcome-click-map-desktop{display:none!important}
+@media (min-width:700px){
+  .welcome-click-map-mobile{display:none!important}
+  .welcome-click-map-desktop{display:block!important}
+}
