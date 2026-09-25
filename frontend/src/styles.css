@@ -4793,6 +4793,40 @@ body:not(:has(#admin-app)) .public-header .public-main-nav button.active{
   background-image:none!important;
 }
 
+/* Acabamento visual dos botões de turno, inspirado nos botões da arte anterior. */
+.welcome-click-zones button,
+.welcome-click-zones button:first-child,
+.welcome-click-zones button:last-child,
+.welcome-click-zones button:hover,
+.welcome-click-zones button:active{
+  position:relative!important;
+  border:1px solid rgba(255,255,255,.72)!important;
+  border-radius:20px!important;
+  background:#1989e7!important;
+  background-image:linear-gradient(180deg,#2699ef 0%,#1685df 55%,#1474ca 100%)!important;
+  box-shadow:0 12px 24px rgba(8,73,145,.28),inset 0 1px 0 rgba(255,255,255,.28)!important;
+  font-size:clamp(1.05rem,1.9vw,1.42rem)!important;
+  letter-spacing:.02em!important;
+  text-shadow:0 1px 2px rgba(0,52,112,.28)!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+}
+.welcome-click-zones button::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  background:linear-gradient(115deg,rgba(255,255,255,.22),rgba(255,255,255,0) 42%);
+  pointer-events:none;
+}
+.welcome-click-zones button:hover{
+  background-image:linear-gradient(180deg,#36a4f3 0%,#168be7 55%,#1474ca 100%)!important;
+  box-shadow:0 14px 27px rgba(8,73,145,.34),inset 0 1px 0 rgba(255,255,255,.32)!important;
+}
+.welcome-click-zones button:active{
+  box-shadow:0 7px 14px rgba(8,73,145,.24),inset 0 2px 5px rgba(0,52,112,.16)!important;
+}
+
 /* Azul de destaque alinhado à nova identidade visual. */
 .public-topbar{
   background:#168ff8!important;
