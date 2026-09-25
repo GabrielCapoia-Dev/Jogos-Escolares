@@ -726,12 +726,17 @@ export class AppComponent implements OnDestroy {
           }).join('')}</div>`;
         }).join('')}</div></section>`).join('')}</section>`;
     }).join('');
-    const popup = window.open('', '_blank', 'noopener,noreferrer,width=1100,height=900');
+    // Keep the opener reference so browsers allow the print dialog to open
+    // from the user's click instead of treating it as an unsolicited popup.
+    const popup = window.open('', '_blank', 'width=1100,height=900');
     if (!popup) { this.showToast('Permita pop-ups para exportar o cronograma.'); return; }
+    popup.document.open();
     popup.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Cronograma geral - ${escape(this.dayName(this.day))}</title><style>
       @page{size:A4;margin:10mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#16324f;margin:0;font-size:8px}header{background:#073b78;color:#fff;padding:8px 12px;margin-bottom:12px}header strong{font-size:13px}header span{float:right;font-size:8px}.meta{color:#0b63b6;font-weight:700;margin-bottom:3px}.court-section{margin-bottom:12px}.court-section>h2{font-size:15px;color:#073b78;margin:0 0 5px;border-bottom:2px solid #0b63b6;padding-bottom:3px}.sport-box{border:1px solid #c9dcec;margin:5px 0}.sport-box>h3{background:#eaf3fb;color:#073b78;font-size:12px;margin:0;padding:4px 6px}.gender-columns{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:4px}.gender-box{border:1px solid #c9dcec}.gender-box h4{background:#073b78;color:#fff;font-size:9px;margin:0;padding:3px 5px}.match-row{border-top:1px solid #d9e5ef;padding:2px 4px}.after{font-size:6px;color:#0b63b6;font-weight:700}.match-main{display:grid;grid-template-columns:28px 30px 1fr 8px 1fr;align-items:center;gap:2px}.match-main strong{font-size:9px;color:#073b78}.match-main span{font-size:6px;color:#5b7087}.match-main b{font-size:7px}.match-main small{display:block;color:#6c8298;font-weight:400;font-size:6px}.match-main em{font-style:normal;text-align:center;font-weight:700}footer{margin-top:8px;border-top:1px solid #c9dcec;padding-top:4px;color:#5b7087;font-size:7px;text-align:center}@media print{button{display:none}}
-    </style></head><body><header><strong>JOGOS INFANTIS DE UMUARAMA 2026</strong><span>Cronograma geral</span></header><div class="meta">${escape(this.dayName(this.day))} - ${escape(this.periodName())}</div>${courtSections}<footer>Previsão de horários - página gerada pelo sistema</footer><script>window.onload=()=>{window.focus();window.print()}</script></body></html>`);
+    </style></head><body><header><strong>JOGOS INFANTIS DE UMUARAMA 2026</strong><span>Cronograma geral</span></header><div class="meta">${escape(this.dayName(this.day))} - ${escape(this.periodName())}</div>${courtSections}<footer>Previsão de horários - página gerada pelo sistema</footer></body></html>`);
     popup.document.close();
+    popup.focus();
+    window.setTimeout(() => popup.print(), 250);
   }
 
   nextMatchId(): string {
