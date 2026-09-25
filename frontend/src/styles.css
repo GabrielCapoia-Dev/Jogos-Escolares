@@ -4773,6 +4773,28 @@ body:has(.save-confirm-modal) main{
   }
 }
 
+/* Acabamento idêntico ao recorte de referência: dois tons e contorno branco. */
+.welcome-click-zones button,
+.welcome-click-zones button:hover,
+.welcome-click-zones button:active{
+  border:3px solid rgba(255,255,255,.92)!important;
+  border-radius:15px!important;
+  box-shadow:0 5px 10px rgba(5,63,128,.2)!important;
+  text-shadow:0 1px 1px rgba(0,45,105,.22)!important;
+}
+.welcome-click-zones button:first-child,
+.welcome-click-zones button:first-child:hover,
+.welcome-click-zones button:first-child:active{
+  background:#0b5db6!important;
+  background-image:linear-gradient(180deg,#176dc8 0%,#0753a4 100%)!important;
+}
+.welcome-click-zones button:last-child,
+.welcome-click-zones button:last-child:hover,
+.welcome-click-zones button:last-child:active{
+  background:#2599ed!important;
+  background-image:linear-gradient(180deg,#43adf6 0%,#168be5 100%)!important;
+}
+
 /* Navegação pública segue o mesmo azul dos botões de turno. */
 body:not(:has(#admin-app)) .public-header .header-home,
 body:not(:has(#admin-app)) .public-header .public-main-nav button,
@@ -4841,6 +4863,40 @@ body:not(:has(#admin-app)) .public-header .public-main-nav button.active{
 }
 .welcome-click-zones button:last-child:hover{
   background-image:linear-gradient(180deg,#59b7f7 0%,#2095eb 100%)!important;
+}
+
+/* Proporção final dos botões conforme a referência enviada. */
+@media (min-width:700px){
+  .welcome-click-zones{
+    left:50%!important;
+    right:auto!important;
+    width:min(540px,80vw)!important;
+    transform:translateX(-50%)!important;
+  }
+}
+.welcome-click-zones button,
+.welcome-click-zones button:first-child,
+.welcome-click-zones button:last-child,
+.welcome-click-zones button:hover,
+.welcome-click-zones button:active{
+  border:0!important;
+  border-radius:18px!important;
+  background:#278bdc!important;
+  background-image:linear-gradient(180deg,#2d91e3 0%,#2385d4 100%)!important;
+  box-shadow:0 7px 14px rgba(8,73,145,.22),inset 0 1px 0 rgba(255,255,255,.1)!important;
+}
+.welcome-click-zones button:hover,
+.welcome-click-zones button:first-child:hover,
+.welcome-click-zones button:last-child:hover{
+  background-image:linear-gradient(180deg,#3599e8 0%,#278bdc 100%)!important;
+}
+@media (max-width:699px){
+  .welcome-click-zones{
+    left:20%!important;
+    right:20%!important;
+    width:auto!important;
+    transform:none!important;
+  }
 }
 
 /* Azul de destaque alinhado à nova identidade visual. */
