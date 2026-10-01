@@ -9,7 +9,7 @@ export const CONFIG = Object.freeze({
   intervaloEntreJogosMinutos: 3,
   intervaloEntreJogosMinimo: 2,
   intervaloEntreJogosMaximo: 5,
-  quantidadeEquipesPorPeriodo: Object.freeze({ MANHA: 11, TARDE: 10 }),
+  quantidadeEquipesPorPeriodo: Object.freeze({ MANHA: 10, TARDE: 10 }),
   participacoesPorModalidadeGenero: 2,
   modalidadesPorQuadra: Object.freeze({
     QUADRA_1: Object.freeze(["PETECA", "FUTSAL"]),
@@ -25,7 +25,7 @@ export const CONFIG = Object.freeze({
     Object.freeze({ id: "ONKEN_BASQUETE_FEM", quadraId: "QUADRA_2", modalidadeId: "BASQUETE", genero: "FEMININO", nome: "Basquete feminino", ordem: 3 }),
     Object.freeze({ id: "ONKEN_BASQUETE_MASC", quadraId: "QUADRA_2", modalidadeId: "BASQUETE", genero: "MASCULINO", nome: "Basquete masculino", ordem: 4 }),
   ]),
-  storageKey: "jogos-infantis-umuarama-2026-v3-base-zero",
+  storageKey: "jogos-infantis-umuarama-2026-v4-dez-equipes",
   criteriosDesempate: Object.freeze(["pontos", "vitorias", "cor"]),
 });
 

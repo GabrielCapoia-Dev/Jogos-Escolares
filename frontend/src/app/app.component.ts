@@ -28,7 +28,6 @@ export class AppComponent implements OnDestroy {
     ['VERMELHO', 'Vermelho', '#D84247', 'Lobo-guará', 'mascote-vermelho'],
     ['MARROM', 'Roxo', '#8E44AD', 'Capivara', 'mascote-marrom'],
     ['BRANCO', 'Branco', '#F7F7F2', 'Tamanduá', 'mascote-branco'],
-    ['PRETO', 'Amarelo-claro', '#F3E84D', 'Bem-te-vi', 'mascote-preto'],
     ['CINZA', 'Cinza', '#8D9AA6', 'Quati', 'mascote-cinza'],
     ['VERDE_CLARO', 'Verde-claro', '#31BD75', 'Maritaca', 'mascote-verde-claro'],
     ['VERDE_ESCURO', 'Verde-escuro', '#087D4B', 'Jacaré', 'mascote-verde-escuro'],
@@ -1052,7 +1051,7 @@ export class AppComponent implements OnDestroy {
   }
 
   private fallbackTeams(period: string): Team[] {
-    const count = period === 'MANHA' ? 11 : 10;
+    const count = 10;
     return this.legacyTeams.slice(0, count).map(([code, color, hex, mascot, sprite]) => ({
       id: `${period.slice(0, 3)}_${code}`, period, color, hex, mascot, sprite
     }));

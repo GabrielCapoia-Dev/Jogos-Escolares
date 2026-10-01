@@ -31,7 +31,6 @@ const coresBase = [
   ["VERMELHO", "Vermelho", "#D84247", "Lobo-guará", "mascote-vermelho"],
   ["MARROM", "Roxo", "#8E44AD", "Capivara", "mascote-marrom"],
   ["BRANCO", "Branco", "#F7F7F2", "Tamanduá", "mascote-branco"],
-  ["PRETO", "Amarelo-claro", "#F3E84D", "Bem-te-vi", "mascote-preto"],
   ["CINZA", "Cinza", "#8D9AA6", "Quati", "mascote-cinza"],
   ["VERDE_CLARO", "Verde-claro", "#31BD75", "Maritaca", "mascote-verde-claro"],
   ["VERDE_ESCURO", "Verde-escuro", "#087D4B", "Jacaré", "mascote-verde-escuro"],
@@ -52,32 +51,62 @@ function criarEquipes(periodo, quantidade) {
 }
 
 export const equipes = [
-  ...criarEquipes("MANHA", 11),
+  ...criarEquipes("MANHA", 10),
   ...criarEquipes("TARDE", 10),
 ];
 
 function criarPartidas() {
   const lista = [];
+  let semente = 20261001;
+  const aleatorio = () => {
+    semente = (Math.imul(semente, 1664525) + 1013904223) >>> 0;
+    return semente / 4294967296;
+  };
+  const sortear = (itens) => {
+    const copia = [...itens];
+    for (let i = copia.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(aleatorio() * (i + 1));
+      [copia[i], copia[j]] = [copia[j], copia[i]];
+    }
+    return copia;
+  };
+  const duplas = [
+    [[0, 1], [2, 4]], [[1, 2], [3, 0]], [[2, 3], [4, 1]],
+    [[3, 4], [0, 2]], [[4, 0], [1, 3]],
+  ];
+  const horarios = {
+    MANHA: {
+      QUADRA_1: ["08:30", "08:42", "08:54", "09:06", "09:18", "09:42", "09:54", "10:06", "10:18", "10:30"],
+      QUADRA_2: ["08:30", "08:42", "08:54", "09:06", "09:18", "09:30", "09:42", "09:54", "10:06", "10:18"],
+    },
+    TARDE: {
+      QUADRA_1: ["13:30", "13:42", "13:54", "14:06", "14:18", "14:30", "14:42", "14:54", "15:06", "15:18"],
+      QUADRA_2: ["13:30", "13:42", "13:54", "14:06", "14:18", "14:30", "14:42", "14:54", "15:06", "15:18"],
+    },
+  };
   periodos.forEach((periodo) => {
     const times = equipes.filter((equipe) => equipe.periodo === periodo.id);
-    dias.forEach((dia, indiceDia) => {
-      estacoes.forEach((estacao, indiceEstacao) => {
-        const passo = times.length === 11 ? 5 : 3;
-        const deslocamento = (indiceDia * 3 + indiceEstacao * 2) % times.length;
-        const ciclo = times.map((_, indice) => times[(deslocamento + indice * passo) % times.length]);
-        for (let ordem = 0; ordem < times.length; ordem += 1) {
-          const equipeA = ciclo[ordem];
-          const equipeB = ciclo[(ordem + 1) % ciclo.length];
-          const modalidade = modalidades.find((item) => item.id === estacao.modalidadeId);
-          const minutosInicio = 8 * 60 + 30 + ordem * 13;
-          const hora = Math.floor(minutosInicio / 60);
-          const minuto = minutosInicio % 60;
+    dias.forEach((dia) => {
+      const sorteados = sortear(times);
+      const grupos = [sorteados.slice(0, 5), sorteados.slice(5)];
+      const ordens = new Map();
+      estacoes.forEach((estacao) => {
+        const modalidade = modalidades.find((item) => item.id === estacao.modalidadeId);
+        const indiceModalidade = CONFIG.modalidadesPorQuadra[estacao.quadraId].indexOf(estacao.modalidadeId);
+        for (let ordem = 0; ordem < 10; ordem += 1) {
+          const fase = Math.floor(ordem / 5);
+          const grupo = grupos[(estacao.quadraId === "QUADRA_2" ? 1 : 0) ^ fase];
+          const chave = `${estacao.quadraId}-${estacao.genero}-${fase}`;
+          if (!ordens.has(chave)) ordens.set(chave, sortear(grupo));
+          const [a, b] = duplas[ordem % 5][indiceModalidade];
+          const equipeA = ordens.get(chave)[a];
+          const equipeB = ordens.get(chave)[b];
           lista.push({
             id: `PARTIDA_${String(lista.length + 1).padStart(3, "0")}`,
             periodo: periodo.id,
             dia: dia.id,
             quadra: estacao.quadraId,
-            horario: `${String(hora).padStart(2, "0")}:${String(minuto).padStart(2, "0")}`,
+            horario: horarios[periodo.id][estacao.quadraId][ordem],
             modalidadeId: modalidade.id,
             genero: estacao.genero,
             equipeAId: equipeA.id,

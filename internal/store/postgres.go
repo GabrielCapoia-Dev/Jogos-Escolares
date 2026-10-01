@@ -103,6 +103,9 @@ func (s *Store) initialize(ctx context.Context) error {
 	if err := s.ensureAdmin(ctx); err != nil {
 		return err
 	}
+	if err := s.replaceCompetitionScheduleOnce(ctx); err != nil {
+		return err
+	}
 	if err := s.seedMatches(ctx); err != nil {
 		return err
 	}
@@ -110,6 +113,65 @@ func (s *Store) initialize(ctx context.Context) error {
 		return err
 	}
 	return s.resetResultsOnce(ctx)
+}
+
+// replaceCompetitionScheduleOnce installs the 10+10 draw atomically. The old
+// matches and audit trail are retained in a backup before their IDs are reused.
+func (s *Store) replaceCompetitionScheduleOnce(ctx context.Context) error {
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if _, err = tx.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS maintenance_tasks (
+		name text PRIMARY KEY, completed_at timestamptz NOT NULL DEFAULT now()
+	)`); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS schedule_replacement_backups (
+		id bigserial PRIMARY KEY, replaced_at timestamptz NOT NULL DEFAULT now(),
+		teams jsonb NOT NULL, matches jsonb NOT NULL, audit_logs jsonb NOT NULL
+	)`); err != nil {
+		return err
+	}
+	result, err := tx.ExecContext(ctx, `INSERT INTO maintenance_tasks(name)
+		VALUES('schedule_10_teams_20261001') ON CONFLICT DO NOTHING`)
+	if err != nil {
+		return err
+	}
+	inserted, err := result.RowsAffected()
+	if err != nil || inserted == 0 {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `LOCK TABLE matches, audit_logs IN ACCESS EXCLUSIVE MODE`); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `INSERT INTO schedule_replacement_backups(teams,matches,audit_logs)
+		SELECT (SELECT COALESCE(jsonb_agg(to_jsonb(t) ORDER BY t.id), '[]'::jsonb) FROM teams t),
+		       (SELECT COALESCE(jsonb_agg(to_jsonb(m) ORDER BY m.id), '[]'::jsonb) FROM matches m),
+		       (SELECT COALESCE(jsonb_agg(to_jsonb(a) ORDER BY a.id), '[]'::jsonb) FROM audit_logs a)`); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `DELETE FROM audit_logs`); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `DELETE FROM matches`); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `UPDATE teams SET active=false WHERE id IN ('MANHA_PRETO','TARDE_PRETO')`); err != nil {
+		return err
+	}
+	for _, m := range domain.SeedMatches() {
+		if _, err = tx.ExecContext(ctx, `INSERT INTO matches(
+			id,period_id,day_id,court_id,scheduled_time,sport_id,gender,
+			team_a_id,team_b_id,status,sort_order,score_a,score_b
+		) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+			m.ID, m.Period, m.Day, m.Court, m.Time, m.SportID, m.Gender,
+			m.TeamAID, m.TeamBID, m.Status, m.Order, m.ScoreA, m.ScoreB); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 // syncScheduleOnce applies a newly published schedule to the persistent
