@@ -115,7 +115,7 @@
 
       <section *ngIf="view === 'CRONOGRAMA'" class="schedule-view">
         <section class="scoreboard-heading schedule-heading"><div><p class="eyebrow blue">Programação dos jogos</p><h2>Cronograma <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div><button type="button" class="schedule-export-button" (click)="exportGeneralSchedulePdf()">Exportar</button></section>
-        <nav class="schedule-days"><button *ngFor="let item of days" class="schedule-day" [class.active]="item.id === day" (click)="applyPublicFilter('day',item.id)">{{ item.name }}</button><button type="button" class="schedule-day finals-day" disabled aria-label="Fase final, disponível após a conclusão do Dia 3">Fase final</button></nav>
+        <nav class="schedule-days"><button *ngFor="let item of days" class="schedule-day" [class.active]="item.id === day" (click)="applyPublicFilter('day',item.id)">{{ item.name }}</button><button type="button" class="schedule-day" (click)="setView('FINAL')">Fase final</button></nav>
         <div class="schedule-selectors"><section class="choice-panel"><div class="section-title-block"><p class="eyebrow blue">{{ dayName(day) }}</p><h3>{{ courtName(court) }}</h3></div><div class="court-buttons"><button *ngFor="let item of courts" class="filter-choice court-choice" [class.active]="item.id === court" (click)="applyPublicFilter('court',item.id)">{{ item.name }}</button></div></section></div>
 
         <section class="live-schedule-panel" *ngIf="currentScheduleMatches().length">
@@ -146,6 +146,30 @@
 
         <div class="schedule-content-layout"><section class="selected-court"><div class="activity-grid"><section class="activity-column" *ngFor="let item of visibleSports(court)"><div class="activity-heading"><span>{{ courtName(court) }}</span><h3>{{ item.name }}</h3></div><div class="gender-grid"><section class="gender-lane" *ngFor="let genderValue of ['FEMININO','MASCULINO']"><div class="gender-lane-heading"><h4>{{ genderName(genderValue) }}</h4><span>{{ matchesFor(item.id, genderValue).length }} jogos</span></div><div class="gender-games"><ng-container *ngIf="matchesFor(item.id, genderValue) as laneMatches"><ng-container *ngFor="let match of laneMatches; let matchIndex = index"><div *ngIf="isGymTransitionBeforeMatch(laneMatches, matchIndex)" class="gym-transition-marker gym-transition-marker-column" role="note" aria-label="Momento de troca de ginásio"><span class="gym-transition-line"></span><div><strong>Troca de ginásio</strong><div class="time-stack"><span>{{ gymTransitionTime() }}</span><small class="time-label">Previsão</small></div></div><span class="gym-transition-line"></span></div><article class="schedule-card" [class.finished]="match.status==='FINALIZADO'" [class.happening]="match.status==='EM_ANDAMENTO'"><div class="schedule-card-top"><div><span class="time-stack"><time>{{ match.time }}</time><small class="time-label">Previsão</small></span><span class="sport-pill">{{ item.name }}</span></div><span class="status waiting">{{ statusLabel(match.status) }}</span></div><div class="fixture-row schedule-fixture"><span class="fixture-team home"><span class="fixture-team-copy"><strong>{{ team(match.teamAId)?.color }}</strong><small>{{ team(match.teamAId)?.mascot }}</small></span><span class="team-emblem mascot-image" [ngClass]="team(match.teamAId)?.sprite"></span></span><span class="fixture-score"><b>{{ match.status === 'FINALIZADO' ? match.scoreA : '×' }}</b><small>:</small><b>{{ match.status === 'FINALIZADO' ? match.scoreB : '×' }}</b></span><span class="fixture-team away"><span class="team-emblem mascot-image" [ngClass]="team(match.teamBId)?.sprite"></span><span class="fixture-team-copy"><strong>{{ team(match.teamBId)?.color }}</strong><small>{{ team(match.teamBId)?.mascot }}</small></span></span></div></article></ng-container></ng-container></div></section></div></section></div></section></div>
         <p class="updated-at">Atualizado às {{ lastUpdated }}</p>
+      </section>
+
+      <section *ngIf="view === 'FINAL'" class="finals-view">
+        <section class="scoreboard-heading finals-heading"><div><p class="eyebrow blue">Programação das finais</p><h2>Classificação e cronograma <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2><p>Acompanhe a classificação e os confrontos da fase final.</p></div></section>
+        <nav class="schedule-days finals-phase-nav" aria-label="Dias do cronograma"><button *ngFor="let item of days" type="button" class="schedule-day" (click)="day=item.id; setView('CRONOGRAMA')">{{ item.name }}</button><button type="button" class="schedule-day active" (click)="loadFinals()">Fase final</button></nav>
+        <div class="finals-layout">
+          <section class="panel ranking-panel finals-ranking-panel"><div class="panel-head"><div><h2>Classificação</h2></div><span class="finals-tag">FINAL</span></div>
+            <div class="table-wrap"><table class="ranking-table"><thead><tr><th>Pos.</th><th>Equipe</th><th>Pts</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead><tbody>
+              <tr class="team-row" *ngFor="let slot of finalDisplaySlots(); let i = index" [style.--team-color]="slot.team?.hex || '#dbeafe'"><td class="position"><strong>{{ i + 1 }}º</strong></td><td><span class="team-ident"><span *ngIf="slot.team" class="team-emblem mascot-image" [ngClass]="slot.team.sprite"></span><span *ngIf="!slot.team" class="finalist-letter">{{ slot.letter }}</span><span class="team-name"><strong>{{ slot.team?.color || ('Equipe ' + slot.letter) }}</strong><small>{{ slot.team?.mascot || 'Classificada' }}</small></span></span></td><td><strong>{{ slot.standing?.points || 0 }}</strong></td><td>{{ slot.standing?.games || 0 }}</td><td>{{ slot.standing?.wins || 0 }}</td><td>{{ slot.standing?.draws || 0 }}</td><td>{{ slot.standing?.losses || 0 }}</td></tr>
+            </tbody></table></div>
+            <p class="finals-state-note" *ngIf="!finalsState?.confirmed">Exibição ilustrativa com Equipes A, B e C. Os classificados reais serão mostrados após a conclusão do Dia 3 e a confirmação administrativa deste período.</p>
+            <p class="finals-state-note" *ngIf="finalsState?.confirmed">Finalistas confirmados para {{ periodName().toLowerCase() }}.</p>
+          </section>
+          <section class="panel finals-schedule-panel"><div class="panel-head"><div><h2>Cronograma de jogos</h2><p>Basquete primeiro; depois, Peteca e Futsal em paralelo.</p></div><span class="finals-tag">Dia das finais</span></div>
+            <div class="finals-schedule-body">
+              <article class="final-game-card" *ngFor="let match of finalMatches(); let i = index">
+                <div class="final-game-meta"><strong>{{ match.sport }} · {{ courtName(match.court) }}</strong><span>{{ match.time }}</span></div>
+                <div class="final-game-match"><span class="final-game-team"><span *ngIf="finalSlotTeam(match.a)" class="team-emblem mascot-image" [ngClass]="finalSlotTeam(match.a)?.sprite"></span><span *ngIf="!finalSlotTeam(match.a)" class="finalist-letter small">{{ ['A','B','C'][match.a] }}</span><span><b>{{ finalSlotName(match.a) }}</b><small>{{ finalSlotMascot(match.a) }}</small></span></span><strong class="final-game-score">×</strong><span class="final-game-team away"><span *ngIf="finalSlotTeam(match.b)" class="team-emblem mascot-image" [ngClass]="finalSlotTeam(match.b)?.sprite"></span><span *ngIf="!finalSlotTeam(match.b)" class="finalist-letter small">{{ ['A','B','C'][match.b] }}</span><span><b>{{ finalSlotName(match.b) }}</b><small>{{ finalSlotMascot(match.b) }}</small></span></span></div>
+                <span class="final-gender-badge">Masculino + feminino</span>
+                <div *ngIf="i===2" class="final-gym-switch"><strong>Troca de quadra · 10 minutos</strong><span>Depois do Basquete, todos seguem para a quadra 1.</span></div>
+              </article>
+            </div>
+          </section>
+        </div>
       </section>
 
       <section *ngIf="view === 'CRONOGRAMA_EQUIPE'" class="team-view">
@@ -189,6 +213,8 @@
     <div class="header-inner">
       <div class="public-brand"><button type="button" class="header-home" (click)="backHome()">Início</button></div>
       <nav class="public-main-nav admin-registration-nav" aria-label="Menu administrativo">
+        <button type="button" [class.active]="adminSection==='RESULTS'" [disabled]="adminOverlayOpen()" (click)="showAdminResults()"><span class="nav-icon">▤</span><span>Resultados</span></button>
+        <button type="button" [class.active]="adminSection==='FINAL'" [disabled]="adminOverlayOpen()" (click)="openAdminFinals()"><span class="nav-icon">★</span><span>Final</span></button>
         <button type="button" [class.active]="adminFiltersOpen" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('filters')"><span class="nav-icon">⚙</span><span>Filtros</span></button>
         <button type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('ranking')"><span class="nav-icon">▥</span><span>Placar</span></button>
         <button type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('correction')"><span class="nav-icon">✎</span><span>Editar</span></button>
@@ -199,7 +225,19 @@
   </header>
 
   <main id="admin-app" class="page-shell">
-    <section class="admin-intro"><h2>Registro de Resultados</h2></section>
+    <section class="admin-final-section" *ngIf="adminSection==='FINAL'">
+      <section class="scoreboard-heading"><div><p class="eyebrow blue">Área administrativa</p><h2>Finalistas · {{ periodName(adminPeriod) }}</h2><p>Os três primeiros classificados são separados por período.</p><div class="admin-final-periods"><button *ngFor="let item of periods" type="button" [class.active]="adminPeriod===item.id" (click)="setAdminFilter('period',item.id)">{{ item.name }}</button></div></div><button type="button" class="admin-final-refresh" (click)="loadAdminFinals()">Atualizar classificação</button></section>
+      <section class="panel admin-final-panel">
+        <div class="admin-final-status" [class.ready]="finalsState?.day3Complete"><strong>{{ finalsState?.day3Complete ? 'Dia 3 concluído' : 'Aguardando o encerramento do Dia 3' }}</strong><span>{{ finalsState?.day3Complete ? 'Confira os três classificados e confirme a escolha.' : 'A confirmação dos finalistas será liberada quando todas as partidas do Dia 3 deste período forem finalizadas.' }}</span></div>
+        <div class="table-wrap"><table class="ranking-table"><thead><tr><th>Selecionar</th><th>Pos.</th><th>Equipe</th><th>Pts</th><th>J</th><th>V</th><th>E</th><th>D</th><th>Desempate</th></tr></thead><tbody>
+          <tr class="team-row" *ngFor="let row of adminStandings" [style.--team-color]="row.hex"><td><input type="checkbox" [checked]="adminFinalistIds.includes(row.teamId)" [disabled]="!finalsState?.day3Complete || row.position>3 || (adminFinalistIds.length>=3 && !adminFinalistIds.includes(row.teamId))" (change)="toggleAdminFinalist(row.teamId)" [attr.aria-label]="'Selecionar ' + row.color + ' como finalista'"></td><td>{{ row.position }}º</td><td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small></span></span></td><td>{{ row.points }}</td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td><td><small *ngIf="row.tiebreaker">{{ row.tiebreaker }}</small><small *ngIf="row.tied">Cara ou coroa · melhor de 3</small></td></tr>
+        </tbody></table></div>
+        <p class="admin-final-help">Selecione três equipes entre as posições classificadas. Se houver empate no corte, use esta tela para registrar o resultado da cara ou coroa, melhor de 3.</p>
+        <div class="admin-final-actions"><span>{{ adminFinalistIds.length }} de 3 equipes selecionadas</span><button type="button" [disabled]="!finalsState?.day3Complete || adminFinalistIds.length!==3 || adminFinalsSaving" (click)="confirmAdminFinalists()">{{ adminFinalsSaving ? 'Salvando...' : (finalsState?.confirmed ? 'Atualizar finalistas' : 'Confirmar finalistas') }}</button></div>
+      </section>
+    </section>
+
+    <ng-container *ngIf="adminSection==='RESULTS'"><section class="admin-intro"><h2>Registro de Resultados</h2></section>
 
     <section class="panel filters-panel">
       <fieldset class="filter-group"><legend>Período</legend><div class="segmented"><button *ngFor="let item of periods" type="button" class="segment" [class.active]="adminPeriod===item.id" (click)="setAdminFilter('period',item.id)">{{ item.name }}</button></div></fieldset>
@@ -268,6 +306,7 @@
         <div class="empty-state" *ngIf="!adminLoading && !adminMatches.length">Nenhuma partida para estes filtros.</div>
       </div>
     </section>
+    </ng-container>
 
   </main>
 
@@ -288,7 +327,7 @@
   <section class="mobile-filter-sheet" role="dialog" aria-modal="true" aria-label="Filtros">
     <div class="mobile-filter-sheet-head"><h2>Filtros</h2></div>
     <div class="mobile-filter-body">
-      <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA' || view==='CRONOGRAMA_EQUIPE'"><h3>Dia</h3><div class="mobile-filter-options"><button *ngFor="let item of days" [class.active]="day===item.id" (click)="applyPublicFilter('day',item.id)">{{ item.name }}</button><button type="button" class="finals-day" disabled aria-label="Fase final, disponível após a conclusão do Dia 3">Fase final</button></div></div>
+      <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA' || view==='CRONOGRAMA_EQUIPE'"><h3>Dia</h3><div class="mobile-filter-options"><button *ngFor="let item of days" [class.active]="day===item.id" (click)="applyPublicFilter('day',item.id)">{{ item.name }}</button><button type="button" class="finals-day" (click)="publicFiltersOpen=false; setView('FINAL')">Fase final</button></div></div>
       <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA'"><h3>Quadra</h3><div class="mobile-filter-options"><button *ngFor="let item of courts" [class.active]="court===item.id" (click)="applyPublicFilter('court',item.id)">{{ item.name }}</button></div></div>
       <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA'"><h3>Modalidade</h3><div class="mobile-filter-options"><button [class.active]="!sport" (click)="applyPublicFilter('sport','')">Todas</button><button *ngFor="let item of visibleSports(court)" [class.active]="sport===item.id" (click)="applyPublicFilter('sport',item.id)">{{ item.name }}</button></div></div>
       <div class="mobile-filter-group" *ngIf="view==='RESULTADOS' || view==='CRONOGRAMA_EQUIPE'"><h3>Equipe</h3><div class="mobile-filter-options mobile-team-filter-options"><button class="mobile-team-filter-all" [class.active]="!selectedTeam" (click)="applyPublicFilter('team','')"><strong>Todas</strong></button><button class="mobile-team-filter-choice" *ngFor="let item of teams" [class.active]="selectedTeam===item.id" (click)="applyPublicFilter('team',item.id)"><span class="team-emblem mascot-image" [ngClass]="item.sprite"></span><strong>{{ item.color }}</strong></button></div></div>

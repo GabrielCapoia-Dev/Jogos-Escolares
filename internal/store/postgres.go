@@ -91,6 +91,7 @@ func (s *Store) initialize(ctx context.Context) error {
 		`CREATE TABLE IF NOT EXISTS audit_logs (id bigserial PRIMARY KEY, user_id uuid REFERENCES users(id), action text NOT NULL, match_id text NOT NULL REFERENCES matches(id), before_state jsonb NOT NULL, after_state jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`,
 		`CREATE TABLE IF NOT EXISTS access_tokens (token_hash text PRIMARY KEY, user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE, expires_at timestamptz NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`,
 		`CREATE TABLE IF NOT EXISTS result_reset_backups (id bigserial PRIMARY KEY, reset_at timestamptz NOT NULL DEFAULT now(), user_id uuid NOT NULL REFERENCES users(id), match_count integer NOT NULL, matches jsonb NOT NULL)`,
+		`CREATE TABLE IF NOT EXISTS finals_confirmations (period_id text PRIMARY KEY REFERENCES periods(id), team_a_id text NOT NULL REFERENCES teams(id), team_b_id text NOT NULL REFERENCES teams(id), team_c_id text NOT NULL REFERENCES teams(id), confirmed_by uuid NOT NULL REFERENCES users(id), confirmed_at timestamptz NOT NULL DEFAULT now())`,
 	}
 	for _, statement := range statements {
 		if _, err := s.DB.ExecContext(ctx, statement); err != nil {
@@ -436,6 +437,28 @@ func (s *Store) Teams(ctx context.Context, period string) ([]domain.Team, error)
 	}
 	return out, rows.Err()
 }
+
+func (s *Store) FinalistIDs(ctx context.Context, period string) ([]string, error) {
+	var a, b, c string
+	err := s.DB.QueryRowContext(ctx, `SELECT team_a_id,team_b_id,team_c_id FROM finals_confirmations WHERE period_id=$1`, period).Scan(&a, &b, &c)
+	if err == sql.ErrNoRows {
+		return []string{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return []string{a, b, c}, nil
+}
+
+func (s *Store) ConfirmFinalists(ctx context.Context, period string, ids []string, user string) error {
+	if len(ids) != 3 {
+		return errors.New("selecione exatamente três equipes")
+	}
+	_, err := s.DB.ExecContext(ctx, `INSERT INTO finals_confirmations(period_id,team_a_id,team_b_id,team_c_id,confirmed_by,confirmed_at)
+		VALUES($1,$2,$3,$4,$5,now()) ON CONFLICT(period_id) DO UPDATE SET team_a_id=EXCLUDED.team_a_id,team_b_id=EXCLUDED.team_b_id,team_c_id=EXCLUDED.team_c_id,confirmed_by=EXCLUDED.confirmed_by,confirmed_at=now()`, period, ids[0], ids[1], ids[2], user)
+	return err
+}
+
 func (s *Store) Matches(ctx context.Context, period, day, court, sport, gender string) ([]domain.Match, error) {
 	rows, err := s.DB.QueryContext(ctx, `SELECT id,period_id,day_id,court_id,to_char(scheduled_time,'HH24:MI'),sport_id,gender,team_a_id,team_b_id,status,sort_order,score_a,score_b FROM matches WHERE ($1='' OR period_id=$1) AND ($2='' OR day_id=$2) AND ($3='' OR court_id=$3) AND ($4='' OR sport_id=$4) AND ($5='' OR gender=$5) ORDER BY day_id,court_id,scheduled_time,sort_order`, period, day, court, sport, gender)
 	if err != nil {
@@ -598,10 +621,16 @@ func (s *Store) AdvanceMatch(ctx context.Context, id string, user string) (domai
 			         'status',updated.status,'order',updated.sort_order,'scoreA',updated.score_a,'scoreB',updated.score_b
 			       )
 			  FROM old JOIN updated ON updated.id=old.id
+		),
+		invalidated AS (
+			DELETE FROM finals_confirmations f
+			 USING updated
+			 WHERE f.period_id=updated.period_id AND updated.day_id='DIA_3'
+			 RETURNING f.period_id
 		)
 		SELECT id,period_id,day_id,court_id,to_char(scheduled_time,'HH24:MI'),sport_id,gender,
 		       team_a_id,team_b_id,status,sort_order,score_a,score_b
-		  FROM updated
+		  FROM updated LEFT JOIN invalidated ON invalidated.period_id=updated.period_id
 	`, domain.StatusEmAndamento, id, domain.StatusAguardando, user).Scan(
 		&m.ID,&m.Period,&m.Day,&m.Court,&m.Time,&m.SportID,&m.Gender,
 		&m.TeamAID,&m.TeamBID,&m.Status,&m.Order,&m.ScoreA,&m.ScoreB,
@@ -630,6 +659,9 @@ func (s *Store) ResetAllResults(ctx context.Context, user string) (int64, error)
 		SELECT $1, COUNT(*)::integer, COALESCE(jsonb_agg(to_jsonb(m) ORDER BY m.sort_order), '[]'::jsonb)
 		FROM matches m
 	`, user); err != nil {
+		return 0, err
+	}
+	if _, err = tx.ExecContext(ctx, `DELETE FROM finals_confirmations`); err != nil {
 		return 0, err
 	}
 

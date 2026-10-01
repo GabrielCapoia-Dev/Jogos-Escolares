@@ -11,9 +11,10 @@ export interface Team { id: string; period: string; color: string; hex: string; 
 export interface Match { id: string; period: string; day: string; court: string; time: string; sportId: string; gender: string; teamAId: string; teamBId: string; status: string; order: number; scoreA: number; scoreB: number; }
 export interface Standing { teamId: string; color: string; hex: string; mascot: string; sprite: string; points: number; games: number; wins: number; draws: number; losses: number; position: number; tiebreaker?: string; tied?: boolean; }
 export interface LoginResponse { accessToken: string; tokenType: string; expiresIn: string; }
-export interface RealtimeEvent { type: 'RESULT_UPDATED' | 'SCOREBOARD_UPDATED'; period: string; match?: Match; matchId?: string; day?: string; court?: string; sportId?: string; gender?: string; scoreA?: number; scoreB?: number; status?: string; teams?: Team[]; standings?: Standing[]; matches?: Match[]; updatedAt?: string; }
+export interface RealtimeEvent { type: 'RESULT_UPDATED' | 'SCOREBOARD_UPDATED' | 'FINALS_CONFIRMED'; period: string; match?: Match; matchId?: string; day?: string; court?: string; sportId?: string; gender?: string; scoreA?: number; scoreB?: number; status?: string; teams?: Team[]; standings?: Standing[]; matches?: Match[]; updatedAt?: string; }
 export interface PublicSnapshot { teams: Team[]; standings: Standing[]; matches: Match[]; updatedAt: string; }
 export interface AdminState { teams: Team[]; standings: Standing[]; matches: Match[]; }
+export interface FinalsState { period: string; day3Complete: boolean; confirmed: boolean; finalists: Team[]; standings: Standing[]; }
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -88,6 +89,18 @@ export class ApiService {
     return this.fetchJson<{ reset: number }>(`${this.base}/admin/reset-results`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` }
+    }, 10000);
+  }
+
+  finalsAsync(period: string): Promise<FinalsState> {
+    return this.fetchJson<FinalsState>(`${this.base}/finals?period=${encodeURIComponent(period)}`, {}, 10000);
+  }
+
+  confirmFinalistsAsync(period: string, finalistIds: string[], token: string): Promise<FinalsState> {
+    return this.fetchJson<FinalsState>(`${this.base}/admin/finals/confirm`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ period, finalistIds })
     }, 10000);
   }
 

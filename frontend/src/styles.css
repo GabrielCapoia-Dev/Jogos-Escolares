@@ -1061,6 +1061,53 @@ je-root:has(.public-topbar){
   cursor:not-allowed!important;
   opacity:1!important;
 }
+.finals-view{min-width:0}
+.finals-heading{margin-bottom:14px}
+.finals-heading>div>p:last-child{margin:6px 0 0;color:var(--ji-muted);font-size:.82rem}
+.finals-phase-nav{margin-bottom:14px!important}
+.finals-layout{display:grid;grid-template-columns:minmax(300px,.78fr) minmax(0,1.5fr);gap:14px;align-items:start}
+.finals-tag{display:inline-flex;align-items:center;border-radius:999px;padding:7px 10px;background:#e8f3ff;color:#07529d;font-size:.66rem;font-weight:900;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.finals-ranking-panel .table-wrap{padding:10px 12px 4px}
+.finalist-letter{width:38px;height:38px;display:grid;place-items:center;flex:none;border-radius:50%;background:#e8f3ff;color:#07529d;font-size:1rem;font-weight:900;border:1px solid #cfe3f8}
+.finalist-letter.small{width:27px;height:27px;font-size:.75rem}
+.finals-state-note{margin:0;padding:12px 15px;border-top:1px solid var(--ji-line);color:#66809a;background:#fbfdff;font-size:.72rem;line-height:1.5}
+.finals-schedule-panel .panel-head{align-items:center}
+.finals-schedule-body{padding:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;background:#f8fbfe}
+.final-game-card{position:relative;min-width:0;padding:11px;border:1px solid var(--ji-line);border-radius:13px;background:white;box-shadow:0 3px 10px rgba(14,67,119,.05)}
+.final-game-meta{display:flex;justify-content:space-between;gap:8px;margin-bottom:10px;color:var(--ji-blue-900);font-size:.68rem}
+.final-game-meta span{color:var(--ji-blue-700);font-weight:900;white-space:nowrap}
+.final-game-match{display:grid;grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr);align-items:center;gap:5px}
+.final-game-team{display:flex;align-items:center;gap:6px;min-width:0;color:var(--ji-blue-900)}
+.final-game-team.away{flex-direction:row-reverse;text-align:right}
+.final-game-team>span:last-child{display:flex;min-width:0;flex-direction:column;line-height:1.15}
+.final-game-team b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.68rem}
+.final-game-team small{margin-top:2px;color:var(--ji-muted);font-size:.58rem}
+.final-game-score{color:#8097ac;text-align:center}
+.final-gender-badge{display:block;width:max-content;max-width:100%;margin:9px auto 0;padding:5px 8px;border-radius:999px;background:#e8f3ff;color:#1768b5;font-size:.58rem;font-weight:900}
+.final-gym-switch{grid-column:1/-1;margin:2px 0 4px;padding:11px 12px;border:1px dashed #9fc8ed;border-radius:12px;background:#f3f9ff;text-align:center;color:#07529d}
+.final-gym-switch strong,.final-gym-switch span{display:block;font-size:.7rem}
+.final-gym-switch span{margin-top:3px;color:#7289a3;font-size:.62rem}
+.admin-final-section{max-width:1100px;margin:24px auto}
+.admin-final-section>.scoreboard-heading{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.admin-final-section .scoreboard-heading p:not(.eyebrow){color:var(--ji-muted);font-size:.8rem}
+.admin-final-refresh{padding:9px 13px;border:1px solid var(--ji-line);border-radius:10px;background:#fff;color:var(--ji-blue-900);font:inherit;font-weight:800;cursor:pointer}
+.admin-final-periods{display:flex;gap:7px;margin-top:10px}
+.admin-final-periods button{min-height:34px;padding:0 13px;border:1px solid var(--ji-line);border-radius:999px;background:#fff;color:#60778d;font:inherit;font-size:.72rem;font-weight:850;cursor:pointer}
+.admin-final-periods button.active{border-color:var(--ji-blue-700);background:var(--ji-blue-700);color:#fff}
+.admin-final-panel{overflow:hidden}
+.admin-final-status{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-bottom:1px solid #f1e2bd;background:#fff8e9;color:#80620b;font-size:.78rem}
+.admin-final-status.ready{border-color:#cce9d9;background:#effaf4;color:#246b46}
+.admin-final-status span{font-size:.7rem}
+.admin-final-panel .table-wrap{overflow:auto;padding:12px}
+.admin-final-panel table{min-width:700px}
+.admin-final-panel td:first-child,.admin-final-panel th:first-child{text-align:center;width:82px}
+.admin-final-panel input[type=checkbox]{width:18px;height:18px;accent-color:var(--ji-blue-700)}
+.admin-final-help{margin:0;padding:0 16px 14px;color:#66809a;font-size:.72rem;line-height:1.5}
+.admin-final-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;border-top:1px solid var(--ji-line);background:#fbfdff;color:#66809a;font-size:.75rem}
+.admin-final-actions button{min-height:40px;padding:0 15px;border:0;border-radius:10px;background:var(--ji-blue-700);color:#fff;font:inherit;font-weight:900;cursor:pointer}
+.admin-final-actions button:disabled{background:#edf0f3;color:#a2acb5;cursor:not-allowed}
+@media(max-width:900px){.finals-layout{grid-template-columns:1fr}}
+@media(max-width:699px){.finals-phase-nav{display:flex!important}.finals-schedule-body{grid-template-columns:1fr}.admin-final-section{margin:14px 0}.admin-final-section>.scoreboard-heading{align-items:flex-start;flex-direction:column}.admin-final-refresh{align-self:flex-end}.admin-final-actions{align-items:flex-start;flex-direction:column}.admin-final-actions button{width:100%}}
 
 .schedule-selectors{margin-bottom:10px!important}
 .schedule-export-button{align-self:flex-end;border:1px solid var(--ji-blue-600);background:#fff;color:var(--ji-blue-700);border-radius:9px;padding:9px 14px;font:inherit;font-weight:700;cursor:pointer}

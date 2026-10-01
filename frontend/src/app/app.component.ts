@@ -3,10 +3,11 @@ import { ChangeDetectorRef, Component, HostListener, OnDestroy, inject } from '@
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { finalize, retry } from 'rxjs/operators';
-import { ApiService, Court, Day, LoginResponse, Match, Period, RealtimeEvent, Sport, Standing, Team } from './api.service';
+import { ApiService, Court, Day, FinalsState, LoginResponse, Match, Period, RealtimeEvent, Sport, Standing, Team } from './api.service';
 
-type PublicView = 'CLASSIFICACAO' | 'CRONOGRAMA' | 'CRONOGRAMA_EQUIPE' | 'RESULTADOS';
+type PublicView = 'CLASSIFICACAO' | 'CRONOGRAMA' | 'CRONOGRAMA_EQUIPE' | 'RESULTADOS' | 'FINAL';
 type Screen = 'PUBLIC' | 'ADMIN';
+type AdminSection = 'RESULTS' | 'FINAL';
 
 @Component({
   selector: 'je-root',
@@ -88,6 +89,10 @@ export class AppComponent implements OnDestroy {
   resetConfirmOpen = false;
   resetLoading = false;
   resetError = '';
+  adminSection: AdminSection = 'RESULTS';
+  finalsState: FinalsState | null = null;
+  adminFinalistIds: string[] = [];
+  adminFinalsSaving = false;
 
   constructor() {
     this.api.periods().subscribe({ next: value => this.periods = value, error: () => undefined });
@@ -117,6 +122,7 @@ export class AppComponent implements OnDestroy {
   choosePeriod(period: Period): void {
     this.period = period.id;
     this.view = 'CLASSIFICACAO';
+    this.finalsState = null;
     this.day = this.days[0]?.id ?? 'DIA_1';
     this.selectedTeam = sessionStorage.getItem(this.teamFilterKey(period.id)) ?? '';
     this.teams = this.fallbackTeams(period.id);
@@ -137,6 +143,13 @@ export class AppComponent implements OnDestroy {
   setView(view: PublicView): void {
     this.view = view;
     this.publicFiltersOpen = false;
+    if (view === 'FINAL') {
+      this.finalsState = null;
+      this.renderNow();
+      void this.loadFinals();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     if (view !== 'CLASSIFICACAO') {
       this.matches = [];
       this.loading = true;
@@ -144,6 +157,105 @@ export class AppComponent implements OnDestroy {
     }
     this.loadPublic();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async loadFinals(): Promise<void> {
+    if (!this.period) return;
+    try {
+      this.finalsState = await this.api.finalsAsync(this.period);
+      this.renderNow();
+    } catch {
+      this.finalsState = null;
+      this.showToast('Não foi possível carregar a fase final.');
+    }
+  }
+
+  finalDisplaySlots(): Array<{ letter: string; team: Team | null; standing: Standing | null }> {
+    const finalists = this.finalsState?.confirmed ? this.finalsState.finalists : [];
+    return ['A', 'B', 'C'].map((letter, index) => {
+      const team = finalists[index] ?? null;
+      return { letter, team, standing: null };
+    });
+  }
+
+  finalSlotName(index: number): string {
+    const slot = this.finalDisplaySlots()[index];
+    return slot?.team?.color ?? `Equipe ${slot?.letter ?? ''}`;
+  }
+
+  finalSlotMascot(index: number): string {
+    const slot = this.finalDisplaySlots()[index];
+    return slot?.team?.mascot ?? 'Classificada';
+  }
+
+  finalSlotTeam(index: number): Team | null {
+    return this.finalDisplaySlots()[index]?.team ?? null;
+  }
+
+  finalMatches(): Array<{ sport: string; court: string; time: string; a: number; b: number }> {
+    return [
+      { sport: 'Basquete', court: 'QUADRA_2', time: '08:30', a: 0, b: 1 },
+      { sport: 'Basquete', court: 'QUADRA_2', time: '08:42', a: 0, b: 2 },
+      { sport: 'Basquete', court: 'QUADRA_2', time: '08:54', a: 1, b: 2 },
+      { sport: 'Peteca', court: 'QUADRA_1', time: '09:12', a: 0, b: 1 },
+      { sport: 'Peteca', court: 'QUADRA_1', time: '09:24', a: 0, b: 2 },
+      { sport: 'Peteca', court: 'QUADRA_1', time: '09:36', a: 1, b: 2 },
+      { sport: 'Futsal', court: 'QUADRA_1', time: '09:12', a: 0, b: 1 },
+      { sport: 'Futsal', court: 'QUADRA_1', time: '09:24', a: 0, b: 2 },
+      { sport: 'Futsal', court: 'QUADRA_1', time: '09:36', a: 1, b: 2 }
+    ];
+  }
+
+  async loadAdminFinals(): Promise<void> {
+    this.finalsState = null;
+    try {
+      const state = await this.api.finalsAsync(this.adminPeriod);
+      if (this.screen !== 'ADMIN' || this.adminSection !== 'FINAL' || this.adminPeriod !== state.period) return;
+      this.finalsState = state;
+      this.adminStandings = state.standings;
+      const candidates = state.standings.filter(row => row.position <= 3);
+      this.adminFinalistIds = state.confirmed
+        ? state.finalists.map(team => team.id)
+        : candidates.length === 3 ? candidates.map(row => row.teamId) : [];
+      this.renderNow();
+    } catch {
+      this.showToast('Não foi possível carregar os finalistas.');
+    }
+  }
+
+  toggleAdminFinalist(teamId: string): void {
+    if (!this.finalsState?.day3Complete || this.adminFinalsSaving) return;
+    if (this.adminFinalistIds.includes(teamId)) {
+      this.adminFinalistIds = this.adminFinalistIds.filter(id => id !== teamId);
+    } else if (this.adminFinalistIds.length < 3) {
+      this.adminFinalistIds = [...this.adminFinalistIds, teamId];
+    }
+  }
+
+  async confirmAdminFinalists(): Promise<void> {
+    if (!this.finalsState?.day3Complete || this.adminFinalistIds.length !== 3 || !this.adminToken) return;
+    this.adminFinalsSaving = true;
+    try {
+      this.finalsState = await this.api.confirmFinalistsAsync(this.adminPeriod, this.adminFinalistIds, this.adminToken);
+      this.adminStandings = this.finalsState.standings;
+      this.showToast('Finalistas confirmados para ' + this.periodName(this.adminPeriod) + '.');
+    } catch (error: any) {
+      if (error?.status === 401) this.expireAdminSession();
+      else this.showToast(error?.message || 'Não foi possível confirmar os finalistas.');
+    } finally {
+      this.adminFinalsSaving = false;
+      this.renderNow();
+    }
+  }
+
+  openAdminFinals(): void {
+    this.adminSection = 'FINAL';
+    void this.loadAdminFinals();
+  }
+
+  showAdminResults(): void {
+    this.adminSection = 'RESULTS';
+    void this.loadAdmin();
   }
 
   loadPublic(showLoading = true, force = false): void {
@@ -165,6 +277,12 @@ export class AppComponent implements OnDestroy {
     const complete = () => {
       if (requestVersion === this.publicRequestVersion) this.publicRefreshBusy = false;
     };
+
+    if (requestView === 'FINAL') {
+      complete();
+      void this.loadFinals();
+      return;
+    }
 
     if (requestView === 'CLASSIFICACAO') {
       complete();
@@ -282,6 +400,7 @@ export class AppComponent implements OnDestroy {
 
   enterAdmin(): void {
     this.screen = 'ADMIN';
+    this.adminSection = 'RESULTS';
     this.loginOpen = false;
     this.adminPeriod = this.period || 'MANHA';
     this.adminDay = this.days[0]?.id ?? 'DIA_1';
@@ -414,6 +533,7 @@ export class AppComponent implements OnDestroy {
     this.adminLoading = true;
     this.renderNow();
     void this.loadAdmin();
+    if (kind === 'period' && this.adminSection === 'FINAL') void this.loadAdminFinals();
   }
 
   confirmAdminFilters(): void {

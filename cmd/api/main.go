@@ -69,6 +69,10 @@ type resultRequest struct {
 	ScoreA int `json:"scoreA"`
 	ScoreB int `json:"scoreB"`
 }
+type finalistConfirmationRequest struct {
+	Period     string   `json:"period"`
+	FinalistIDs []string `json:"finalistIds"`
+}
 
 func main() {
 	ctx := context.Background()
@@ -103,6 +107,8 @@ func main() {
 	mux.HandleFunc("/api/v1/snapshot", s.snapshot)
 	mux.HandleFunc("/api/v1/admin-state", s.adminState)
 	mux.HandleFunc("/api/v1/admin/reset-results", s.resetResults)
+	mux.HandleFunc("/api/v1/finals", s.finals)
+	mux.HandleFunc("/api/v1/admin/finals/confirm", s.confirmFinalists)
 	mux.HandleFunc("/api/v1/admin/matches/", s.adminMatch)
 	addr := os.Getenv("HTTP_ADDR")
 	if addr == "" {
@@ -110,6 +116,152 @@ func main() {
 	}
 	log.Printf("api listening on %s", addr)
 	log.Fatal(http.ListenAndServe(addr, withCORS(mux)))
+}
+
+func (s *server) finals(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	period := r.URL.Query().Get("period")
+	if period != "MANHA" && period != "TARDE" {
+		http.Error(w, "period is required", http.StatusBadRequest)
+		return
+	}
+	matches := s.cachedMatches(period, "", "", "", "")
+	dayThreeCount, dayThreeFinished := 0, 0
+	for _, match := range matches {
+		if match.Day != "DIA_3" {
+			continue
+		}
+		dayThreeCount++
+		if match.Status == domain.StatusFinalizado || match.Status == domain.StatusCancelado {
+			dayThreeFinished++
+		}
+	}
+	confirmedIDs, err := s.store.FinalistIDs(r.Context(), period)
+	if err != nil {
+		serverError(w, err)
+		return
+	}
+	confirmed := dayThreeCount > 0 && dayThreeFinished == dayThreeCount && len(confirmedIDs) == 3
+	teams, err := s.store.Teams(r.Context(), period)
+	if err != nil {
+		serverError(w, err)
+		return
+	}
+	finalists := make([]domain.Team, 0, 3)
+	if confirmed {
+		byID := make(map[string]domain.Team, len(teams))
+		for _, team := range teams {
+			byID[team.ID] = team
+		}
+		for _, id := range confirmedIDs {
+			if team, ok := byID[id]; ok {
+				finalists = append(finalists, team)
+			}
+		}
+		if len(finalists) != 3 {
+			confirmed = false
+			finalists = []domain.Team{}
+		}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"period": period,
+		"day3Complete": dayThreeCount > 0 && dayThreeFinished == dayThreeCount,
+		"confirmed": confirmed,
+		"finalists": finalists,
+		"standings": domain.CalculateStandings(teams, matches, period, domain.GeneroGeral),
+	})
+}
+
+func (s *server) confirmFinalists(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	token := strings.TrimSpace(strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer"))
+	if token == "" {
+		http.Error(w, "autenticação obrigatória", http.StatusUnauthorized)
+		return
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 8*time.Second)
+	defer cancel()
+	user, err := s.store.UserID(ctx, token)
+	if err != nil {
+		http.Error(w, "não autorizado", http.StatusUnauthorized)
+		return
+	}
+	var input finalistConfirmationRequest
+	if json.NewDecoder(r.Body).Decode(&input) != nil || (input.Period != "MANHA" && input.Period != "TARDE") {
+		http.Error(w, "payload inválido", http.StatusBadRequest)
+		return
+	}
+	matches := s.cachedMatches(input.Period, "", "", "", "")
+	dayThreeCount, dayThreeFinished := 0, 0
+	for _, match := range matches {
+		if match.Day != "DIA_3" {
+			continue
+		}
+		dayThreeCount++
+		if match.Status == domain.StatusFinalizado || match.Status == domain.StatusCancelado {
+			dayThreeFinished++
+		}
+	}
+	if dayThreeCount == 0 || dayThreeFinished != dayThreeCount {
+		http.Error(w, "o Dia 3 deste período ainda não foi concluído", http.StatusConflict)
+		return
+	}
+	teams, err := s.store.Teams(ctx, input.Period)
+	if err != nil {
+		serverError(w, err)
+		return
+	}
+	standings := domain.CalculateStandings(teams, matches, input.Period, domain.GeneroGeral)
+	eligible := make(map[string]bool)
+	for _, row := range standings {
+		if row.Position <= 3 {
+			eligible[row.TeamID] = true
+		}
+	}
+	seen := make(map[string]bool)
+	for _, id := range input.FinalistIDs {
+		if !eligible[id] || seen[id] {
+			http.Error(w, "selecione três equipes entre as classificadas e os empates no corte", http.StatusBadRequest)
+			return
+		}
+		seen[id] = true
+	}
+	if len(seen) != 3 {
+		http.Error(w, "selecione exatamente três equipes classificadas", http.StatusBadRequest)
+		return
+	}
+	orderedIDs := make([]string, 0, 3)
+	for _, row := range standings {
+		if seen[row.TeamID] {
+			orderedIDs = append(orderedIDs, row.TeamID)
+		}
+	}
+	if err := s.store.ConfirmFinalists(ctx, input.Period, orderedIDs, user); err != nil {
+		serverError(w, err)
+		return
+	}
+	s.events.publish(map[string]any{"type": "FINALS_CONFIRMED", "period": input.Period})
+	byID := make(map[string]domain.Team, len(teams))
+	for _, team := range teams {
+		byID[team.ID] = team
+	}
+	finalists := make([]domain.Team, 0, 3)
+	for _, id := range orderedIDs {
+		finalists = append(finalists, byID[id])
+	}
+	writeJSON(w, http.StatusOK, map[string]any{
+		"period": input.Period,
+		"day3Complete": true,
+		"confirmed": true,
+		"finalists": finalists,
+		"standings": standings,
+	})
 }
 
 func (s *server) adminMatch(w http.ResponseWriter, r *http.Request) {
