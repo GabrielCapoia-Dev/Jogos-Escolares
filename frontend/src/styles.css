@@ -5765,7 +5765,23 @@ body:has(#admin-app) .admin-registration-nav button.active{
   .penalty-remove-button{grid-column:2/4;justify-self:start}
 }
 @media(max-width:699px){
-  body:has(#admin-app) .admin-registration-nav{grid-template-columns:repeat(4,minmax(0,1fr))!important;align-content:center!important;min-height:112px!important}
-  body:has(#admin-app) .admin-registration-nav button{width:auto!important;min-width:0!important;max-width:none!important;padding:4px 2px!important}
-  body:has(#admin-app) #admin-app{padding-bottom:calc(142px + env(safe-area-inset-bottom))!important}
+  body:has(#admin-app) .admin-registration-nav{
+    left:8px!important;right:8px!important;width:auto!important;max-width:none!important;
+    min-height:0!important;height:72px!important;padding:5px!important;
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;grid-auto-rows:1fr!important;
+    align-content:stretch!important;gap:4px!important;border-radius:16px!important;
+    background:rgba(255,255,255,.98)!important;box-shadow:0 6px 22px rgba(9,61,114,.18)!important;
+  }
+  body:has(#admin-app) .admin-registration-nav button{
+    width:100%!important;min-width:0!important;max-width:none!important;
+    height:60px!important;min-height:60px!important;padding:4px 1px!important;
+    gap:4px!important;border-radius:11px!important;font-size:clamp(8px,2.25vw,10px)!important;
+    line-height:1.05!important;white-space:normal!important;
+  }
+  body:has(#admin-app) .admin-registration-nav button span:not(.nav-icon){
+    display:block!important;max-width:100%!important;text-align:center!important;
+    overflow-wrap:anywhere!important;letter-spacing:-.02em!important;
+  }
+  body:has(#admin-app) .admin-registration-nav .nav-icon{font-size:14px!important;line-height:1!important}
+  body:has(#admin-app) #admin-app{padding-bottom:calc(92px + env(safe-area-inset-bottom))!important}
 }
