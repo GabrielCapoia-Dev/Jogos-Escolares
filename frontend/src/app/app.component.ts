@@ -1098,6 +1098,13 @@ export class AppComponent implements OnDestroy {
     return this.matches.filter(item => item.status === 'FINALIZADO').slice(-6).reverse();
   }
 
+  latestPenalties(): Penalty[] {
+    return this.penaltiesForPeriod(this.period)
+      .slice()
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 6);
+  }
+
   teamMatches(): Match[] {
     return this.sortMatchesFinalizedLast(
       this.matches.filter(item => !this.selectedTeam || item.teamAId === this.selectedTeam || item.teamBId === this.selectedTeam)
@@ -1203,6 +1210,7 @@ export class AppComponent implements OnDestroy {
         this.teams = event.teams;
         this.standings = event.standings;
         this.matches = event.matches;
+        void this.refreshPublicPenalties(event.period);
         this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         this.loading = false;
         this.error = '';
@@ -1216,6 +1224,17 @@ export class AppComponent implements OnDestroy {
 
     // No admin, a confirmação HTTP já atualiza o card imediatamente.
     // O WebSocket não precisa forçar uma recarga pesada da lista.
+  }
+
+  private async refreshPublicPenalties(period: string): Promise<void> {
+    try {
+      const penalties = await this.api.penaltiesAsync(period);
+      if (this.screen !== 'PUBLIC' || this.period !== period || this.view !== 'CLASSIFICACAO') return;
+      this.penalties = penalties;
+      this.renderNow();
+    } catch {
+      // Mantém os registros atuais; o próximo ciclo periódico tentará novamente.
+    }
   }
 
   private applySavedMatchToAdmin(saved: Match): void {
@@ -1311,12 +1330,16 @@ export class AppComponent implements OnDestroy {
     this.error = '';
 
     try {
-      const snapshot = await this.api.snapshotAsync(period, this.gender);
+      const [snapshot, penalties] = await Promise.all([
+        this.api.snapshotAsync(period, this.gender),
+        this.api.penaltiesAsync(period)
+      ]);
       if (this.screen !== 'PUBLIC' || this.period !== period || this.view !== 'CLASSIFICACAO') return;
 
       this.teams = snapshot.teams;
       this.standings = snapshot.standings;
       this.matches = snapshot.matches;
+      this.penalties = penalties;
       this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       this.error = '';
       this.renderNow();
@@ -1341,14 +1364,16 @@ export class AppComponent implements OnDestroy {
     forkJoin({
       teams: this.api.teams(period),
       standings: this.api.standings(period, gender),
-      matches: this.api.matches(period)
+      matches: this.api.matches(period),
+      penalties: this.api.penalties(period)
     }).subscribe({
-      next: ({ teams, standings, matches }) => {
+      next: ({ teams, standings, matches, penalties }) => {
         if (requestVersion !== this.publicRequestVersion) return;
         if (this.period !== period || this.view !== 'CLASSIFICACAO') return;
         this.teams = teams;
         this.standings = standings;
         this.matches = matches.filter(item => item.status === 'FINALIZADO');
+        this.penalties = penalties;
         this.lastUpdated = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         this.loading = false;
         this.error = '';

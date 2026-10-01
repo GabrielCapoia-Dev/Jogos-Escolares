@@ -89,7 +89,7 @@
           <p class="ranking-note">Os 3 primeiros de cada período se classificam para a fase final. Manhã e tarde têm classificações independentes. Empate total: cara ou coroa, melhor de 3.</p>
         </section>
         <section class="results-section">
-          <div class="section-heading editorial-heading"><div><p class="eyebrow blue">Acompanhe em tempo real</p><h2>Últimos resultados</h2><p>Resultados lançados recentemente</p></div><span class="live-badge">Ao vivo</span></div>
+          <div class="section-heading editorial-heading"><div><p class="eyebrow blue">Acompanhe em tempo real</p><h2>Últimos registros</h2><p>Resultados e punições lançados recentemente</p></div><span class="live-badge">Ao vivo</span></div>
           <div class="results-list">
             <article class="result-card fixture-card" *ngFor="let match of latestResults()">
               <div class="result-meta"><span class="sport-pill">{{ sportName(match.sportId) }}</span><span>{{ genderName(match.gender) }}</span></div>
@@ -108,7 +108,11 @@
               </div>
               <p>{{ team(match.teamAId)?.color }} {{ resultPoints(match,'A') }} {{ resultPoints(match,'A') === 1 ? 'pt' : 'pts' }} · {{ team(match.teamBId)?.color }} {{ resultPoints(match,'B') }} {{ resultPoints(match,'B') === 1 ? 'pt' : 'pts' }}</p>
             </article>
-            <div class="empty-state" *ngIf="!latestResults().length">Nenhum resultado lançado neste período.</div>
+            <article class="result-card penalty-activity-card" *ngFor="let item of latestPenalties()">
+              <div class="penalty-activity-meta"><span>Punição registrada</span><time>{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</time></div>
+              <div class="penalty-activity-main"><span class="team-emblem mascot-image" [ngClass]="team(item.teamId)?.sprite"></span><div class="penalty-activity-team"><strong>{{ team(item.teamId)?.color }}</strong><small>{{ team(item.teamId)?.mascot }}</small><p>{{ item.reason }}</p></div><strong class="penalty-activity-points">−{{ item.points }}<small>pts</small></strong></div>
+            </article>
+            <div class="empty-state" *ngIf="!latestResults().length && !latestPenalties().length">Nenhum resultado ou punição registrado neste período.</div>
           </div>
         </section>
       </div>
