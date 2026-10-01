@@ -229,7 +229,7 @@ function linhaRanking(item) {
   const branco = item.cor === "Branco" ? " white-team" : "";
   return `<tr class="team-row${branco}" style="--team-color:${item.hex}">
     <td class="position"><strong>${item.posicao}º</strong></td>
-    <td><span class="team-ident">${emblemaEquipe(item)}<span class="team-name"><strong>${item.cor}</strong><small>${item.mascote}</small></span></span></td>
+    <td><span class="team-ident">${emblemaEquipe(item)}<span class="team-name"><strong>${item.cor}</strong><small>${item.mascote}</small>${item.criterioDesempate ? `<small class="ranking-tiebreak">Desempate: ${item.criterioDesempate}</small>` : ""}${item.empateMoeda ? '<small class="ranking-tiebreak">Empate total · cara ou coroa, melhor de 3</small>' : ""}</span></span></td>
     <td><strong>${item.pontos}</strong></td><td>${item.jogos}</td><td>${item.vitorias}</td><td>${item.empates}</td><td>${item.derrotas}</td>
   </tr>`;
 }
@@ -331,7 +331,7 @@ async function renderClassificacao() {
   document.querySelector("#ranking").innerHTML = `<div class="table-wrap"><table class="ranking-table">
     <thead><tr><th>Posição</th><th>Cor</th><th title="Pontos">P</th><th title="Jogos">J</th><th title="Vitórias">V</th><th title="Empates">E</th><th title="Derrotas">D</th></tr></thead>
     <tbody>${ranking.map(linhaRanking).join("")}</tbody>
-  </table></div>`;
+  </table></div><p class="ranking-note">Os 3 primeiros de cada período se classificam para a fase final. Manhã e tarde têm classificações independentes. Empate total: cara ou coroa, melhor de 3.</p>`;
   document.querySelector("#resultados").innerHTML = resultados.length ? resultados.map(cardResultado).join("") : `<div class="empty-state">Nenhum resultado lançado neste período.</div>`;
   document.querySelector("#atualizado").textContent = `Atualizado às ${new Date().toLocaleTimeString("pt-BR")}`;
 }

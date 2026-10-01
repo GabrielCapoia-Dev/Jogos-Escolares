@@ -86,7 +86,7 @@ function linhaClassificacao(item) {
   const branco = item.cor === "Branco" ? " white-team" : "";
   return `<tr class="team-row${branco}" style="--team-color:${item.hex}">
     <td class="position"><strong>${item.posicao}º</strong></td>
-    <td><span class="team-ident">${emblemaEquipe(item)}<span class="team-name"><strong>${item.cor}</strong><small>${item.mascote}</small></span></span></td>
+    <td><span class="team-ident">${emblemaEquipe(item)}<span class="team-name"><strong>${item.cor}</strong><small>${item.mascote}</small>${item.criterioDesempate ? `<small class="ranking-tiebreak">Desempate: ${item.criterioDesempate}</small>` : ""}${item.empateMoeda ? '<small class="ranking-tiebreak">Empate total · cara ou coroa, melhor de 3</small>' : ""}</span></span></td>
     <td><strong>${item.pontos}</strong></td><td>${item.jogos}</td><td>${item.vitorias}</td><td>${item.empates}</td><td>${item.derrotas}</td>
   </tr>`;
 }

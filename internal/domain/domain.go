@@ -79,6 +79,8 @@ type Standing struct {
 	Draws    int    `json:"draws"`
 	Losses   int    `json:"losses"`
 	Position int    `json:"position"`
+	Tiebreaker string `json:"tiebreaker,omitempty"`
+	Tied        bool   `json:"tied,omitempty"`
 }
 
 var Periods = []Period{{"MANHA", "Manhã"}, {"TARDE", "Tarde"}}
@@ -157,10 +159,32 @@ func CalculateStandings(teams []Team, matches []Match, period, gender string) []
 		if out[i].Wins != out[j].Wins {
 			return out[i].Wins > out[j].Wins
 		}
+		if out[i].Draws != out[j].Draws {
+			return out[i].Draws > out[j].Draws
+		}
+		if out[i].Losses != out[j].Losses {
+			return out[i].Losses < out[j].Losses
+		}
 		return out[i].Color < out[j].Color
 	})
 	for i := range out {
 		out[i].Position = i + 1
+		if i == 0 {
+			continue
+		}
+		previous := out[i-1]
+		if previous.Points != out[i].Points { continue }
+		switch {
+		case previous.Wins != out[i].Wins:
+			out[i].Tiebreaker, out[i-1].Tiebreaker = "Vitórias", "Vitórias"
+		case previous.Draws != out[i].Draws:
+			out[i].Tiebreaker, out[i-1].Tiebreaker = "Empates", "Empates"
+		case previous.Losses != out[i].Losses:
+			out[i].Tiebreaker, out[i-1].Tiebreaker = "Menos derrotas", "Menos derrotas"
+		default:
+			out[i].Tied, out[i-1].Tied = true, true
+			out[i].Position = previous.Position
+		}
 	}
 	return out
 }

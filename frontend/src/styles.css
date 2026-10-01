@@ -1,4 +1,4 @@
-.team-emblem{display:inline-block}.legacy-error{padding:1rem;color:#a12632}
+.team-emblem{display:inline-block}.team-emblem.mascot-image{border-radius:50%!important;overflow:hidden!important}.legacy-error{padding:1rem;color:#a12632}
 html:has(.welcome-screen),body:has(.welcome-screen){overflow:hidden!important;height:100%;}
 .welcome-screen .choice-grid{display:grid!important;visibility:visible!important;opacity:1!important;}
 .welcome-screen .choice-button{display:block!important;visibility:visible!important;opacity:1!important;color:#003b82!important;background:#eef4fb!important;}
@@ -654,6 +654,8 @@ je-root:has(.public-topbar){
   justify-content:center!important;
   gap:8px!important;
 }
+.ranking-table .team-name .ranking-tiebreak{color:#1672c5!important;font-size:.62rem!important;font-weight:800!important;line-height:1.1}
+.ranking-note{margin:.7rem .8rem;color:#667f99;font-size:.72rem;line-height:1.4}
 .header-sport-logo{width:58px;height:22px;object-fit:contain;display:block;filter:none}
 .public-topbar strong{
   font-size:.76rem!important;

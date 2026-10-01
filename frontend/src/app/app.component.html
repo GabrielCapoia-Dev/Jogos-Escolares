@@ -80,12 +80,13 @@
               <tbody>
                 <tr class="team-row" *ngFor="let row of standings" [style.--team-color]="row.hex">
                   <td class="position"><strong>{{ row.position }}º</strong></td>
-                  <td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small></span></span></td>
+                  <td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small><small *ngIf="row.tiebreaker" class="ranking-tiebreak">Desempate: {{ row.tiebreaker }}</small><small *ngIf="row.tied" class="ranking-tiebreak">Empate total · cara ou coroa, melhor de 3</small></span></span></td>
                   <td><strong>{{ row.points }}</strong></td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
+          <p class="ranking-note">Os 3 primeiros de cada período se classificam para a fase final. Manhã e tarde têm classificações independentes. Empate total: cara ou coroa, melhor de 3.</p>
         </section>
         <section class="results-section">
           <div class="section-heading editorial-heading"><div><p class="eyebrow blue">Acompanhe em tempo real</p><h2>Últimos resultados</h2><p>Resultados lançados recentemente</p></div><span class="live-badge">Ao vivo</span></div>
@@ -315,7 +316,7 @@
   <div class="admin-ranking-backdrop" (click)="$event.stopPropagation()"></div>
   <section class="admin-ranking-sheet" role="dialog" aria-modal="true" aria-label="Placar geral">
     <div class="admin-ranking-sheet-head"><h2>Placar geral</h2></div>
-    <div class="admin-ranking-sheet-body"><div class="table-wrap"><table class="ranking-table"><thead><tr><th>Posição</th><th>Cor</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead><tbody><tr class="team-row" *ngFor="let row of adminStandings" [style.--team-color]="row.hex"><td><strong>{{ row.position }}º</strong></td><td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small></span></span></td><td><strong>{{ row.points }}</strong></td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td></tr></tbody></table></div></div>
+    <div class="admin-ranking-sheet-body"><div class="table-wrap"><table class="ranking-table"><thead><tr><th>Posição</th><th>Cor</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead><tbody><tr class="team-row" *ngFor="let row of adminStandings" [style.--team-color]="row.hex"><td><strong>{{ row.position }}º</strong></td><td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small><small *ngIf="row.tiebreaker" class="ranking-tiebreak">Desempate: {{ row.tiebreaker }}</small><small *ngIf="row.tied" class="ranking-tiebreak">Empate total · cara ou coroa, melhor de 3</small></span></span></td><td><strong>{{ row.points }}</strong></td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td></tr></tbody></table></div></div>
     <button type="button" class="admin-ranking-back" (click)="adminRankingOpen=false">Voltar</button>
   </section>
 </div>

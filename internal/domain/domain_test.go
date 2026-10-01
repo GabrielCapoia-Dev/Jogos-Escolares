@@ -102,14 +102,31 @@ func TestCalculateStandingsUsesRules(t *testing.T) {
 	teams := []Team{{ID: "MANHA_A", Period: "MANHA", Color: "Azul", Active: true}, {ID: "MANHA_B", Period: "MANHA", Color: "Amarelo", Active: true}, {ID: "MANHA_C", Period: "MANHA", Color: "Verde", Active: true}}
 	matches := []Match{{Period: "MANHA", Gender: "MASCULINO", TeamAID: "MANHA_A", TeamBID: "MANHA_B", Status: StatusFinalizado, ScoreA: 2, ScoreB: 0}, {Period: "MANHA", Gender: "FEMININO", TeamAID: "MANHA_B", TeamBID: "MANHA_C", Status: StatusFinalizado, ScoreA: 1, ScoreB: 0}}
 	rows := CalculateStandings(teams, matches, "MANHA", GeneroGeral)
-	if rows[0].Color != "Amarelo" || rows[0].Points != 3 {
+	if rows[0].Color != "Azul" || rows[0].Points != 3 {
 		t.Fatalf("desempate inesperado: %#v", rows)
 	}
-	if rows[1].Color != "Azul" || rows[1].Points != 3 {
+	if rows[1].Color != "Amarelo" || rows[1].Points != 3 {
 		t.Fatalf("segunda posição inesperada: %#v", rows)
+	}
+	if rows[0].Tiebreaker != "Menos derrotas" || rows[1].Tiebreaker != "Menos derrotas" {
+		t.Fatalf("critério de derrotas não identificado: %#v", rows[:2])
 	}
 	filtered := CalculateStandings(teams, matches, "MANHA", "MASCULINO")
 	if filtered[0].Color != "Azul" || filtered[0].Games != 1 {
 		t.Fatalf("filtro por gênero incorreto: %#v", filtered)
+	}
+}
+
+func TestCalculateStandingsLeavesExactTieForCoinToss(t *testing.T) {
+	teams := []Team{{ID: "A", Period: "MANHA", Color: "Amarelo", Active: true}, {ID: "B", Period: "MANHA", Color: "Azul", Active: true}, {ID: "C", Period: "MANHA", Color: "Verde", Active: true}}
+	// Os três têm a mesma campanha e permanecem empatados para decisão por moeda.
+	matches := []Match{
+		{Period: "MANHA", Gender: "MASCULINO", Status: StatusFinalizado, TeamAID: "A", TeamBID: "B", ScoreA: 1, ScoreB: 1},
+		{Period: "MANHA", Gender: "MASCULINO", Status: StatusFinalizado, TeamAID: "A", TeamBID: "C", ScoreA: 1, ScoreB: 1},
+		{Period: "MANHA", Gender: "MASCULINO", Status: StatusFinalizado, TeamAID: "B", TeamBID: "C", ScoreA: 1, ScoreB: 1},
+	}
+	rows := CalculateStandings(teams, matches, "MANHA", GeneroGeral)
+	if !rows[0].Tied || !rows[1].Tied || !rows[2].Tied || rows[0].Position != rows[1].Position || rows[1].Position != rows[2].Position {
+		t.Fatalf("critério de empates não aplicado: %#v", rows)
 	}
 }

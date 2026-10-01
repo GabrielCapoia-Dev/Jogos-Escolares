@@ -937,7 +937,7 @@ export class AppComponent implements OnDestroy {
   }
 
   private calculateLocalStandings(teams: Team[], matches: Match[]): Standing[] {
-    const rows = teams.map((team, index) => ({
+    const rows: Standing[] = teams.map((team, index) => ({
       teamId: team.id,
       color: team.color,
       hex: team.hex,
@@ -980,8 +980,19 @@ export class AppComponent implements OnDestroy {
       }
     }
 
-    rows.sort((a, b) => b.points - a.points || b.wins - a.wins || a.color.localeCompare(b.color));
-    rows.forEach((row, index) => row.position = index + 1);
+    rows.sort((a, b) => b.points - a.points || b.wins - a.wins || b.draws - a.draws || a.losses - b.losses || a.color.localeCompare(b.color));
+    rows.forEach((row, index) => {
+      const previous = rows[index - 1];
+      row.position = index + 1;
+      if (!previous || previous.points !== row.points) return;
+      if (previous.wins !== row.wins) row.tiebreaker = previous.tiebreaker = 'Vitórias';
+      else if (previous.draws !== row.draws) row.tiebreaker = previous.tiebreaker = 'Empates';
+      else if (previous.losses !== row.losses) row.tiebreaker = previous.tiebreaker = 'Menos derrotas';
+      else {
+        row.tied = previous.tied = true;
+        row.position = previous.position;
+      }
+    });
     return rows;
   }
 

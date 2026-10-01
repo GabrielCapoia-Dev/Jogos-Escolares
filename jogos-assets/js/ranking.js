@@ -26,9 +26,10 @@ function comparar(a, b) {
   for (const criterio of CONFIG.criteriosDesempate) {
     if (criterio === "pontos" && a.pontos !== b.pontos) return b.pontos - a.pontos;
     if (criterio === "vitorias" && a.vitorias !== b.vitorias) return b.vitorias - a.vitorias;
-    if (criterio === "cor") return a.cor.localeCompare(b.cor, "pt-BR");
+    if (criterio === "empates" && a.empates !== b.empates) return b.empates - a.empates;
+    if (criterio === "menosDerrotas" && a.derrotas !== b.derrotas) return a.derrotas - b.derrotas;
   }
-  return 0;
+  return a.cor.localeCompare(b.cor, "pt-BR");
 }
 
 export function calcularClassificacao(dados, periodo, genero = GENEROS.geral) {
@@ -42,5 +43,18 @@ export function calcularClassificacao(dados, periodo, genero = GENEROS.geral) {
       const linhaB = linhas.get(partida.equipeBId);
       if (linhaA && linhaB) aplicarResultado(linhaA, linhaB, Number(partida.placarA), Number(partida.placarB));
     });
-  return [...linhas.values()].sort(comparar).map((linha, indice) => ({ ...linha, posicao: indice + 1 }));
+  const ordenadas = [...linhas.values()].sort(comparar);
+  ordenadas.forEach((linha, indice) => {
+    linha.posicao = indice + 1;
+    const anterior = ordenadas[indice - 1];
+    if (!anterior || anterior.pontos !== linha.pontos) return;
+    if (anterior.vitorias !== linha.vitorias) anterior.criterioDesempate = linha.criterioDesempate = "Vitórias";
+    else if (anterior.empates !== linha.empates) anterior.criterioDesempate = linha.criterioDesempate = "Empates";
+    else if (anterior.derrotas !== linha.derrotas) anterior.criterioDesempate = linha.criterioDesempate = "Menos derrotas";
+    else {
+      anterior.empateMoeda = linha.empateMoeda = true;
+      linha.posicao = anterior.posicao;
+    }
+  });
+  return ordenadas;
 }

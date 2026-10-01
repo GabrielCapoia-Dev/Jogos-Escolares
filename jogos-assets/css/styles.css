@@ -93,6 +93,8 @@ h1, h2 { line-height: 1.1; letter-spacing: -0.025em; }
 .ranking-table th:nth-child(n+3) { width: 10%; }
 .ranking-table td { height: 44px; padding: .35rem .15rem; border-top: 1px solid rgba(210,221,235,.7); text-align: center; }
 .ranking-table td:nth-child(2) { text-align: left; }
+.ranking-tiebreak { color: #1672c5 !important; font-size: .62rem !important; font-weight: 800 !important; line-height: 1.1; }
+.ranking-note { margin: .7rem .8rem; color: #667f99; font-size: .72rem; line-height: 1.4; }
 .team-row { background: color-mix(in srgb, var(--team-color) 10%, white); }
 .team-row.white-team { box-shadow: inset 4px 0 #cbd5e1; background: #fbfcfe; }
 .position strong { color: var(--blue-950); }
