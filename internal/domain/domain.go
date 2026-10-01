@@ -184,6 +184,9 @@ func CalculateStandingsWithPenalties(teams []Team, matches []Match, penalties []
 		if out[i].Points != out[j].Points {
 			return out[i].Points > out[j].Points
 		}
+		if out[i].PenaltyPoints != out[j].PenaltyPoints {
+			return out[i].PenaltyPoints < out[j].PenaltyPoints
+		}
 		if out[i].Wins != out[j].Wins {
 			return out[i].Wins > out[j].Wins
 		}
@@ -203,6 +206,8 @@ func CalculateStandingsWithPenalties(teams []Team, matches []Match, penalties []
 		previous := out[i-1]
 		if previous.Points != out[i].Points { continue }
 		switch {
+		case previous.PenaltyPoints != out[i].PenaltyPoints:
+			out[i].Tiebreaker, out[i-1].Tiebreaker = "Menos punições", "Menos punições"
 		case previous.Wins != out[i].Wins:
 			out[i].Tiebreaker, out[i-1].Tiebreaker = "Vitórias", "Vitórias"
 		case previous.Draws != out[i].Draws:

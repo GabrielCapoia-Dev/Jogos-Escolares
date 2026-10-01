@@ -161,3 +161,20 @@ func TestCalculateStandingsAppliesPenaltiesOnlyToOverallPeriod(t *testing.T) {
 		t.Fatalf("punição atravessou períodos: %#v", otherPeriod)
 	}
 }
+
+func TestPenaltyBreaksTieBeforeSportingCriteria(t *testing.T) {
+	teams := []Team{
+		{ID: "A", Period: "MANHA", Color: "Roxo", Active: true},
+		{ID: "B", Period: "MANHA", Color: "Amarelo", Active: true},
+	}
+	matches := []Match{{Period: "MANHA", Gender: "MASCULINO", Status: StatusFinalizado, TeamAID: "A", TeamBID: "B", ScoreA: 1, ScoreB: 0}}
+	penalties := []Penalty{{Period: "MANHA", TeamID: "A", Points: 3}}
+
+	rows := CalculateStandingsWithPenalties(teams, matches, penalties, "MANHA", GeneroGeral)
+	if rows[0].TeamID != "B" || rows[1].TeamID != "A" || rows[0].Points != 0 || rows[1].Points != 0 {
+		t.Fatalf("equipe punida deve ficar abaixo da não punida quando empatadas em pontos líquidos: %#v", rows)
+	}
+	if rows[0].Tiebreaker != "Menos punições" || rows[1].Tiebreaker != "Menos punições" {
+		t.Fatalf("critério de desempate por punições não foi informado: %#v", rows)
+	}
+}
