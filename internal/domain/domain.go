@@ -182,6 +182,9 @@ func CalculateStandings(teams []Team, matches []Match, period, gender string) []
 		case previous.Losses != out[i].Losses:
 			out[i].Tiebreaker, out[i-1].Tiebreaker = "Menos derrotas", "Menos derrotas"
 		default:
+			if previous.Games == 0 && out[i].Games == 0 {
+				continue
+			}
 			out[i].Tied, out[i-1].Tied = true, true
 			out[i].Position = previous.Position
 		}

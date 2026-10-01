@@ -52,6 +52,7 @@ export function calcularClassificacao(dados, periodo, genero = GENEROS.geral) {
     else if (anterior.empates !== linha.empates) anterior.criterioDesempate = linha.criterioDesempate = "Empates";
     else if (anterior.derrotas !== linha.derrotas) anterior.criterioDesempate = linha.criterioDesempate = "Menos derrotas";
     else {
+      if (anterior.jogos === 0 && linha.jogos === 0) return;
       anterior.empateMoeda = linha.empateMoeda = true;
       linha.posicao = anterior.posicao;
     }

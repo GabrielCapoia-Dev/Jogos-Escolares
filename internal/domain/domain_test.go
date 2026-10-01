@@ -130,3 +130,11 @@ func TestCalculateStandingsLeavesExactTieForCoinToss(t *testing.T) {
 		t.Fatalf("critério de empates não aplicado: %#v", rows)
 	}
 }
+
+func TestCalculateStandingsDoesNotTreatUnplayedTeamsAsCoinToss(t *testing.T) {
+	teams := []Team{{ID: "A", Period: "MANHA", Color: "Amarelo", Active: true}, {ID: "B", Period: "MANHA", Color: "Azul", Active: true}}
+	rows := CalculateStandings(teams, nil, "MANHA", GeneroGeral)
+	if rows[0].Position == rows[1].Position || rows[0].Tied || rows[1].Tied {
+		t.Fatalf("equipes sem jogos não devem gerar empate por moeda: %#v", rows)
+	}
+}

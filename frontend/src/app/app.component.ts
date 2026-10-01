@@ -989,6 +989,7 @@ export class AppComponent implements OnDestroy {
       else if (previous.draws !== row.draws) row.tiebreaker = previous.tiebreaker = 'Empates';
       else if (previous.losses !== row.losses) row.tiebreaker = previous.tiebreaker = 'Menos derrotas';
       else {
+        if (previous.games === 0 && row.games === 0) return;
         row.tied = previous.tied = true;
         row.position = previous.position;
       }
