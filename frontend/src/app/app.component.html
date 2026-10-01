@@ -183,12 +183,12 @@
       <section *ngIf="view === 'RESULTADOS'" class="results-section history-heading">
         <section class="scoreboard-heading"><div><p class="eyebrow blue">Histórico completo</p><h2>{{ publicResultsTab==='GAMES' ? 'Jogos finalizados' : 'Punições aplicadas' }} <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div></section>
         <nav class="results-view-tabs" aria-label="Filtro dos resultados"><button type="button" [class.active]="publicResultsTab==='GAMES'" (click)="setPublicResultsTab('GAMES')">Jogos</button><button type="button" [class.active]="publicResultsTab==='PENALTIES'" (click)="setPublicResultsTab('PENALTIES')">Punições <span>{{ penaltiesForSelectedPeriod().length }}</span></button></nav>
-        <ng-container *ngIf="publicResultsTab==='GAMES'">
         <section class="choice-panel history-team-picker team-schedule-picker"><div class="picker-heading"><p class="eyebrow blue">Torcida</p><h3>Equipes</h3><span>Selecione uma cor para filtrar</span></div><div class="team-picker-grid"><button class="team-picker-choice team-picker-all" [class.active]="!selectedTeam" (click)="selectTeam('')">Todos</button><button class="team-picker-choice" *ngFor="let item of teams" [class.active]="selectedTeam === item.id" (click)="selectTeam(item.id)"><span class="team-emblem mascot-image" [ngClass]="item.sprite"></span><strong>{{ item.color }}</strong></button></div></section>
         <section class="team-schedule-heading results-selected-team" *ngIf="selectedTeam">
           <span class="team-emblem mascot-image" [ngClass]="team(selectedTeam)?.sprite"></span>
-          <div><span>{{ periodName().toUpperCase() }}</span><h3>{{ team(selectedTeam)?.color }}</h3><small>{{ team(selectedTeam)?.mascot }} · {{ resultMatches().length }} resultados</small></div>
+          <div><span>{{ periodName().toUpperCase() }}</span><h3>{{ team(selectedTeam)?.color }}</h3><small>{{ team(selectedTeam)?.mascot }} · {{ publicResultsTab==='GAMES' ? resultMatches().length + ' resultados' : penaltiesForSelectedPeriod().length + ' punições' }}</small></div>
         </section>
+        <ng-container *ngIf="publicResultsTab==='GAMES'">
         <div class="history-results-by-day">
           <ng-container *ngFor="let dayItem of days">
             <section class="history-day-section" *ngIf="resultsForDay(dayItem.id).length">
@@ -211,7 +211,7 @@
             <div class="penalty-public-reason"><strong>Motivo</strong><span>{{ item.reason }}</span><small>{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</small></div>
             <strong class="penalty-public-points">−{{ item.points }} <small>pts</small></strong>
           </article>
-          <div class="empty-state" *ngIf="!penaltiesForSelectedPeriod().length">Nenhuma equipe foi penalizada neste período.</div>
+          <div class="empty-state" *ngIf="!penaltiesForSelectedPeriod().length">Nenhuma punição para este filtro.</div>
         </section>
       </section>
     </div>

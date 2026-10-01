@@ -328,15 +328,18 @@ export class AppComponent implements OnDestroy {
 
   setPublicResultsTab(tab: PublicResultsTab): void {
     this.publicResultsTab = tab;
-    if (tab === 'PENALTIES') this.selectTeam('');
   }
 
   penaltiesForSelectedPeriod(): Penalty[] {
-    return this.penalties.filter(item => item.period === this.period);
+    return this.penaltiesForPeriod(this.period).filter(item => !this.selectedTeam || item.teamId === this.selectedTeam);
+  }
+
+  private penaltiesForPeriod(period: string): Penalty[] {
+    return this.penalties.filter(item => item.period === period);
   }
 
   teamPenaltyTotal(teamId: string): number {
-    return this.penaltiesForSelectedPeriod().filter(item => item.teamId === teamId).reduce((total, item) => total + item.points, 0);
+    return this.penaltiesForPeriod(this.period).filter(item => item.teamId === teamId).reduce((total, item) => total + item.points, 0);
   }
 
   loadPublic(showLoading = true, force = false): void {
@@ -1187,7 +1190,7 @@ export class AppComponent implements OnDestroy {
     }
 
     if (this.gender === 'GERAL') {
-      for (const penalty of this.penaltiesForSelectedPeriod()) {
+      for (const penalty of this.penaltiesForPeriod(this.period)) {
         const row = byId.get(penalty.teamId);
         if (row) {
           row.points -= penalty.points;
