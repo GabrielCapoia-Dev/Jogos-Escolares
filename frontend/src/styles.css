@@ -1053,6 +1053,14 @@ je-root:has(.public-topbar){
   color:#fff!important;
   background:var(--ji-blue-700)!important;
 }
+.schedule-day.finals-day:disabled,
+.mobile-filter-options button.finals-day:disabled{
+  border-color:#e4e9ef!important;
+  color:#aab4bf!important;
+  background:#f1f3f5!important;
+  cursor:not-allowed!important;
+  opacity:1!important;
+}
 
 .schedule-selectors{margin-bottom:10px!important}
 .schedule-export-button{align-self:flex-end;border:1px solid var(--ji-blue-600);background:#fff;color:var(--ji-blue-700);border-radius:9px;padding:9px 14px;font:inherit;font-weight:700;cursor:pointer}
