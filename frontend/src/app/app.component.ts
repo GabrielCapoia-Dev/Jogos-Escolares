@@ -3,11 +3,12 @@ import { ChangeDetectorRef, Component, HostListener, OnDestroy, inject } from '@
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { finalize, retry } from 'rxjs/operators';
-import { ApiService, Court, Day, FinalsState, LoginResponse, Match, Period, RealtimeEvent, Sport, Standing, Team } from './api.service';
+import { ApiService, Court, Day, FinalsState, LoginResponse, Match, Penalty, Period, RealtimeEvent, Sport, Standing, Team } from './api.service';
 
 type PublicView = 'CLASSIFICACAO' | 'CRONOGRAMA' | 'CRONOGRAMA_EQUIPE' | 'RESULTADOS' | 'FINAL';
 type Screen = 'PUBLIC' | 'ADMIN';
-type AdminSection = 'RESULTS' | 'FINAL';
+type AdminSection = 'RESULTS' | 'FINAL' | 'PENALTIES';
+type PublicResultsTab = 'GAMES' | 'PENALTIES';
 
 @Component({
   selector: 'je-root',
@@ -43,6 +44,8 @@ export class AppComponent implements OnDestroy {
   teams: Team[] = [];
   standings: Standing[] = [];
   matches: Match[] = [];
+  penalties: Penalty[] = [];
+  publicResultsTab: PublicResultsTab = 'GAMES';
 
   screen: Screen = 'PUBLIC';
   period = '';
@@ -93,6 +96,11 @@ export class AppComponent implements OnDestroy {
   finalsState: FinalsState | null = null;
   adminFinalistIds: string[] = [];
   adminFinalsSaving = false;
+  adminPenaltyPoints = 1;
+  adminPenaltyTeamId = '';
+  adminPenaltyReason = '';
+  adminPenaltyLoading = false;
+  pendingPenaltyDelete: Penalty | null = null;
 
   constructor() {
     this.api.periods().subscribe({ next: value => this.periods = value, error: () => undefined });
@@ -258,6 +266,79 @@ export class AppComponent implements OnDestroy {
     void this.loadAdmin();
   }
 
+  openAdminPenalties(): void {
+    this.adminSection = 'PENALTIES';
+    this.adminPenaltyTeamId = '';
+    void this.loadAdmin();
+    void this.loadAdminPenalties();
+  }
+
+  async loadAdminPenalties(): Promise<void> {
+    const period = this.adminPeriod;
+    try {
+      const items = await this.api.penaltiesAsync(period);
+      if (this.screen !== 'ADMIN' || this.adminSection !== 'PENALTIES' || this.adminPeriod !== period) return;
+      this.penalties = items;
+      this.renderNow();
+    } catch (error: any) {
+      if (error?.status === 401) this.expireAdminSession();
+      else this.showToast('Não foi possível carregar as punições.');
+    }
+  }
+
+  async createAdminPenalty(): Promise<void> {
+    if (!this.adminToken || !this.adminPenaltyTeamId || !Number.isInteger(this.adminPenaltyPoints) || this.adminPenaltyPoints < 1 || !this.adminPenaltyReason.trim() || this.adminPenaltyLoading) return;
+    this.adminPenaltyLoading = true;
+    try {
+      await this.api.createPenaltyAsync({ period: this.adminPeriod, teamId: this.adminPenaltyTeamId, points: this.adminPenaltyPoints, reason: this.adminPenaltyReason.trim() }, this.adminToken);
+      this.adminPenaltyPoints = 1;
+      this.adminPenaltyTeamId = '';
+      this.adminPenaltyReason = '';
+      await Promise.all([this.loadAdminPenalties(), this.loadAdmin()]);
+      this.showToast('Punição registrada e pontuação atualizada.');
+    } catch (error: any) {
+      if (error?.status === 401) this.expireAdminSession();
+      else this.showToast(error?.message || 'Não foi possível registrar a punição.');
+    } finally {
+      this.adminPenaltyLoading = false;
+      this.renderNow();
+    }
+  }
+
+  requestDeletePenalty(item: Penalty): void { this.pendingPenaltyDelete = item; }
+  cancelDeletePenalty(): void { if (!this.adminPenaltyLoading) this.pendingPenaltyDelete = null; }
+
+  async confirmDeletePenalty(): Promise<void> {
+    const item = this.pendingPenaltyDelete;
+    if (!item || !this.adminToken || this.adminPenaltyLoading) return;
+    this.adminPenaltyLoading = true;
+    try {
+      await this.api.deletePenaltyAsync(item.id, this.adminToken);
+      this.pendingPenaltyDelete = null;
+      await Promise.all([this.loadAdminPenalties(), this.loadAdmin()]);
+      this.showToast('Punição removida e pontuação recalculada.');
+    } catch (error: any) {
+      if (error?.status === 401) this.expireAdminSession();
+      else this.showToast('Não foi possível remover a punição.');
+    } finally {
+      this.adminPenaltyLoading = false;
+      this.renderNow();
+    }
+  }
+
+  setPublicResultsTab(tab: PublicResultsTab): void {
+    this.publicResultsTab = tab;
+    if (tab === 'PENALTIES') this.selectTeam('');
+  }
+
+  penaltiesForSelectedPeriod(): Penalty[] {
+    return this.penalties.filter(item => item.period === this.period);
+  }
+
+  teamPenaltyTotal(teamId: string): number {
+    return this.penaltiesForSelectedPeriod().filter(item => item.teamId === teamId).reduce((total, item) => total + item.points, 0);
+  }
+
   loadPublic(showLoading = true, force = false): void {
     if (!this.period) return;
     if (this.publicRefreshBusy && !force) return;
@@ -296,11 +377,12 @@ export class AppComponent implements OnDestroy {
 
     forkJoin({
       teams: this.api.teams(requestPeriod).pipe(retry({ count: 1, delay: 300 })),
-      matches: this.api.matches(requestPeriod, day, court, requestSport, gender).pipe(retry({ count: 1, delay: 300 }))
+      matches: this.api.matches(requestPeriod, day, court, requestSport, gender).pipe(retry({ count: 1, delay: 300 })),
+      penalties: this.api.penalties(requestPeriod).pipe(retry({ count: 1, delay: 300 }))
     })
       .pipe(finalize(complete))
       .subscribe({
-        next: ({ teams, matches }) => {
+        next: ({ teams, matches, penalties }) => {
           if (requestVersion !== this.publicRequestVersion) return;
           if (
             this.period !== requestPeriod ||
@@ -312,6 +394,7 @@ export class AppComponent implements OnDestroy {
           ) return;
 
           this.teams = teams;
+          this.penalties = penalties;
           this.matches = requestView === 'RESULTADOS'
             ? this.sortMatchesFinalizedLast(matches.filter(item => item.status === 'FINALIZADO'))
             : this.sortMatchesFinalizedLast(matches);
@@ -420,6 +503,7 @@ export class AppComponent implements OnDestroy {
     this.correctionOpen = false;
     this.saveConfirmOpen = false;
     this.resetConfirmOpen = false;
+    this.pendingPenaltyDelete = null;
     this.pendingSaveMatch = null;
     this.pendingSaveCorrection = false;
     this.saveLoading = false;
@@ -529,6 +613,7 @@ export class AppComponent implements OnDestroy {
     }
     if (kind === 'sport') this.adminSport = value;
     if (kind === 'gender') this.adminGender = value;
+    if (kind === 'period' && this.adminSection === 'PENALTIES') void this.loadAdminPenalties();
 
     this.adminLoading = true;
     this.renderNow();
@@ -785,7 +870,7 @@ export class AppComponent implements OnDestroy {
   }
 
   adminOverlayOpen(): boolean {
-    return this.adminFiltersOpen || this.adminRankingOpen || this.correctionOpen || this.saveConfirmOpen || this.resetConfirmOpen;
+    return this.adminFiltersOpen || this.adminRankingOpen || this.correctionOpen || this.saveConfirmOpen || this.resetConfirmOpen || !!this.pendingPenaltyDelete;
   }
 
   openAdminOverlay(kind: 'filters' | 'ranking' | 'correction'): void {
@@ -805,6 +890,7 @@ export class AppComponent implements OnDestroy {
     this.adminRankingOpen = false;
     this.correctionOpen = false;
     this.resetConfirmOpen = false;
+    this.pendingPenaltyDelete = null;
   }
 
   showToast(message: string): void {
@@ -1097,6 +1183,16 @@ export class AppComponent implements OnDestroy {
         b.wins++;
         a.losses++;
         b.points += 3;
+      }
+    }
+
+    if (this.gender === 'GERAL') {
+      for (const penalty of this.penaltiesForSelectedPeriod()) {
+        const row = byId.get(penalty.teamId);
+        if (row) {
+          row.points -= penalty.points;
+          row.penaltyPoints = (row.penaltyPoints ?? 0) + penalty.points;
+        }
       }
     }
 

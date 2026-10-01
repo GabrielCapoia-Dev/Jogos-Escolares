@@ -138,3 +138,26 @@ func TestCalculateStandingsDoesNotTreatUnplayedTeamsAsCoinToss(t *testing.T) {
 		t.Fatalf("equipes sem jogos não devem gerar empate por moeda: %#v", rows)
 	}
 }
+
+func TestCalculateStandingsAppliesPenaltiesOnlyToOverallPeriod(t *testing.T) {
+	teams := []Team{
+		{ID: "AM", Period: "MANHA", Color: "Amarelo", Active: true},
+		{ID: "BM", Period: "MANHA", Color: "Azul", Active: true},
+		{ID: "AT", Period: "TARDE", Color: "Amarelo", Active: true},
+	}
+	matches := []Match{{Period: "MANHA", Gender: "MASCULINO", Status: StatusFinalizado, TeamAID: "AM", TeamBID: "BM", ScoreA: 2, ScoreB: 0}}
+	penalties := []Penalty{{Period: "MANHA", TeamID: "AM", Points: 2}}
+
+	rows := CalculateStandingsWithPenalties(teams, matches, penalties, "MANHA", GeneroGeral)
+	if rows[0].TeamID != "BM" || rows[1].TeamID != "AM" || rows[1].Points != 1 || rows[1].PenaltyPoints != 2 {
+		t.Fatalf("dedução não alterou a classificação pelo saldo líquido: %#v", rows)
+	}
+	genderRows := CalculateStandingsWithPenalties(teams, matches, penalties, "MANHA", "MASCULINO")
+	if genderRows[0].TeamID != "AM" || genderRows[0].Points != 3 || genderRows[0].PenaltyPoints != 0 {
+		t.Fatalf("punição indevidamente aplicada ao recorte de gênero: %#v", genderRows)
+	}
+	otherPeriod := CalculateStandingsWithPenalties(teams, nil, penalties, "TARDE", GeneroGeral)
+	if len(otherPeriod) != 1 || otherPeriod[0].Points != 0 || otherPeriod[0].PenaltyPoints != 0 {
+		t.Fatalf("punição atravessou períodos: %#v", otherPeriod)
+	}
+}

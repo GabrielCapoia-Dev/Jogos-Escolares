@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"sort"
+	"time"
 )
 
 const (
@@ -74,6 +75,7 @@ type Standing struct {
 	Mascot   string `json:"mascot"`
 	Sprite   string `json:"sprite"`
 	Points   int    `json:"points"`
+	PenaltyPoints int `json:"penaltyPoints"`
 	Games    int    `json:"games"`
 	Wins     int    `json:"wins"`
 	Draws    int    `json:"draws"`
@@ -81,6 +83,16 @@ type Standing struct {
 	Position int    `json:"position"`
 	Tiebreaker string `json:"tiebreaker,omitempty"`
 	Tied        bool   `json:"tied,omitempty"`
+}
+
+// Penalty deducts competition points from one team in one period.
+type Penalty struct {
+	ID        int64     `json:"id"`
+	Period    string    `json:"period"`
+	TeamID    string    `json:"teamId"`
+	Points    int       `json:"points"`
+	Reason    string    `json:"reason"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 var Periods = []Period{{"MANHA", "Manhã"}, {"TARDE", "Tarde"}}
@@ -117,6 +129,10 @@ func SeedMatches() []Match {
 }
 
 func CalculateStandings(teams []Team, matches []Match, period, gender string) []Standing {
+	return CalculateStandingsWithPenalties(teams, matches, nil, period, gender)
+}
+
+func CalculateStandingsWithPenalties(teams []Team, matches []Match, penalties []Penalty, period, gender string) []Standing {
 	rows := map[string]*Standing{}
 	for _, team := range teams {
 		if team.Period == period && team.Active {
@@ -146,6 +162,18 @@ func CalculateStandings(teams []Team, matches []Match, period, gender string) []
 			b.Wins++
 			a.Losses++
 			b.Points += 3
+		}
+	}
+	// Administrative deductions affect the overall standings only. Applying
+	// them before sorting ensures positions and tie-break labels use net points.
+	if gender == "" || gender == GeneroGeral {
+		for _, penalty := range penalties {
+			if penalty.Period == period {
+				if row := rows[penalty.TeamID]; row != nil {
+					row.Points -= penalty.Points
+					row.PenaltyPoints += penalty.Points
+				}
+			}
 		}
 	}
 	out := make([]Standing, 0, len(rows))

@@ -9,7 +9,8 @@ export interface Court { id: string; name: string; }
 export interface Sport { id: string; name: string; courtId: string; }
 export interface Team { id: string; period: string; color: string; hex: string; mascot: string; sprite: string; }
 export interface Match { id: string; period: string; day: string; court: string; time: string; sportId: string; gender: string; teamAId: string; teamBId: string; status: string; order: number; scoreA: number; scoreB: number; }
-export interface Standing { teamId: string; color: string; hex: string; mascot: string; sprite: string; points: number; games: number; wins: number; draws: number; losses: number; position: number; tiebreaker?: string; tied?: boolean; }
+export interface Standing { teamId: string; color: string; hex: string; mascot: string; sprite: string; points: number; penaltyPoints?: number; games: number; wins: number; draws: number; losses: number; position: number; tiebreaker?: string; tied?: boolean; }
+export interface Penalty { id: number; period: string; teamId: string; points: number; reason: string; createdAt: string; }
 export interface LoginResponse { accessToken: string; tokenType: string; expiresIn: string; }
 export interface RealtimeEvent { type: 'RESULT_UPDATED' | 'SCOREBOARD_UPDATED' | 'FINALS_CONFIRMED'; period: string; match?: Match; matchId?: string; day?: string; court?: string; sportId?: string; gender?: string; scoreA?: number; scoreB?: number; status?: string; teams?: Team[]; standings?: Standing[]; matches?: Match[]; updatedAt?: string; }
 export interface PublicSnapshot { teams: Team[]; standings: Standing[]; matches: Match[]; updatedAt: string; }
@@ -88,6 +89,29 @@ export class ApiService {
   resetResultsAsync(token: string): Promise<{ reset: number }> {
     return this.fetchJson<{ reset: number }>(`${this.base}/admin/reset-results`, {
       method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }
+    }, 10000);
+  }
+
+  penalties(period: string): Observable<Penalty[]> {
+    return this.http.get<Penalty[]>(`${this.base}/penalties`, { params: { period } }).pipe(timeout(10000));
+  }
+
+  penaltiesAsync(period: string): Promise<Penalty[]> {
+    return this.fetchJson<Penalty[]>(`${this.base}/penalties?period=${encodeURIComponent(period)}`, {}, 10000);
+  }
+
+  createPenaltyAsync(input: Omit<Penalty, 'id' | 'createdAt'>, token: string): Promise<Penalty> {
+    return this.fetchJson<Penalty>(`${this.base}/admin/penalties`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(input)
+    }, 10000);
+  }
+
+  deletePenaltyAsync(id: number, token: string): Promise<{ deleted: boolean }> {
+    return this.fetchJson<{ deleted: boolean }>(`${this.base}/admin/penalties/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` }
     }, 10000);
   }

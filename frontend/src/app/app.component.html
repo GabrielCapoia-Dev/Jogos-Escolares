@@ -80,7 +80,7 @@
               <tbody>
                 <tr class="team-row" *ngFor="let row of standings" [style.--team-color]="row.hex">
                   <td class="position"><strong>{{ row.position }}º</strong></td>
-                  <td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small><small *ngIf="row.tiebreaker" class="ranking-tiebreak">Desempate: {{ row.tiebreaker }}</small><small *ngIf="row.tied" class="ranking-tiebreak">Empate total · cara ou coroa, melhor de 3</small></span></span></td>
+                  <td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small><small *ngIf="row.penaltyPoints" class="ranking-tiebreak">−{{ row.penaltyPoints }} pts por punições</small><small *ngIf="row.tiebreaker" class="ranking-tiebreak">Desempate: {{ row.tiebreaker }}</small><small *ngIf="row.tied" class="ranking-tiebreak">Empate total · cara ou coroa, melhor de 3</small></span></span></td>
                   <td><strong>{{ row.points }}</strong></td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td>
                 </tr>
               </tbody>
@@ -181,7 +181,9 @@
       </section>
 
       <section *ngIf="view === 'RESULTADOS'" class="results-section history-heading">
-        <section class="scoreboard-heading"><div><p class="eyebrow blue">Histórico completo</p><h2>Jogos finalizados <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div></section>
+        <section class="scoreboard-heading"><div><p class="eyebrow blue">Histórico completo</p><h2>{{ publicResultsTab==='GAMES' ? 'Jogos finalizados' : 'Punições aplicadas' }} <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div></section>
+        <nav class="results-view-tabs" aria-label="Filtro dos resultados"><button type="button" [class.active]="publicResultsTab==='GAMES'" (click)="setPublicResultsTab('GAMES')">Jogos</button><button type="button" [class.active]="publicResultsTab==='PENALTIES'" (click)="setPublicResultsTab('PENALTIES')">Punições <span>{{ penaltiesForSelectedPeriod().length }}</span></button></nav>
+        <ng-container *ngIf="publicResultsTab==='GAMES'">
         <section class="choice-panel history-team-picker team-schedule-picker"><div class="picker-heading"><p class="eyebrow blue">Torcida</p><h3>Equipes</h3><span>Selecione uma cor para filtrar</span></div><div class="team-picker-grid"><button class="team-picker-choice team-picker-all" [class.active]="!selectedTeam" (click)="selectTeam('')">Todos</button><button class="team-picker-choice" *ngFor="let item of teams" [class.active]="selectedTeam === item.id" (click)="selectTeam(item.id)"><span class="team-emblem mascot-image" [ngClass]="item.sprite"></span><strong>{{ item.color }}</strong></button></div></section>
         <section class="team-schedule-heading results-selected-team" *ngIf="selectedTeam">
           <span class="team-emblem mascot-image" [ngClass]="team(selectedTeam)?.sprite"></span>
@@ -201,6 +203,16 @@
           </ng-container>
           <div class="empty-state" *ngIf="!resultMatches().length">Nenhum jogo finalizado para este filtro.</div>
         </div>
+        </ng-container>
+        <section *ngIf="publicResultsTab==='PENALTIES'" class="penalty-public-list" aria-label="Punições aplicadas">
+          <article class="penalty-public-card" *ngFor="let item of penaltiesForSelectedPeriod()">
+            <span class="team-emblem mascot-image" [ngClass]="team(item.teamId)?.sprite"></span>
+            <div class="penalty-public-team"><strong>{{ team(item.teamId)?.color }}</strong><small>{{ team(item.teamId)?.mascot }}</small></div>
+            <div class="penalty-public-reason"><strong>Motivo</strong><span>{{ item.reason }}</span><small>{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</small></div>
+            <strong class="penalty-public-points">−{{ item.points }} <small>pts</small></strong>
+          </article>
+          <div class="empty-state" *ngIf="!penaltiesForSelectedPeriod().length">Nenhuma equipe foi penalizada neste período.</div>
+        </section>
       </section>
     </div>
     <footer class="public-footer"><strong>Jogos Infantis de Umuarama - 2026</strong><span>Secretaria Municipal de Educação</span></footer>
@@ -215,6 +227,7 @@
       <nav class="public-main-nav admin-registration-nav" aria-label="Menu administrativo">
         <button type="button" [class.active]="adminSection==='RESULTS'" [disabled]="adminOverlayOpen()" (click)="showAdminResults()"><span class="nav-icon">▤</span><span>Resultados</span></button>
         <button type="button" [class.active]="adminSection==='FINAL'" [disabled]="adminOverlayOpen()" (click)="openAdminFinals()"><span class="nav-icon">★</span><span>Final</span></button>
+        <button type="button" [class.active]="adminSection==='PENALTIES'" [disabled]="adminOverlayOpen()" (click)="openAdminPenalties()"><span class="nav-icon">−</span><span>Punições</span></button>
         <button type="button" [class.active]="adminFiltersOpen" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('filters')"><span class="nav-icon">⚙</span><span>Filtros</span></button>
         <button type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('ranking')"><span class="nav-icon">▥</span><span>Placar</span></button>
         <button type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('correction')"><span class="nav-icon">✎</span><span>Editar</span></button>
@@ -230,10 +243,30 @@
       <section class="panel admin-final-panel">
         <div class="admin-final-status" [class.ready]="finalsState?.day3Complete"><strong>{{ finalsState?.day3Complete ? 'Dia 3 concluído' : 'Aguardando o encerramento do Dia 3' }}</strong><span>{{ finalsState?.day3Complete ? 'Confira os três classificados e confirme a escolha.' : 'A confirmação dos finalistas será liberada quando todas as partidas do Dia 3 deste período forem finalizadas.' }}</span></div>
         <div class="table-wrap"><table class="ranking-table"><thead><tr><th>Selecionar</th><th>Pos.</th><th>Equipe</th><th>Pts</th><th>J</th><th>V</th><th>E</th><th>D</th><th>Desempate</th></tr></thead><tbody>
-          <tr class="team-row" *ngFor="let row of adminStandings" [style.--team-color]="row.hex"><td><input type="checkbox" [checked]="adminFinalistIds.includes(row.teamId)" [disabled]="!finalsState?.day3Complete || row.position>3 || (adminFinalistIds.length>=3 && !adminFinalistIds.includes(row.teamId))" (change)="toggleAdminFinalist(row.teamId)" [attr.aria-label]="'Selecionar ' + row.color + ' como finalista'"></td><td>{{ row.position }}º</td><td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small></span></span></td><td>{{ row.points }}</td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td><td><small *ngIf="row.tiebreaker">{{ row.tiebreaker }}</small><small *ngIf="row.tied">Cara ou coroa · melhor de 3</small></td></tr>
+          <tr class="team-row" *ngFor="let row of adminStandings" [style.--team-color]="row.hex"><td><input type="checkbox" [checked]="adminFinalistIds.includes(row.teamId)" [disabled]="!finalsState?.day3Complete || row.position>3 || (adminFinalistIds.length>=3 && !adminFinalistIds.includes(row.teamId))" (change)="toggleAdminFinalist(row.teamId)" [attr.aria-label]="'Selecionar ' + row.color + ' como finalista'"></td><td>{{ row.position }}º</td><td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small><small *ngIf="row.penaltyPoints" class="ranking-tiebreak">−{{ row.penaltyPoints }} pts por punições</small></span></span></td><td>{{ row.points }}</td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td><td><small *ngIf="row.tiebreaker">{{ row.tiebreaker }}</small><small *ngIf="row.tied">Cara ou coroa · melhor de 3</small></td></tr>
         </tbody></table></div>
         <p class="admin-final-help">Selecione três equipes entre as posições classificadas. Se houver empate no corte, use esta tela para registrar o resultado da cara ou coroa, melhor de 3.</p>
         <div class="admin-final-actions"><span>{{ adminFinalistIds.length }} de 3 equipes selecionadas</span><button type="button" [disabled]="!finalsState?.day3Complete || adminFinalistIds.length!==3 || adminFinalsSaving" (click)="confirmAdminFinalists()">{{ adminFinalsSaving ? 'Salvando...' : (finalsState?.confirmed ? 'Atualizar finalistas' : 'Confirmar finalistas') }}</button></div>
+      </section>
+    </section>
+
+    <section class="admin-final-section admin-penalties-section" *ngIf="adminSection==='PENALTIES'">
+      <section class="scoreboard-heading"><div><p class="eyebrow blue">Área administrativa</p><h2>Punições · {{ periodName(adminPeriod) }}</h2><p>Os pontos descontados alteram a classificação geral deste período.</p><div class="admin-final-periods"><button *ngFor="let item of periods" type="button" [class.active]="adminPeriod===item.id" (click)="setAdminFilter('period',item.id)">{{ item.name }}</button></div></div></section>
+      <section class="panel penalty-admin-form-panel">
+        <h3>Registrar punição</h3>
+        <form class="penalty-admin-form" (ngSubmit)="createAdminPenalty()">
+          <label>Equipe<select name="penaltyTeam" [(ngModel)]="adminPenaltyTeamId" required><option value="">Selecione uma equipe</option><option *ngFor="let item of teams" [value]="item.id">{{ item.color }} · {{ item.mascot }}</option></select></label>
+          <label>Pontos a descontar<input name="penaltyPoints" type="number" min="1" max="1000" step="1" [(ngModel)]="adminPenaltyPoints" required></label>
+          <label class="penalty-reason-field">Motivo da penalização<textarea name="penaltyReason" rows="3" maxlength="500" [(ngModel)]="adminPenaltyReason" required></textarea></label>
+          <button type="submit" [disabled]="adminPenaltyLoading || !adminPenaltyTeamId || !adminPenaltyReason.trim()">{{ adminPenaltyLoading ? 'Salvando...' : 'Aplicar punição' }}</button>
+        </form>
+      </section>
+      <section class="panel penalty-admin-list-panel"><div class="panel-head"><h3>Punições registradas</h3><span>{{ penalties.length }} registros</span></div>
+        <article class="penalty-admin-row" *ngFor="let item of penalties">
+          <span class="team-emblem mascot-image" [ngClass]="team(item.teamId)?.sprite"></span><div class="penalty-admin-team"><strong>{{ team(item.teamId)?.color }}</strong><small>{{ team(item.teamId)?.mascot }}</small></div>
+          <div class="penalty-admin-reason"><strong>{{ item.reason }}</strong><small>{{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</small></div><strong class="penalty-admin-points">−{{ item.points }} pts</strong><button type="button" class="penalty-remove-button" [disabled]="adminPenaltyLoading" (click)="requestDeletePenalty(item)">Remover</button>
+        </article>
+        <div class="empty-state" *ngIf="!penalties.length">Nenhuma punição registrada neste período.</div>
       </section>
     </section>
 
@@ -355,7 +388,7 @@
   <div class="admin-ranking-backdrop" (click)="$event.stopPropagation()"></div>
   <section class="admin-ranking-sheet" role="dialog" aria-modal="true" aria-label="Placar geral">
     <div class="admin-ranking-sheet-head"><h2>Placar geral</h2></div>
-    <div class="admin-ranking-sheet-body"><div class="table-wrap"><table class="ranking-table"><thead><tr><th>Posição</th><th>Cor</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead><tbody><tr class="team-row" *ngFor="let row of adminStandings" [style.--team-color]="row.hex"><td><strong>{{ row.position }}º</strong></td><td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small><small *ngIf="row.tiebreaker" class="ranking-tiebreak">Desempate: {{ row.tiebreaker }}</small><small *ngIf="row.tied" class="ranking-tiebreak">Empate total · cara ou coroa, melhor de 3</small></span></span></td><td><strong>{{ row.points }}</strong></td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td></tr></tbody></table></div></div>
+    <div class="admin-ranking-sheet-body"><div class="table-wrap"><table class="ranking-table"><thead><tr><th>Posição</th><th>Cor</th><th>P</th><th>J</th><th>V</th><th>E</th><th>D</th></tr></thead><tbody><tr class="team-row" *ngFor="let row of adminStandings" [style.--team-color]="row.hex"><td><strong>{{ row.position }}º</strong></td><td><span class="team-ident"><span class="team-emblem mascot-image" [ngClass]="row.sprite"></span><span class="team-name"><strong>{{ row.color }}</strong><small>{{ row.mascot }}</small><small *ngIf="row.penaltyPoints" class="ranking-tiebreak">−{{ row.penaltyPoints }} pts por punições</small><small *ngIf="row.tiebreaker" class="ranking-tiebreak">Desempate: {{ row.tiebreaker }}</small><small *ngIf="row.tied" class="ranking-tiebreak">Empate total · cara ou coroa, melhor de 3</small></span></span></td><td><strong>{{ row.points }}</strong></td><td>{{ row.games }}</td><td>{{ row.wins }}</td><td>{{ row.draws }}</td><td>{{ row.losses }}</td></tr></tbody></table></div></div>
     <button type="button" class="admin-ranking-back" (click)="adminRankingOpen=false">Voltar</button>
   </section>
 </div>
@@ -417,12 +450,21 @@
   <section class="save-confirm-sheet" role="dialog" aria-modal="true" aria-label="Zerar todos os resultados">
     <p class="eyebrow blue">Ação administrativa</p>
     <h2>Zerar todos os resultados?</h2>
-    <p class="save-confirm-meta">As 504 partidas voltarão para “Aguardando”, com placar 0 × 0. Esta ação não pode ser desfeita.</p>
+    <p class="save-confirm-meta">As 504 partidas voltarão para “Aguardando”, com placar 0 × 0. Um backup completo será salvo automaticamente antes do zeramento.</p>
     <p class="save-confirm-error" *ngIf="resetError">{{ resetError }}</p>
     <div class="save-confirm-actions">
       <button type="button" class="save-confirm-primary" [disabled]="resetLoading" (click)="confirmResetResults()">{{ resetLoading ? 'Zerando...' : 'Zerar resultados' }}</button>
       <button type="button" class="save-confirm-secondary" [disabled]="resetLoading" (click)="cancelResetResults()">Cancelar</button>
     </div>
+  </section>
+</div>
+
+<div *ngIf="pendingPenaltyDelete" class="save-confirm-modal">
+  <div class="save-confirm-backdrop" (click)="cancelDeletePenalty()"></div>
+  <section class="save-confirm-sheet" role="dialog" aria-modal="true" aria-label="Remover punição">
+    <p class="eyebrow blue">Ação administrativa</p><h2>Remover esta punição?</h2>
+    <p class="save-confirm-meta">{{ team(pendingPenaltyDelete.teamId)?.color }} perderá novamente {{ pendingPenaltyDelete.points }} {{ pendingPenaltyDelete.points === 1 ? 'ponto' : 'pontos' }} na classificação de {{ periodName(pendingPenaltyDelete.period) }}.</p>
+    <div class="save-confirm-actions"><button type="button" class="save-confirm-primary" [disabled]="adminPenaltyLoading" (click)="confirmDeletePenalty()">{{ adminPenaltyLoading ? 'Removendo...' : 'Remover punição' }}</button><button type="button" class="save-confirm-secondary" [disabled]="adminPenaltyLoading" (click)="cancelDeletePenalty()">Cancelar</button></div>
   </section>
 </div>
 

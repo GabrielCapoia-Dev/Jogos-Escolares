@@ -91,6 +91,7 @@ func (s *Store) initialize(ctx context.Context) error {
 		`CREATE TABLE IF NOT EXISTS audit_logs (id bigserial PRIMARY KEY, user_id uuid REFERENCES users(id), action text NOT NULL, match_id text NOT NULL REFERENCES matches(id), before_state jsonb NOT NULL, after_state jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`,
 		`CREATE TABLE IF NOT EXISTS access_tokens (token_hash text PRIMARY KEY, user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE, expires_at timestamptz NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`,
 		`CREATE TABLE IF NOT EXISTS result_reset_backups (id bigserial PRIMARY KEY, reset_at timestamptz NOT NULL DEFAULT now(), user_id uuid NOT NULL REFERENCES users(id), match_count integer NOT NULL, matches jsonb NOT NULL)`,
+		`CREATE TABLE IF NOT EXISTS penalties (id bigserial PRIMARY KEY, period_id text NOT NULL REFERENCES periods(id), team_id text NOT NULL REFERENCES teams(id), points integer NOT NULL CHECK (points > 0), reason text NOT NULL CHECK (length(trim(reason)) > 0), created_by uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT now())`,
 		`CREATE TABLE IF NOT EXISTS finals_confirmations (period_id text PRIMARY KEY REFERENCES periods(id), team_a_id text NOT NULL REFERENCES teams(id), team_b_id text NOT NULL REFERENCES teams(id), team_c_id text NOT NULL REFERENCES teams(id), confirmed_by uuid NOT NULL REFERENCES users(id), confirmed_at timestamptz NOT NULL DEFAULT now())`,
 	}
 	for _, statement := range statements {
@@ -436,6 +437,37 @@ func (s *Store) Teams(ctx context.Context, period string) ([]domain.Team, error)
 		out = append(out, t)
 	}
 	return out, rows.Err()
+}
+
+func (s *Store) Penalties(ctx context.Context, period string) ([]domain.Penalty, error) {
+	rows, err := s.DB.QueryContext(ctx, `SELECT id,period_id,team_id,points,reason,created_at FROM penalties WHERE period_id=$1 ORDER BY created_at DESC,id DESC`, period)
+	if err != nil { return nil, err }
+	defer rows.Close()
+	out := []domain.Penalty{}
+	for rows.Next() {
+		var item domain.Penalty
+		if err := rows.Scan(&item.ID,&item.Period,&item.TeamID,&item.Points,&item.Reason,&item.CreatedAt); err != nil { return nil, err }
+		out = append(out,item)
+	}
+	return out, rows.Err()
+}
+
+func (s *Store) CreatePenalty(ctx context.Context, period, teamID string, points int, reason, user string) (domain.Penalty, error) {
+	var item domain.Penalty
+	err := s.DB.QueryRowContext(ctx, `
+		INSERT INTO penalties(period_id,team_id,points,reason,created_by)
+		SELECT $1,t.id,$3,$4,$5 FROM teams t WHERE t.id=$2 AND t.period_id=$1 AND t.active
+		RETURNING id,period_id,team_id,points,reason,created_at`, period,teamID,points,strings.TrimSpace(reason),user).
+		Scan(&item.ID,&item.Period,&item.TeamID,&item.Points,&item.Reason,&item.CreatedAt)
+	if err == sql.ErrNoRows { return domain.Penalty{}, errors.New("equipe não pertence ao período selecionado") }
+	return item, err
+}
+
+func (s *Store) DeletePenalty(ctx context.Context, id int64) (string, error) {
+	var period string
+	err := s.DB.QueryRowContext(ctx, `DELETE FROM penalties WHERE id=$1 RETURNING period_id`, id).Scan(&period)
+	if err == sql.ErrNoRows { return "", ErrNotFound }
+	return period, err
 }
 
 func (s *Store) FinalistIDs(ctx context.Context, period string) ([]string, error) {

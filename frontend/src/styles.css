@@ -1567,7 +1567,7 @@ je-root:has(.public-topbar){
   min-height:50px!important;
   padding:6px 10px!important;
   display:grid!important;
-  grid-template-columns:repeat(3,1fr)!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
   gap:6px!important;
   border:0!important;
   border-bottom:1px solid var(--ji-line)!important;
@@ -5723,4 +5723,49 @@ body:has(#admin-app) .admin-registration-nav button.active{
     padding:10px 22px!important;
     border-radius:12px!important;
   }
+}
+/* Public result tabs and period-scoped penalties */
+.results-view-tabs{display:flex;gap:8px;margin:0 0 16px;padding:5px;width:max-content;max-width:100%;border:1px solid var(--ji-line);border-radius:14px;background:#f4f8fc}
+.results-view-tabs button{display:flex;align-items:center;gap:8px;min-height:40px;padding:0 16px;border:0;border-radius:10px;background:transparent;color:#58718a;font:inherit;font-size:.82rem;font-weight:850;cursor:pointer}
+.results-view-tabs button.active{background:#147ed9;color:#fff;box-shadow:0 4px 12px rgba(20,126,217,.2)}
+.results-view-tabs button span{display:grid;place-items:center;min-width:22px;height:22px;padding:0 5px;border-radius:999px;background:#e5effa;color:#0753a4;font-size:.68rem}
+.results-view-tabs button.active span{background:rgba(255,255,255,.2);color:#fff}
+.penalty-public-list,.penalty-admin-list-panel{display:grid;gap:10px}
+.penalty-public-card{display:grid;grid-template-columns:48px minmax(120px,.75fr) minmax(180px,1.5fr) auto;align-items:center;gap:14px;padding:14px 16px;border:1px solid #d7e6f5;border-radius:16px;background:#fff;box-shadow:0 5px 14px rgba(12,54,94,.05)}
+.penalty-public-card>.team-emblem,.penalty-admin-row>.team-emblem{width:42px;height:42px}
+.penalty-public-team,.penalty-admin-team,.penalty-public-reason,.penalty-admin-reason{display:grid;gap:3px;min-width:0}
+.penalty-public-team strong,.penalty-admin-team strong{color:#083a78;font-weight:900}
+.penalty-public-team small,.penalty-admin-team small,.penalty-public-reason small,.penalty-admin-reason small{color:#7790a9;font-size:.72rem}
+.penalty-public-reason strong{color:#7890a5;font-size:.66rem;text-transform:uppercase;letter-spacing:.06em}
+.penalty-public-reason span,.penalty-admin-reason strong{color:#24496d;font-size:.86rem;overflow-wrap:anywhere}
+.penalty-public-points,.penalty-admin-points{color:#c43b42;font-size:1.05rem;font-weight:950;white-space:nowrap}
+.penalty-public-points small{font-size:.65rem}
+.penalty-admin-form-panel,.penalty-admin-list-panel{margin:14px 0;padding:20px;border:1px solid #d8e6f4;border-radius:18px;background:#fff;box-shadow:0 10px 26px rgba(12,54,94,.06)}
+.penalty-admin-form-panel h3,.penalty-admin-list-panel .panel-head h3{margin:0;color:#0a3d78;font-size:1.05rem;font-weight:900}
+.penalty-admin-form{display:grid;grid-template-columns:minmax(180px,1fr) minmax(140px,.5fr) minmax(240px,1.5fr) auto;align-items:end;gap:12px;margin-top:14px}
+.penalty-admin-form label{display:grid;gap:6px;color:#526d87;font-size:.76rem;font-weight:850}
+.penalty-admin-form input,.penalty-admin-form select,.penalty-admin-form textarea{width:100%;min-height:42px;padding:10px 12px;border:1px solid #ccdeef;border-radius:10px;background:#f9fbfe;color:#133e70;font:inherit;font-size:.85rem;box-sizing:border-box}
+.penalty-admin-form textarea{min-height:42px;resize:vertical}
+.penalty-admin-form button{min-height:42px;padding:0 18px;border:0;border-radius:10px;background:#147ed9;color:#fff;font:inherit;font-size:.8rem;font-weight:900;cursor:pointer}
+.penalty-admin-form button:disabled,.penalty-remove-button:disabled{opacity:.55;cursor:not-allowed}
+.penalty-admin-list-panel .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.penalty-admin-list-panel .panel-head span{color:#7289a0;font-size:.76rem;font-weight:750}
+.penalty-admin-row{display:grid;grid-template-columns:44px minmax(100px,.65fr) minmax(180px,1.5fr) auto auto;align-items:center;gap:12px;padding:12px 4px;border-top:1px solid #e7eef6}
+.penalty-remove-button{min-height:34px;padding:0 12px;border:1px solid #f0c8ca;border-radius:9px;background:#fff7f7;color:#b63239;font:inherit;font-size:.72rem;font-weight:850;cursor:pointer}
+@media(max-width:760px){
+  .penalty-public-card{grid-template-columns:42px minmax(0,1fr) auto;gap:10px;padding:12px}
+  .penalty-public-reason{grid-column:2/4;grid-row:2}
+  .penalty-public-points{grid-column:3;grid-row:1}
+  .penalty-admin-form{grid-template-columns:1fr 1fr}
+  .penalty-reason-field{grid-column:1/-1}
+  .penalty-admin-form>button{grid-column:1/-1;width:100%}
+  .penalty-admin-row{grid-template-columns:40px minmax(0,1fr) auto;gap:8px}
+  .penalty-admin-reason{grid-column:2/4;grid-row:2}
+  .penalty-admin-points{grid-column:3;grid-row:1;font-size:.9rem}
+  .penalty-remove-button{grid-column:2/4;justify-self:start}
+}
+@media(max-width:699px){
+  body:has(#admin-app) .admin-registration-nav{grid-template-columns:repeat(4,minmax(0,1fr))!important;align-content:center!important;min-height:112px!important}
+  body:has(#admin-app) .admin-registration-nav button{width:auto!important;min-width:0!important;max-width:none!important;padding:4px 2px!important}
+  body:has(#admin-app) #admin-app{padding-bottom:calc(142px + env(safe-area-inset-bottom))!important}
 }
