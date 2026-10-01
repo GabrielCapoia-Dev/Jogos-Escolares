@@ -60,6 +60,12 @@ export class AppComponent implements OnDestroy {
   lastUpdated = '';
 
   publicFiltersOpen = false;
+  draftPublicDay = '';
+  draftPublicCourt = '';
+  draftPublicSport = '';
+  draftPublicTeam = '';
+  draftPublicGender = '';
+  draftPublicFinal = false;
   loginOpen = false;
   loginEmail = localStorage.getItem('jogos-admin-email') ?? '';
   loginPassword = '';
@@ -75,6 +81,11 @@ export class AppComponent implements OnDestroy {
   adminSport = '';
   adminGender = '';
   adminFiltersOpen = false;
+  draftAdminPeriod = 'MANHA';
+  draftAdminDay = 'DIA_1';
+  draftAdminCourt = 'QUADRA_1';
+  draftAdminSport = '';
+  draftAdminGender = '';
   adminRankingOpen = false;
   correctionOpen = false;
   adminLoading = false;
@@ -429,9 +440,49 @@ export class AppComponent implements OnDestroy {
     this.loadPublic(true, true);
   }
 
+  openPublicFilters(): void {
+    this.draftPublicDay = this.day;
+    this.draftPublicCourt = this.court;
+    this.draftPublicSport = this.sport;
+    this.draftPublicTeam = this.selectedTeam;
+    this.draftPublicGender = this.gender;
+    this.draftPublicFinal = false;
+    this.publicFiltersOpen = true;
+  }
+
+  stagePublicFilter(kind: 'day' | 'court' | 'sport' | 'gender' | 'team', value: string): void {
+    this.draftPublicFinal = false;
+    if (kind === 'day') this.draftPublicDay = value;
+    if (kind === 'court') {
+      this.draftPublicCourt = value;
+      if (this.draftPublicSport && !this.sports.some(item => item.id === this.draftPublicSport && item.courtId === value)) this.draftPublicSport = '';
+    }
+    if (kind === 'sport') this.draftPublicSport = value;
+    if (kind === 'gender') this.draftPublicGender = value;
+    if (kind === 'team') this.draftPublicTeam = value;
+  }
+
   confirmPublicFilters(): void {
+    const openFinal = this.draftPublicFinal;
+    this.day = this.draftPublicDay;
+    this.court = this.draftPublicCourt;
+    this.sport = this.draftPublicSport;
+    this.gender = this.draftPublicGender;
+    this.selectTeam(this.draftPublicTeam);
     this.publicFiltersOpen = false;
+    if (openFinal) {
+      this.setView('FINAL');
+      return;
+    }
     this.loadPublic(true, true);
+  }
+
+  cancelPublicFilters(): void {
+    this.publicFiltersOpen = false;
+  }
+
+  stagePublicFinal(): void {
+    this.draftPublicFinal = true;
   }
 
   selectTeam(value: string): void {
@@ -625,8 +676,18 @@ export class AppComponent implements OnDestroy {
   }
 
   confirmAdminFilters(): void {
+    const periodChanged = this.adminPeriod !== this.draftAdminPeriod;
+    this.adminPeriod = this.draftAdminPeriod;
+    this.adminDay = this.draftAdminDay;
+    this.adminCourt = this.draftAdminCourt;
+    this.adminSport = this.draftAdminSport;
+    this.adminGender = this.draftAdminGender;
     this.adminFiltersOpen = false;
+    this.adminLoading = true;
+    this.renderNow();
     void this.loadAdmin();
+    if (periodChanged && this.adminSection === 'PENALTIES') void this.loadAdminPenalties();
+    if (periodChanged && this.adminSection === 'FINAL') void this.loadAdminFinals();
   }
 
   adjustScore(match: Match, side: 'A' | 'B', delta: number): void {
@@ -879,13 +940,37 @@ export class AppComponent implements OnDestroy {
   openAdminOverlay(kind: 'filters' | 'ranking' | 'correction'): void {
     if (this.adminOverlayOpen()) return;
 
-    if (kind === 'filters') this.adminFiltersOpen = true;
+    if (kind === 'filters') this.openAdminFilters();
     if (kind === 'ranking') this.adminRankingOpen = true;
     if (kind === 'correction') {
       this.queuedCorrections.clear();
       this.correctionOpen = true;
     }
     this.renderNow();
+  }
+
+  private openAdminFilters(): void {
+    this.draftAdminPeriod = this.adminPeriod;
+    this.draftAdminDay = this.adminDay;
+    this.draftAdminCourt = this.adminCourt;
+    this.draftAdminSport = this.adminSport;
+    this.draftAdminGender = this.adminGender;
+    this.adminFiltersOpen = true;
+  }
+
+  stageAdminFilter(kind: 'period' | 'day' | 'court' | 'sport' | 'gender', value: string): void {
+    if (kind === 'period') this.draftAdminPeriod = value;
+    if (kind === 'day') this.draftAdminDay = value;
+    if (kind === 'court') {
+      this.draftAdminCourt = value;
+      if (this.draftAdminSport && !this.sports.some(item => item.id === this.draftAdminSport && item.courtId === value)) this.draftAdminSport = '';
+    }
+    if (kind === 'sport') this.draftAdminSport = value;
+    if (kind === 'gender') this.draftAdminGender = value;
+  }
+
+  cancelAdminFilters(): void {
+    this.adminFiltersOpen = false;
   }
 
   closeAdminOverlays(): void {
@@ -959,8 +1044,8 @@ export class AppComponent implements OnDestroy {
     return this.sports.filter(item => !court || item.courtId === court);
   }
 
-  adminVisibleSports(): Sport[] {
-    return this.sports.filter(item => item.courtId === this.adminCourt);
+  adminVisibleSports(court = this.adminCourt): Sport[] {
+    return this.sports.filter(item => item.courtId === court);
   }
 
   private sortAdminMatches(items: Match[]): Match[] {

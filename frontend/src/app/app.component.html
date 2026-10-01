@@ -47,7 +47,7 @@
         type="button"
         class="mobile-filter-fab"
         aria-label="Abrir filtros"
-        (click)="publicFiltersOpen=true">
+        (click)="openPublicFilters()">
         <span class="filter-icon">☷</span><span>Filtros</span>
       </button>
 
@@ -356,29 +356,29 @@
 </div>
 
 <div *ngIf="publicFiltersOpen" class="mobile-filter-modal">
-  <div class="mobile-filter-backdrop" (click)="publicFiltersOpen=false"></div>
+  <div class="mobile-filter-backdrop" (click)="cancelPublicFilters()"></div>
   <section class="mobile-filter-sheet" role="dialog" aria-modal="true" aria-label="Filtros">
     <div class="mobile-filter-sheet-head"><h2>Filtros</h2></div>
     <div class="mobile-filter-body">
-      <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA' || view==='CRONOGRAMA_EQUIPE'"><h3>Dia</h3><div class="mobile-filter-options"><button *ngFor="let item of days" [class.active]="day===item.id" (click)="applyPublicFilter('day',item.id)">{{ item.name }}</button><button type="button" class="finals-day" (click)="publicFiltersOpen=false; setView('FINAL')">Fase final</button></div></div>
-      <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA'"><h3>Quadra</h3><div class="mobile-filter-options"><button *ngFor="let item of courts" [class.active]="court===item.id" (click)="applyPublicFilter('court',item.id)">{{ item.name }}</button></div></div>
-      <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA'"><h3>Modalidade</h3><div class="mobile-filter-options"><button [class.active]="!sport" (click)="applyPublicFilter('sport','')">Todas</button><button *ngFor="let item of visibleSports(court)" [class.active]="sport===item.id" (click)="applyPublicFilter('sport',item.id)">{{ item.name }}</button></div></div>
-      <div class="mobile-filter-group" *ngIf="view==='RESULTADOS' || view==='CRONOGRAMA_EQUIPE'"><h3>Equipe</h3><div class="mobile-filter-options mobile-team-filter-options"><button class="mobile-team-filter-all" [class.active]="!selectedTeam" (click)="applyPublicFilter('team','')"><strong>Todas</strong></button><button class="mobile-team-filter-choice" *ngFor="let item of teams" [class.active]="selectedTeam===item.id" (click)="applyPublicFilter('team',item.id)"><span class="team-emblem mascot-image" [ngClass]="item.sprite"></span><strong>{{ item.color }}</strong></button></div></div>
+      <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA' || view==='CRONOGRAMA_EQUIPE'"><h3>Dia</h3><div class="mobile-filter-options"><button *ngFor="let item of days" [class.active]="draftPublicDay===item.id && !draftPublicFinal" (click)="stagePublicFilter('day',item.id)">{{ item.name }}</button><button type="button" class="finals-day" [class.active]="draftPublicFinal" (click)="stagePublicFinal()">Fase final</button></div></div>
+      <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA'"><h3>Quadra</h3><div class="mobile-filter-options"><button *ngFor="let item of courts" [class.active]="draftPublicCourt===item.id" (click)="stagePublicFilter('court',item.id)">{{ item.name }}</button></div></div>
+      <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA'"><h3>Modalidade</h3><div class="mobile-filter-options"><button [class.active]="!draftPublicSport" (click)="stagePublicFilter('sport','')">Todas</button><button *ngFor="let item of visibleSports(draftPublicCourt)" [class.active]="draftPublicSport===item.id" (click)="stagePublicFilter('sport',item.id)">{{ item.name }}</button></div></div>
+      <div class="mobile-filter-group" *ngIf="view==='RESULTADOS' || view==='CRONOGRAMA_EQUIPE'"><h3>Equipe</h3><div class="mobile-filter-options mobile-team-filter-options"><button class="mobile-team-filter-all" [class.active]="!draftPublicTeam" (click)="stagePublicFilter('team','')"><strong>Todas</strong></button><button class="mobile-team-filter-choice" *ngFor="let item of teams" [class.active]="draftPublicTeam===item.id" (click)="stagePublicFilter('team',item.id)"><span class="team-emblem mascot-image" [ngClass]="item.sprite"></span><strong>{{ item.color }}</strong></button></div></div>
     </div>
     <div class="mobile-filter-actions"><button class="mobile-filter-close" type="button" (click)="confirmPublicFilters()">Confirmar</button></div>
   </section>
 </div>
 
 <div *ngIf="adminFiltersOpen && screen==='ADMIN'" class="mobile-filter-modal admin-filter-modal">
-  <div class="mobile-filter-backdrop" (click)="$event.stopPropagation()"></div>
+  <div class="mobile-filter-backdrop" (click)="cancelAdminFilters()"></div>
   <section class="mobile-filter-sheet" role="dialog" aria-modal="true" aria-label="Filtros administrativos">
     <div class="mobile-filter-sheet-head"><h2>Filtros</h2></div>
     <div class="mobile-filter-body">
-      <div class="mobile-filter-group"><h3>Período</h3><div class="mobile-filter-options"><button *ngFor="let item of periods" [class.active]="adminPeriod===item.id" (click)="setAdminFilter('period',item.id)">{{ item.name }}</button></div></div>
-      <div class="mobile-filter-group"><h3>Dia</h3><div class="mobile-filter-options"><button *ngFor="let item of days" [class.active]="adminDay===item.id" (click)="setAdminFilter('day',item.id)">{{ item.name }}</button></div></div>
-      <div class="mobile-filter-group"><h3>Quadra</h3><div class="mobile-filter-options"><button *ngFor="let item of courts" [class.active]="adminCourt===item.id" (click)="setAdminFilter('court',item.id)">{{ item.name }}</button></div></div>
-      <div class="mobile-filter-group"><h3>Modalidade</h3><div class="mobile-filter-options"><button [class.active]="!adminSport" (click)="setAdminFilter('sport','')">Todas</button><button *ngFor="let item of adminVisibleSports()" [class.active]="adminSport===item.id" (click)="setAdminFilter('sport',item.id)">{{ item.name }}</button></div></div>
-      <div class="mobile-filter-group"><h3>Gênero</h3><div class="mobile-filter-options"><button [class.active]="!adminGender" (click)="setAdminFilter('gender','')">Todos</button><button [class.active]="adminGender==='FEMININO'" (click)="setAdminFilter('gender','FEMININO')">Feminino</button><button [class.active]="adminGender==='MASCULINO'" (click)="setAdminFilter('gender','MASCULINO')">Masculino</button></div></div>
+      <div class="mobile-filter-group"><h3>Período</h3><div class="mobile-filter-options"><button *ngFor="let item of periods" [class.active]="draftAdminPeriod===item.id" (click)="stageAdminFilter('period',item.id)">{{ item.name }}</button></div></div>
+      <div class="mobile-filter-group"><h3>Dia</h3><div class="mobile-filter-options"><button *ngFor="let item of days" [class.active]="draftAdminDay===item.id" (click)="stageAdminFilter('day',item.id)">{{ item.name }}</button></div></div>
+      <div class="mobile-filter-group"><h3>Quadra</h3><div class="mobile-filter-options"><button *ngFor="let item of courts" [class.active]="draftAdminCourt===item.id" (click)="stageAdminFilter('court',item.id)">{{ item.name }}</button></div></div>
+      <div class="mobile-filter-group"><h3>Modalidade</h3><div class="mobile-filter-options"><button [class.active]="!draftAdminSport" (click)="stageAdminFilter('sport','')">Todas</button><button *ngFor="let item of adminVisibleSports(draftAdminCourt)" [class.active]="draftAdminSport===item.id" (click)="stageAdminFilter('sport',item.id)">{{ item.name }}</button></div></div>
+      <div class="mobile-filter-group"><h3>Gênero</h3><div class="mobile-filter-options"><button [class.active]="!draftAdminGender" (click)="stageAdminFilter('gender','')">Todos</button><button [class.active]="draftAdminGender==='FEMININO'" (click)="stageAdminFilter('gender','FEMININO')">Feminino</button><button [class.active]="draftAdminGender==='MASCULINO'" (click)="stageAdminFilter('gender','MASCULINO')">Masculino</button></div></div>
     </div>
     <div class="mobile-filter-actions"><button class="mobile-filter-close" type="button" (click)="confirmAdminFilters()"><span class="admin-filter-confirm-mobile-label">Confirmar</span><span class="admin-filter-confirm-desktop-label">Continuar</span></button></div>
   </section>
