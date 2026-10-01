@@ -18,6 +18,17 @@ MODALIDADES = {"QUADRA_1": ("FUTSAL", "PETECA"), "QUADRA_2": ("BASQUETE", "CORRI
 GENEROS = ("MASCULINO", "FEMININO")
 DIAS = ("DIA_1", "DIA_2", "DIA_3")
 PERIODOS = ("MANHA", "TARDE")
+HORARIOS = {
+    ("MANHA", "QUADRA_1"): ("08:30", "08:42", "08:54", "09:06", "09:18", "09:42", "09:54", "10:06", "10:18", "10:30"),
+    ("MANHA", "QUADRA_2"): ("08:30", "08:42", "08:54", "09:06", "09:18", "09:36", "09:48", "10:00", "10:12", "10:24"),
+    ("TARDE", "QUADRA_1"): ("13:30", "13:42", "13:54", "14:06", "14:18", "14:36", "14:48", "15:00", "15:12", "15:24"),
+    ("TARDE", "QUADRA_2"): ("13:30", "13:42", "13:54", "14:06", "14:18", "14:36", "14:48", "15:00", "15:12", "15:24"),
+}
+
+
+def minutos(horario):
+    hora, minuto = map(int, horario.split(":"))
+    return hora * 60 + minuto
 
 
 def gerar(dados):
@@ -30,13 +41,9 @@ def gerar(dados):
     if not any(e["id"] == tartaruga_tarde["id"] for e in equipes):
         equipes.append(tartaruga_tarde)
 
-    horarios = {}
     estacoes = {}
     for partida in dados["matches"]:
-        chave = (partida["period"], partida["court"])
-        horarios.setdefault(chave, set()).add(partida["time"])
         estacoes[(partida["court"], partida["sportId"], partida["gender"])] = partida["stationId"]
-    horarios = {chave: sorted(valores)[:10] for chave, valores in horarios.items()}
 
     # Dois ciclos de cinco adversários: em cada horário as duplas não se cruzam.
     pares = (
@@ -53,7 +60,7 @@ def gerar(dados):
             for quadra, modalidades in MODALIDADES.items():
                 for modalidade in modalidades:
                     for genero in GENEROS:
-                        for indice, horario in enumerate(horarios[(periodo, quadra)]):
+                        for indice, horario in enumerate(HORARIOS[(periodo, quadra)]):
                             fase = indice // 5
                             grupo = grupos[(quadra == "QUADRA_2") ^ bool(fase)]
                             # A ordem dos participantes muda entre gênero, quadra e fase.
@@ -92,12 +99,18 @@ def validar(dados):
             )
     assert len(faixas) == 48 and set(faixas.values()) == {10}
     assert len(jogos) == 120
+    for faixa, quantidade in faixas.items():
+        periodo, _, quadra, _, _ = faixa
+        assert quantidade == len(HORARIOS[(periodo, quadra)])
     for chave, partidas in jogos.items():
         partidas.sort()
         assert len(partidas) == 8, chave
         assert len({p[0] for p in partidas}) == 8, chave
         assert Counter(p[1] for p in partidas) == {"QUADRA_1": 4, "QUADRA_2": 4}, chave
-        assert sum(partidas[i][1] != partidas[i - 1][1] for i in range(1, 8)) == 1, chave
+        trocas = [i for i in range(1, 8) if partidas[i][1] != partidas[i - 1][1]]
+        assert len(trocas) == 1, chave
+        i = trocas[0]
+        assert minutos(partidas[i][0]) - minutos(partidas[i - 1][0]) >= 18, chave
         assert Counter(p[2] for p in partidas) == Counter({s: 2 for sports in MODALIDADES.values() for s in sports}), chave
         assert len({(p[2], p[3]) for p in partidas}) == 8, chave
 

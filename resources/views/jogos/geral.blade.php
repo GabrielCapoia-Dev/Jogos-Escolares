@@ -52,6 +52,6 @@
   </head>
   <body>
     <main id="app" class="public-app"></main>
-    <script type="module" src="{{ asset('jogos-assets/js/geral.js') }}?v=20260918-json-api"></script>
+    <script type="module" src="{{ asset('jogos-assets/js/geral.js') }}?v=20261001-troca-de-ginasio"></script>
   </body>
 </html>

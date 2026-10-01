@@ -1,5 +1,5 @@
 import { CONFIG } from "./config.js?v=20260918-json-api";
-import { api } from "./api.js?v=20260918-json-api";
+import { api } from "./api.js?v=20261001-troca-de-ginasio";
 
 const app = document.querySelector("#app");
 let acessoAdminListenerRegistrado = false;

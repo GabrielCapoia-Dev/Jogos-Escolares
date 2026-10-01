@@ -1,5 +1,5 @@
 import { CONFIG, STATUS } from "./config.js?v=20260918-json-api";
-import { dadosIniciais } from "./data.js?v=20260918-json-api";
+import { dadosIniciais } from "./data.js?v=20261001-troca-de-ginasio";
 import { calcularClassificacao } from "./ranking.js?v=20260918-json-api";
 
 const usandoAppsScript = typeof google !== "undefined" && Boolean(google.script?.run);
@@ -20,7 +20,13 @@ function clonar(valor) {
 function carregarLocal() {
   try {
     const salvo = localStorage.getItem(CONFIG.storageKey);
-    return salvo ? JSON.parse(salvo) : clonar(dadosIniciais);
+    const dados = salvo ? JSON.parse(salvo) : clonar(dadosIniciais);
+    // Atualiza apenas horários; placares e estados salvos localmente permanecem.
+    const horarios = new Map(dadosIniciais.partidas.map((partida) => [partida.id, partida.horario]));
+    for (const partida of dados.partidas ?? []) {
+      if (horarios.has(partida.id)) partida.horario = horarios.get(partida.id);
+    }
+    return dados;
   } catch {
     return clonar(dadosIniciais);
   }

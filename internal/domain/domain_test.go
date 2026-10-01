@@ -3,6 +3,7 @@ package domain
 import (
 	"sort"
 	"testing"
+	"time"
 )
 
 func TestSeedMatchesTenTeamsEightGamesAndOneCourtChange(t *testing.T) {
@@ -80,6 +81,11 @@ func TestSeedMatchesTenTeamsEightGamesAndOneCourtChange(t *testing.T) {
 			seenOpponent[pair] = true
 			if i > 0 && game.court != appearances[i-1].court {
 				changes++
+				previousStart, previousErr := time.Parse("15:04", appearances[i-1].time)
+				nextStart, nextErr := time.Parse("15:04", game.time)
+				if previousErr != nil || nextErr != nil || nextStart.Sub(previousStart) < 18*time.Minute {
+					t.Fatalf("%s: troca de ginásio tem menos de 10 minutos após o jogo", key)
+				}
 			}
 		}
 		if changes != 1 || byCourt["QUADRA_1"] != 4 || byCourt["QUADRA_2"] != 4 {

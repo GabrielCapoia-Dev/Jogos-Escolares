@@ -112,7 +112,72 @@ func (s *Store) initialize(ctx context.Context) error {
 	if err := s.syncScheduleOnce(ctx); err != nil {
 		return err
 	}
-	return s.resetResultsOnce(ctx)
+	if err := s.resetResultsOnce(ctx); err != nil {
+		return err
+	}
+	return s.adjustGymTransferTimesOnce(ctx)
+}
+
+// adjustGymTransferTimesOnce gives every team at least ten minutes between
+// the end of its last game in one gym and the start of its first in the other.
+// Only scheduled_time changes; recorded results and audit entries stay intact.
+func (s *Store) adjustGymTransferTimesOnce(ctx context.Context) error {
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if _, err = tx.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS maintenance_tasks (
+		name text PRIMARY KEY, completed_at timestamptz NOT NULL DEFAULT now()
+	)`); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS schedule_time_backups (
+		id bigserial PRIMARY KEY, saved_at timestamptz NOT NULL DEFAULT now(),
+		matches jsonb NOT NULL
+	)`); err != nil {
+		return err
+	}
+	result, err := tx.ExecContext(ctx, `INSERT INTO maintenance_tasks(name)
+		VALUES('gym_transfer_10_minutes_20261001') ON CONFLICT DO NOTHING`)
+	if err != nil {
+		return err
+	}
+	inserted, err := result.RowsAffected()
+	if err != nil || inserted == 0 {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `LOCK TABLE matches, audit_logs IN ACCESS EXCLUSIVE MODE`); err != nil {
+		return err
+	}
+	var count int
+	if err = tx.QueryRowContext(ctx, `SELECT COUNT(*) FROM matches`).Scan(&count); err != nil {
+		return err
+	}
+	if count != len(domain.SeedMatches()) {
+		return errors.New("quantidade de partidas diverge do cronograma oficial")
+	}
+	if _, err = tx.ExecContext(ctx, `INSERT INTO schedule_time_backups(matches)
+		SELECT COALESCE(jsonb_agg(to_jsonb(m) ORDER BY m.id), '[]'::jsonb) FROM matches m`); err != nil {
+		return err
+	}
+	for _, m := range domain.SeedMatches() {
+		if m.Order <= 5 || (m.Period == "MANHA" && m.Court == "QUADRA_1") {
+			continue
+		}
+		result, err = tx.ExecContext(ctx, `UPDATE matches SET scheduled_time=$2 WHERE id=$1`, m.ID, m.Time)
+		if err != nil {
+			return err
+		}
+		updated, rowsErr := result.RowsAffected()
+		if rowsErr != nil {
+			return rowsErr
+		}
+		if updated != 1 {
+			return errors.New("partida do cronograma oficial não encontrada")
+		}
+	}
+	return tx.Commit()
 }
 
 // replaceCompetitionScheduleOnce installs the 10+10 draw atomically. The old
