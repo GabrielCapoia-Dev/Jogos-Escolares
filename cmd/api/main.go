@@ -673,7 +673,7 @@ func (s *server) resetResults(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "não autorizado", http.StatusUnauthorized)
 		return
 	}
-	count, err := s.store.ResetAllResults(ctx, user)
+	count, penaltiesReset, err := s.store.ResetAllResults(ctx, user)
 	if err != nil {
 		serverError(w, err)
 		return
@@ -684,7 +684,7 @@ func (s *server) resetResults(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.replaceCachedMatches(matches)
-	writeJSON(w, http.StatusOK, map[string]int64{"reset": count})
+	writeJSON(w, http.StatusOK, map[string]int64{"reset": count, "penaltiesReset": penaltiesReset})
 	for _, period := range domain.Periods {
 		s.broadcastScoreboard(period.ID)
 	}

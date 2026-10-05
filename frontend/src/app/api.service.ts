@@ -86,8 +86,8 @@ export class ApiService {
     );
   }
 
-  resetResultsAsync(token: string): Promise<{ reset: number }> {
-    return this.fetchJson<{ reset: number }>(`${this.base}/admin/reset-results`, {
+  resetResultsAsync(token: string): Promise<{ reset: number; penaltiesReset: number }> {
+    return this.fetchJson<{ reset: number; penaltiesReset: number }>(`${this.base}/admin/reset-results`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` }
     }, 10000);

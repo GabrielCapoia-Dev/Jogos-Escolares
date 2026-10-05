@@ -603,7 +603,7 @@ export class AppComponent implements OnDestroy {
     try {
       const response = await this.api.resetResultsAsync(this.adminToken);
       this.resetConfirmOpen = false;
-      this.showToast(`${response.reset} partidas foram zeradas.`);
+      this.showToast(`${response.reset} partidas e ${response.penaltiesReset} punições foram zeradas.`);
       await this.loadAdmin();
     } catch (error: any) {
       if (error?.status === 401) {

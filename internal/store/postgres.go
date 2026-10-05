@@ -91,6 +91,9 @@ func (s *Store) initialize(ctx context.Context) error {
 		`CREATE TABLE IF NOT EXISTS audit_logs (id bigserial PRIMARY KEY, user_id uuid REFERENCES users(id), action text NOT NULL, match_id text NOT NULL REFERENCES matches(id), before_state jsonb NOT NULL, after_state jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`,
 		`CREATE TABLE IF NOT EXISTS access_tokens (token_hash text PRIMARY KEY, user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE, expires_at timestamptz NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`,
 		`CREATE TABLE IF NOT EXISTS result_reset_backups (id bigserial PRIMARY KEY, reset_at timestamptz NOT NULL DEFAULT now(), user_id uuid NOT NULL REFERENCES users(id), match_count integer NOT NULL, matches jsonb NOT NULL)`,
+		`ALTER TABLE result_reset_backups ADD COLUMN IF NOT EXISTS penalty_count integer NOT NULL DEFAULT 0`,
+		`ALTER TABLE result_reset_backups ADD COLUMN IF NOT EXISTS penalties jsonb NOT NULL DEFAULT '[]'::jsonb`,
+		`ALTER TABLE result_reset_backups ADD COLUMN IF NOT EXISTS finals_confirmations jsonb NOT NULL DEFAULT '[]'::jsonb`,
 		`CREATE TABLE IF NOT EXISTS penalties (id bigserial PRIMARY KEY, period_id text NOT NULL REFERENCES periods(id), team_id text NOT NULL REFERENCES teams(id), points integer NOT NULL CHECK (points > 0), reason text NOT NULL CHECK (length(trim(reason)) > 0), created_by uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT now())`,
 		`CREATE TABLE IF NOT EXISTS finals_confirmations (period_id text PRIMARY KEY REFERENCES periods(id), team_a_id text NOT NULL REFERENCES teams(id), team_b_id text NOT NULL REFERENCES teams(id), team_c_id text NOT NULL REFERENCES teams(id), confirmed_by uuid NOT NULL REFERENCES users(id), confirmed_at timestamptz NOT NULL DEFAULT now())`,
 	}
@@ -679,22 +682,37 @@ func (s *Store) AdvanceMatch(ctx context.Context, id string, user string) (domai
 // ResetAllResults stores a complete snapshot before restoring the official
 // schedule. The snapshot and restore use one transaction, so every recorded
 // backup represents the exact state that was cleared.
-func (s *Store) ResetAllResults(ctx context.Context, user string) (int64, error) {
+func (s *Store) ResetAllResults(ctx context.Context, user string) (int64, int64, error) {
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 	defer tx.Rollback()
+	if _, err = tx.ExecContext(ctx, `LOCK TABLE matches, penalties, finals_confirmations IN SHARE ROW EXCLUSIVE MODE`); err != nil {
+		return 0, 0, err
+	}
 
 	if _, err = tx.ExecContext(ctx, `
-		INSERT INTO result_reset_backups(user_id, match_count, matches)
-		SELECT $1, COUNT(*)::integer, COALESCE(jsonb_agg(to_jsonb(m) ORDER BY m.sort_order), '[]'::jsonb)
-		FROM matches m
+		INSERT INTO result_reset_backups(user_id, match_count, matches, penalty_count, penalties, finals_confirmations)
+		SELECT $1,
+			(SELECT COUNT(*)::integer FROM matches),
+			COALESCE((SELECT jsonb_agg(to_jsonb(m) ORDER BY m.sort_order) FROM matches m), '[]'::jsonb),
+			(SELECT COUNT(*)::integer FROM penalties),
+			COALESCE((SELECT jsonb_agg(to_jsonb(p) ORDER BY p.id) FROM penalties p), '[]'::jsonb),
+			COALESCE((SELECT jsonb_agg(to_jsonb(f) ORDER BY f.period_id) FROM finals_confirmations f), '[]'::jsonb)
 	`, user); err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 	if _, err = tx.ExecContext(ctx, `DELETE FROM finals_confirmations`); err != nil {
-		return 0, err
+		return 0, 0, err
+	}
+	penaltyResult, err := tx.ExecContext(ctx, `DELETE FROM penalties`)
+	if err != nil {
+		return 0, 0, err
+	}
+	penaltyCount, err := penaltyResult.RowsAffected()
+	if err != nil {
+		return 0, 0, err
 	}
 
 	for _, m := range domain.SeedMatches() {
@@ -713,11 +731,11 @@ func (s *Store) ResetAllResults(ctx context.Context, user string) (int64, error)
 				score_a=EXCLUDED.score_a, score_b=EXCLUDED.score_b, updated_at=NULL
 		`, m.ID, m.Period, m.Day, m.Court, m.Time, m.SportID, m.Gender,
 			m.TeamAID, m.TeamBID, m.Status, m.Order, m.ScoreA, m.ScoreB); err != nil {
-			return 0, err
+			return 0, 0, err
 		}
 	}
 	if err := tx.Commit(); err != nil {
-		return 0, err
+		return 0, 0, err
 	}
-	return int64(len(domain.SeedMatches())), nil
+	return int64(len(domain.SeedMatches())), penaltyCount, nil
 }
