@@ -239,6 +239,16 @@
       </nav>
       <button type="button" class="admin-button">Área administrativa</button>
     </div>
+    <nav class="admin-mobile-top-nav" aria-label="Placar, filtros e finais">
+      <button type="button" [class.active]="adminSection==='FINAL'" [disabled]="adminOverlayOpen()" (click)="openAdminFinals()"><span class="nav-icon">★</span><span>Final</span></button>
+      <button type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('ranking')"><span class="nav-icon">▥</span><span>Placar</span></button>
+      <button type="button" [class.active]="adminFiltersOpen" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('filters')"><span class="nav-icon">⚙</span><span>Filtros</span></button>
+    </nav>
+    <nav class="admin-mobile-bottom-nav" aria-label="Resultados e edição">
+      <button type="button" [class.active]="adminSection==='RESULTS'" [disabled]="adminOverlayOpen()" (click)="showAdminResults()"><span class="nav-icon">▤</span><span>Resultados</span></button>
+      <button type="button" [class.active]="adminSection==='PENALTIES'" [disabled]="adminOverlayOpen()" (click)="openAdminPenalties()"><span class="nav-icon">−</span><span>Punições</span></button>
+      <button type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('correction')"><span class="nav-icon">✎</span><span>Editar</span></button>
+    </nav>
   </header>
 
   <main id="admin-app" class="page-shell">
