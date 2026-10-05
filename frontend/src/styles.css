@@ -5778,11 +5778,20 @@ body:has(#admin-app) .admin-registration-nav button.active{
 }
 .admin-mobile-top-nav,.admin-mobile-bottom-nav{display:none!important}
 @media(max-width:699px){
+  /* Ações móveis ocupam uma segunda faixa dentro do cabeçalho fixo. */
+  body:has(#admin-app){padding-top:154px!important}
+  body:has(#admin-app) .admin-header{
+    height:122px!important;min-height:122px!important;
+    display:flex!important;flex-direction:column!important;align-items:stretch!important;
+    box-sizing:border-box!important;overflow:visible!important;
+  }
+  body:has(#admin-app) .admin-header .header-inner{flex:0 0 56px!important}
   body:has(#admin-app) .admin-header .admin-registration-nav{display:none!important}
   body:has(#admin-app) .admin-header .admin-mobile-top-nav{
     position:relative!important;inset:auto!important;transform:none!important;z-index:auto!important;
     display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;
-    width:calc(100% - 24px)!important;max-width:560px!important;margin:8px auto 10px!important;
+    width:calc(100% - 24px)!important;max-width:560px!important;height:66px!important;margin:0 auto!important;
+    box-sizing:border-box!important;
     padding:7px!important;border:1px solid #d7e6f5!important;border-radius:14px!important;
     background:#fff!important;box-shadow:0 3px 12px rgba(9,61,114,.08)!important;
   }
@@ -5808,7 +5817,7 @@ body:has(#admin-app) .admin-registration-nav button.active{
     border:1px solid rgba(155,199,243,.56)!important;border-radius:16px!important;
     background:rgba(255,255,255,.98)!important;box-shadow:0 8px 24px rgba(9,61,114,.20)!important;
   }
-  body:has(#admin-app) #admin-app{padding-bottom:calc(94px + env(safe-area-inset-bottom))!important}
+  body:has(#admin-app) #admin-app{padding-bottom:calc(122px + env(safe-area-inset-bottom))!important}
   body:has(.save-confirm-modal) .admin-mobile-top-nav,
   body:has(.save-confirm-modal) .admin-mobile-bottom-nav,
   body:has(.admin-filter-modal) .admin-mobile-top-nav,
