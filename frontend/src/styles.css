@@ -5778,22 +5778,63 @@ body:has(#admin-app) .admin-registration-nav button.active{
 }
 @media(max-width:699px){
   body:has(#admin-app) .admin-registration-nav{
-    left:8px!important;right:8px!important;width:auto!important;max-width:none!important;
-    min-height:0!important;height:72px!important;padding:5px!important;
-    grid-template-columns:repeat(6,minmax(0,1fr))!important;grid-auto-rows:1fr!important;
-    align-content:stretch!important;gap:4px!important;border-radius:16px!important;
+    display:grid!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;
+    position:fixed!important;left:8px!important;right:8px!important;top:auto!important;
+    bottom:calc(8px + env(safe-area-inset-bottom))!important;transform:none!important;
+    width:auto!important;max-width:560px!important;min-height:0!important;height:auto!important;
+    margin:0 auto!important;padding:7px!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-auto-rows:54px!important;
+    align-content:stretch!important;gap:5px!important;border-radius:16px!important;
     background:rgba(255,255,255,.98)!important;box-shadow:0 6px 22px rgba(9,61,114,.18)!important;
   }
   body:has(#admin-app) .admin-registration-nav button{
+    display:flex!important;visibility:visible!important;opacity:1!important;
     width:100%!important;min-width:0!important;max-width:none!important;
-    height:60px!important;min-height:60px!important;padding:4px 1px!important;
-    gap:4px!important;border-radius:11px!important;font-size:clamp(8px,2.25vw,10px)!important;
+    height:54px!important;min-height:48px!important;padding:4px 2px!important;
+    flex-direction:column!important;align-items:center!important;justify-content:center!important;
+    gap:4px!important;border-radius:11px!important;font-size:clamp(9px,2.6vw,11px)!important;
     line-height:1.05!important;white-space:normal!important;
   }
+  body:has(#admin-app) .admin-registration-nav button.admin-reset-button{display:none!important}
   body:has(#admin-app) .admin-registration-nav button span:not(.nav-icon){
     display:block!important;max-width:100%!important;text-align:center!important;
-    overflow-wrap:anywhere!important;letter-spacing:-.02em!important;
+    overflow-wrap:normal!important;letter-spacing:-.02em!important;
   }
   body:has(#admin-app) .admin-registration-nav .nav-icon{font-size:14px!important;line-height:1!important}
-  body:has(#admin-app) #admin-app{padding-bottom:calc(92px + env(safe-area-inset-bottom))!important}
+  body:has(#admin-app) #admin-app{padding-bottom:calc(150px + env(safe-area-inset-bottom))!important}
+}
+
+/* A tabela administrativa tem colunas próprias: seleção, posição, equipe,
+   cinco métricas e o critério de desempate. Não herda as larguras públicas. */
+.admin-final-panel .admin-final-table-wrap{
+  width:100%!important;
+  max-width:100%!important;
+  overflow-x:auto!important;
+  overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
+  padding:12px!important;
+}
+.admin-final-panel .admin-final-table{
+  width:100%!important;
+  min-width:900px!important;
+  table-layout:fixed!important;
+}
+.admin-final-panel .admin-final-table th:nth-child(1),
+.admin-final-panel .admin-final-table td:nth-child(1){width:84px!important}
+.admin-final-panel .admin-final-table th:nth-child(2),
+.admin-final-panel .admin-final-table td:nth-child(2){width:58px!important}
+.admin-final-panel .admin-final-table th:nth-child(3),
+.admin-final-panel .admin-final-table td:nth-child(3){width:245px!important;text-align:left!important}
+.admin-final-panel .admin-final-table th:nth-child(n+4):nth-child(-n+8),
+.admin-final-panel .admin-final-table td:nth-child(n+4):nth-child(-n+8){width:52px!important}
+.admin-final-panel .admin-final-table th:nth-child(9),
+.admin-final-panel .admin-final-table td:nth-child(9){width:195px!important}
+.admin-final-panel .admin-final-table td:nth-child(3) .team-ident{min-width:0!important}
+.admin-final-panel .admin-final-table td:nth-child(3) .team-name{min-width:0!important}
+.admin-final-panel .admin-final-table td:nth-child(3) .team-name strong,
+.admin-final-panel .admin-final-table td:nth-child(3) .team-name small{white-space:normal!important}
+.admin-final-panel .admin-final-table td:nth-child(9){font-size:.66rem!important;line-height:1.25!important}
+@media(max-width:699px){
+  .admin-final-panel .admin-final-table-wrap{padding:8px!important}
+  .admin-final-panel .admin-final-table{min-width:900px!important}
 }
