@@ -58,6 +58,7 @@ export class AppComponent implements OnDestroy {
   comparisonTeamA = '';
   comparisonTeamB = '';
   teamViewMode: 'SCHEDULE' | 'DIRECT' = 'SCHEDULE';
+  draftTeamViewMode: 'SCHEDULE' | 'DIRECT' = 'SCHEDULE';
   adminTeamMatches: Match[] = [];
   loading = false;
   error = '';
@@ -183,14 +184,6 @@ export class AppComponent implements OnDestroy {
     }
     this.loadPublic();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  setTeamViewMode(mode: 'SCHEDULE' | 'DIRECT'): void {
-    this.teamViewMode = mode;
-    this.selectedTeam = '';
-    this.loading = true;
-    this.renderNow();
-    this.loadPublic(true, true);
   }
 
   async loadFinals(): Promise<void> {
@@ -488,6 +481,7 @@ export class AppComponent implements OnDestroy {
     this.draftPublicTeam = this.selectedTeam;
     this.draftPublicGender = this.gender;
     this.draftPublicFinal = false;
+    this.draftTeamViewMode = this.teamViewMode;
     this.publicFiltersOpen = true;
   }
 
@@ -505,16 +499,19 @@ export class AppComponent implements OnDestroy {
 
   confirmPublicFilters(): void {
     const openFinal = this.draftPublicFinal;
+    const teamModeChanged = this.view === 'CRONOGRAMA_EQUIPE' && this.teamViewMode !== this.draftTeamViewMode;
     this.day = this.draftPublicDay;
     this.court = this.draftPublicCourt;
     this.sport = this.draftPublicSport;
     this.gender = this.draftPublicGender;
     this.selectTeam(this.draftPublicTeam);
+    this.teamViewMode = this.draftTeamViewMode;
     this.publicFiltersOpen = false;
     if (openFinal) {
       this.setView('FINAL');
       return;
     }
+    if (teamModeChanged) this.selectTeam('');
     this.loadPublic(true, true);
   }
 
@@ -524,6 +521,10 @@ export class AppComponent implements OnDestroy {
 
   stagePublicFinal(): void {
     this.draftPublicFinal = true;
+  }
+
+  stagePublicTeamViewMode(mode: 'SCHEDULE' | 'DIRECT'): void {
+    this.draftTeamViewMode = mode;
   }
 
   selectTeam(value: string): void {

@@ -43,7 +43,7 @@
     </header>
 
       <button
-        *ngIf="view === 'CRONOGRAMA' || (view === 'CRONOGRAMA_EQUIPE' && teamViewMode === 'SCHEDULE') || view === 'RESULTADOS'"
+        *ngIf="view === 'CRONOGRAMA' || view === 'CRONOGRAMA_EQUIPE' || view === 'RESULTADOS'"
         type="button"
         class="mobile-filter-fab"
         aria-label="Abrir filtros"
@@ -217,7 +217,6 @@
       </section>
 
       <section *ngIf="view === 'CRONOGRAMA_EQUIPE'" class="team-view">
-        <nav class="team-view-mode" aria-label="Filtro por equipe"><button type="button" [class.active]="teamViewMode==='SCHEDULE'" (click)="setTeamViewMode('SCHEDULE')">Jogos da equipe</button><button type="button" [class.active]="teamViewMode==='DIRECT'" (click)="setTeamViewMode('DIRECT')">Confrontos diretos</button></nav>
         <ng-container *ngIf="teamViewMode==='DIRECT'; else teamScheduleContent"><ng-container *ngTemplateOutlet="directComparisonContent"></ng-container></ng-container>
         <ng-template #teamScheduleContent>
         <section class="scoreboard-heading schedule-heading"><div><p class="eyebrow blue">Programação por equipe</p><h2>Jogos da equipe <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div></section>
@@ -434,10 +433,11 @@
   <section class="mobile-filter-sheet" role="dialog" aria-modal="true" aria-label="Filtros">
     <div class="mobile-filter-sheet-head"><h2>Filtros</h2></div>
     <div class="mobile-filter-body">
-      <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA' || view==='CRONOGRAMA_EQUIPE'"><h3>Dia</h3><div class="mobile-filter-options"><button *ngFor="let item of days" [class.active]="draftPublicDay===item.id && !draftPublicFinal" (click)="stagePublicFilter('day',item.id)">{{ item.name }}</button><button type="button" class="finals-day" [class.active]="draftPublicFinal" (click)="stagePublicFinal()">Fase final</button></div></div>
+      <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA_EQUIPE'"><h3>Visualização</h3><div class="mobile-filter-options"><button [class.active]="draftTeamViewMode==='SCHEDULE'" (click)="stagePublicTeamViewMode('SCHEDULE')">Jogos da equipe</button><button [class.active]="draftTeamViewMode==='DIRECT'" (click)="stagePublicTeamViewMode('DIRECT')">Confrontos diretos</button></div></div>
+      <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA' || (view==='CRONOGRAMA_EQUIPE' && draftTeamViewMode==='SCHEDULE')"><h3>Dia</h3><div class="mobile-filter-options"><button *ngFor="let item of days" [class.active]="draftPublicDay===item.id && !draftPublicFinal" (click)="stagePublicFilter('day',item.id)">{{ item.name }}</button><button type="button" class="finals-day" [class.active]="draftPublicFinal" (click)="stagePublicFinal()">Fase final</button></div></div>
       <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA'"><h3>Quadra</h3><div class="mobile-filter-options"><button *ngFor="let item of courts" [class.active]="draftPublicCourt===item.id" (click)="stagePublicFilter('court',item.id)">{{ item.name }}</button></div></div>
       <div class="mobile-filter-group" *ngIf="view==='CRONOGRAMA'"><h3>Modalidade</h3><div class="mobile-filter-options"><button [class.active]="!draftPublicSport" (click)="stagePublicFilter('sport','')">Todas</button><button *ngFor="let item of visibleSports(draftPublicCourt)" [class.active]="draftPublicSport===item.id" (click)="stagePublicFilter('sport',item.id)">{{ item.name }}</button></div></div>
-      <div class="mobile-filter-group" *ngIf="view==='RESULTADOS' || view==='CRONOGRAMA_EQUIPE'"><h3>Equipe</h3><div class="mobile-filter-options mobile-team-filter-options"><button class="mobile-team-filter-all" [class.active]="!draftPublicTeam" (click)="stagePublicFilter('team','')"><strong>Todas</strong></button><button class="mobile-team-filter-choice" *ngFor="let item of teams" [class.active]="draftPublicTeam===item.id" (click)="stagePublicFilter('team',item.id)"><span class="team-emblem mascot-image" [ngClass]="item.sprite"></span><strong>{{ item.color }}</strong></button></div></div>
+      <div class="mobile-filter-group" *ngIf="view==='RESULTADOS' || (view==='CRONOGRAMA_EQUIPE' && draftTeamViewMode==='SCHEDULE')"><h3>Equipe</h3><div class="mobile-filter-options mobile-team-filter-options"><button class="mobile-team-filter-all" [class.active]="!draftPublicTeam" (click)="stagePublicFilter('team','')"><strong>Todas</strong></button><button class="mobile-team-filter-choice" *ngFor="let item of teams" [class.active]="draftPublicTeam===item.id" (click)="stagePublicFilter('team',item.id)"><span class="team-emblem mascot-image" [ngClass]="item.sprite"></span><strong>{{ item.color }}</strong></button></div></div>
     </div>
     <div class="mobile-filter-actions"><button class="mobile-filter-close" type="button" (click)="confirmPublicFilters()">Confirmar</button></div>
   </section>
