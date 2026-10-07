@@ -5983,3 +5983,9 @@ body:has(#admin-app) .admin-registration-nav button.active{
   body:has(#admin-app) .match-actions{margin-top:8px!important}
   body:has(#admin-app) .admin-team-name .team-emblem{width:40px!important;height:40px!important}
 }
+
+/* Evita sobrepor o rodapé público e mantém a ação do filtro dentro do viewport. */
+@media (max-width:699px){
+  body:not(:has(#admin-app)) .mobile-filter-fab{bottom:calc(128px + env(safe-area-inset-bottom))!important}
+  .mobile-filter-sheet .mobile-filter-actions{margin:14px -12px 0!important;box-sizing:border-box!important}
+}
