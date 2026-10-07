@@ -654,7 +654,7 @@ je-root:has(.public-topbar){
   justify-content:center!important;
   gap:8px!important;
 }
-.ranking-table .team-name .ranking-tiebreak{color:#1672c5!important;font-size:.62rem!important;font-weight:800!important;line-height:1.1}
+.ranking-table .team-name .ranking-tiebreak{color:#71869b!important;font-size:.58rem!important;font-weight:500!important;line-height:1.15}
 .ranking-note{margin:.7rem .8rem;color:#667f99;font-size:.72rem;line-height:1.4}
 .header-sport-logo{width:58px;height:22px;object-fit:contain;display:block;filter:none}
 .public-topbar strong{

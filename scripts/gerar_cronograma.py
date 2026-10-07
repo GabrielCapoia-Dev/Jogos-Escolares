@@ -9,6 +9,7 @@ import copy
 import json
 import random
 from collections import Counter, defaultdict
+from itertools import combinations
 from pathlib import Path
 
 
@@ -54,12 +55,31 @@ def gerar(dados):
     for periodo in PERIODOS:
         ids = sorted(e["id"] for e in equipes if e["period"] == periodo)
         assert len(ids) == 10
+        # Cada cor precisa enfrentar todas as outras ao menos uma vez no
+        # cronograma inteiro. Cada confronto dentro de um grupo gera dois
+        # jogos (um em cada quadra) por gênero; por isso basta cobrir todos os
+        # pares entre os seis sorteios de dia/gênero deste período.
+        for tentativa in range(10000):
+            grupos_por_dia_genero = {}
+            cobertura = Counter()
+            for dia in DIAS:
+                for genero in GENEROS:
+                    ordem = sorteio.sample(ids, len(ids))
+                    grupos = (ordem[:5], ordem[5:])
+                    grupos_por_dia_genero[(dia, genero)] = grupos
+                    for grupo in grupos:
+                        for a, b in combinations(sorted(grupo), 2):
+                            cobertura[(a, b)] += 1
+            if len(cobertura) == 45 and min(cobertura.values()) >= 1:
+                break
+        else:
+            raise RuntimeError(f"não foi possível cobrir todos os confrontos de {periodo}")
+
         for dia in DIAS:
-            sorteio.shuffle(ids)
-            grupos = (ids[:5], ids[5:])
             for quadra, modalidades in MODALIDADES.items():
                 for modalidade in modalidades:
                     for genero in GENEROS:
+                        grupos = grupos_por_dia_genero[(dia, genero)]
                         for indice, horario in enumerate(HORARIOS[(periodo, quadra)]):
                             fase = indice // 5
                             grupo = grupos[(quadra == "QUADRA_2") ^ bool(fase)]
@@ -87,8 +107,10 @@ def validar(dados):
     equipes = {e["id"]: e for e in dados["teams"]}
     faixas = Counter()
     jogos = defaultdict(list)
+    confrontos = Counter()
     for partida in dados["matches"]:
         assert partida["teamAId"] != partida["teamBId"]
+        confrontos[(partida["period"], *sorted((partida["teamAId"], partida["teamBId"]))) ] += 1
         faixa = tuple(partida[k] for k in ("period", "day", "court", "sportId", "gender"))
         faixas[faixa] += 1
         for equipe, adversario in ((partida["teamAId"], partida["teamBId"]),
@@ -113,6 +135,10 @@ def validar(dados):
         assert minutos(partidas[i][0]) - minutos(partidas[i - 1][0]) >= 18, chave
         assert Counter(p[2] for p in partidas) == Counter({s: 2 for sports in MODALIDADES.values() for s in sports}), chave
         assert len({(p[2], p[3]) for p in partidas}) == 8, chave
+    for periodo in PERIODOS:
+        ids = sorted(e["id"] for e in equipes.values() if e["period"] == periodo)
+        for a, b in combinations(ids, 2):
+            assert confrontos[(periodo, a, b)] >= 2, (periodo, a, b, confrontos[(periodo, a, b)])
 
 
 if __name__ == "__main__":

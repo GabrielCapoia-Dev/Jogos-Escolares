@@ -152,7 +152,7 @@ func (s *Store) adjustGymTransferTimesOnce(ctx context.Context) error {
 	if err != nil || inserted == 0 {
 		return err
 	}
-	if _, err = tx.ExecContext(ctx, `LOCK TABLE matches, audit_logs IN ACCESS EXCLUSIVE MODE`); err != nil {
+	if _, err = tx.ExecContext(ctx, `LOCK TABLE teams, matches, audit_logs, penalties, finals_confirmations IN ACCESS EXCLUSIVE MODE`); err != nil {
 		return err
 	}
 	var count int
@@ -200,12 +200,19 @@ func (s *Store) replaceCompetitionScheduleOnce(ctx context.Context) error {
 	}
 	if _, err = tx.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS schedule_replacement_backups (
 		id bigserial PRIMARY KEY, replaced_at timestamptz NOT NULL DEFAULT now(),
-		teams jsonb NOT NULL, matches jsonb NOT NULL, audit_logs jsonb NOT NULL
+		teams jsonb NOT NULL, matches jsonb NOT NULL, audit_logs jsonb NOT NULL,
+		penalties jsonb NOT NULL DEFAULT '[]'::jsonb,
+		finals_confirmations jsonb NOT NULL DEFAULT '[]'::jsonb
 	)`); err != nil {
 		return err
 	}
+	if _, err = tx.ExecContext(ctx, `ALTER TABLE schedule_replacement_backups
+		ADD COLUMN IF NOT EXISTS penalties jsonb NOT NULL DEFAULT '[]'::jsonb,
+		ADD COLUMN IF NOT EXISTS finals_confirmations jsonb NOT NULL DEFAULT '[]'::jsonb`); err != nil {
+		return err
+	}
 	result, err := tx.ExecContext(ctx, `INSERT INTO maintenance_tasks(name)
-		VALUES('schedule_10_teams_20261001') ON CONFLICT DO NOTHING`)
+		VALUES('schedule_opponent_coverage_20261007') ON CONFLICT DO NOTHING`)
 	if err != nil {
 		return err
 	}
@@ -216,13 +223,21 @@ func (s *Store) replaceCompetitionScheduleOnce(ctx context.Context) error {
 	if _, err = tx.ExecContext(ctx, `LOCK TABLE matches, audit_logs IN ACCESS EXCLUSIVE MODE`); err != nil {
 		return err
 	}
-	if _, err = tx.ExecContext(ctx, `INSERT INTO schedule_replacement_backups(teams,matches,audit_logs)
+	if _, err = tx.ExecContext(ctx, `INSERT INTO schedule_replacement_backups(teams,matches,audit_logs,penalties,finals_confirmations)
 		SELECT (SELECT COALESCE(jsonb_agg(to_jsonb(t) ORDER BY t.id), '[]'::jsonb) FROM teams t),
 		       (SELECT COALESCE(jsonb_agg(to_jsonb(m) ORDER BY m.id), '[]'::jsonb) FROM matches m),
-		       (SELECT COALESCE(jsonb_agg(to_jsonb(a) ORDER BY a.id), '[]'::jsonb) FROM audit_logs a)`); err != nil {
+		       (SELECT COALESCE(jsonb_agg(to_jsonb(a) ORDER BY a.id), '[]'::jsonb) FROM audit_logs a),
+		       (SELECT COALESCE(jsonb_agg(to_jsonb(p) ORDER BY p.id), '[]'::jsonb) FROM penalties p),
+		       (SELECT COALESCE(jsonb_agg(to_jsonb(f) ORDER BY f.period_id), '[]'::jsonb) FROM finals_confirmations f)`); err != nil {
 		return err
 	}
 	if _, err = tx.ExecContext(ctx, `DELETE FROM audit_logs`); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `DELETE FROM penalties`); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `DELETE FROM finals_confirmations`); err != nil {
 		return err
 	}
 	if _, err = tx.ExecContext(ctx, `DELETE FROM matches`); err != nil {

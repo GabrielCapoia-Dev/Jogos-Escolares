@@ -16,12 +16,14 @@ func TestSeedMatchesTenTeamsEightGamesAndOneCourtChange(t *testing.T) {
 	}
 	known := map[string]Team{}
 	periods := map[string]int{}
+	teamsByPeriod := map[string][]string{}
 	for _, team := range teams {
 		if team.Mascot == "Bem-te-vi" {
 			t.Fatalf("Bem-te-vi ainda cadastrado: %s", team.ID)
 		}
 		known[team.ID] = team
 		periods[team.Period]++
+		teamsByPeriod[team.Period] = append(teamsByPeriod[team.Period], team.ID)
 	}
 	if periods["MANHA"] != 10 || periods["TARDE"] != 10 || known["TARDE_AZUL_CLARO"].Mascot != "Tartaruga" {
 		t.Fatalf("distribuição de equipes incorreta: %#v", periods)
@@ -30,6 +32,7 @@ func TestSeedMatchesTenTeamsEightGamesAndOneCourtChange(t *testing.T) {
 	played := map[string][]appearance{}
 	laneCount := map[string]int{}
 	slots := map[string]bool{}
+	pairGames := map[string]int{}
 	for _, match := range matches {
 		if _, ok := known[match.TeamAID]; !ok {
 			t.Fatalf("partida %s referencia equipe inexistente", match.ID)
@@ -42,6 +45,11 @@ func TestSeedMatchesTenTeamsEightGamesAndOneCourtChange(t *testing.T) {
 		}
 		lane := match.Period + match.Day + match.Court + match.SportID + match.Gender
 		laneCount[lane]++
+		pairA, pairB := match.TeamAID, match.TeamBID
+		if pairA > pairB {
+			pairA, pairB = pairB, pairA
+		}
+		pairGames[match.Period+"|"+pairA+"|"+pairB]++
 		for team, opponent := range map[string]string{match.TeamAID: match.TeamBID, match.TeamBID: match.TeamAID} {
 			key := match.Day + match.Gender + team
 			played[key] = append(played[key], appearance{match.Time, match.Court, match.SportID, opponent})
@@ -50,6 +58,17 @@ func TestSeedMatchesTenTeamsEightGamesAndOneCourtChange(t *testing.T) {
 				t.Fatalf("%s tem jogos simultâneos às %s", team, match.Time)
 			}
 			slots[slot] = true
+		}
+	}
+	for period, ids := range teamsByPeriod {
+		sort.Strings(ids)
+		for i := range ids {
+			for j := i + 1; j < len(ids); j++ {
+				key := period + "|" + ids[i] + "|" + ids[j]
+				if pairGames[key] < 2 {
+					t.Errorf("confronto %s ocorreu %d vezes no total, quer ao menos 2", key, pairGames[key])
+				}
+			}
 		}
 	}
 	if len(laneCount) != 48 {
