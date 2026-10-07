@@ -36,7 +36,6 @@
           <button type="button" [class.active]="view === 'CRONOGRAMA'" (click)="setView('CRONOGRAMA')"><span class="nav-icon">▤</span><span>Cronograma</span></button>
           <button type="button" [class.active]="view === 'CRONOGRAMA_EQUIPE'" (click)="setView('CRONOGRAMA_EQUIPE')"><span class="nav-icon">♟</span><span>Por equipe</span></button>
           <button type="button" [class.active]="view === 'RESULTADOS'" (click)="setView('RESULTADOS')"><span class="nav-icon">▥</span><span>Resultados</span></button>
-          <button type="button" [class.active]="view === 'CONFRONTOS_DIRETOS'" (click)="setView('CONFRONTOS_DIRETOS')" aria-label="Confrontos diretos"><span class="nav-icon">⇄</span><span class="nav-label-desktop">Confrontos</span><span class="nav-label-mobile">Diretos</span></button>
         </nav>
 
         <button class="admin-button" type="button" (click)="openLogin()">Área administrativa</button>
@@ -44,7 +43,7 @@
     </header>
 
       <button
-        *ngIf="view === 'CRONOGRAMA' || view === 'CRONOGRAMA_EQUIPE' || view === 'RESULTADOS'"
+        *ngIf="view === 'CRONOGRAMA' || (view === 'CRONOGRAMA_EQUIPE' && teamViewMode === 'SCHEDULE') || view === 'RESULTADOS'"
         type="button"
         class="mobile-filter-fab"
         aria-label="Abrir filtros"
@@ -65,7 +64,6 @@
         <button class="tab" [class.active]="view === 'CLASSIFICACAO'" (click)="setView('CLASSIFICACAO')">Classificação</button>
         <button class="tab" [class.active]="view === 'CRONOGRAMA'" (click)="setView('CRONOGRAMA')">Cronograma geral</button>
         <button class="tab" [class.active]="view === 'CRONOGRAMA_EQUIPE'" (click)="setView('CRONOGRAMA_EQUIPE')">Cronograma por equipes</button>
-        <button class="tab" [class.active]="view === 'CONFRONTOS_DIRETOS'" (click)="setView('CONFRONTOS_DIRETOS')">Confrontos diretos</button>
       </nav>
 
       <p class="legacy-error" *ngIf="error">{{ error }}</p>
@@ -119,7 +117,8 @@
         </section>
       </div>
 
-      <section *ngIf="view === 'CONFRONTOS_DIRETOS'" class="direct-comparison-view">
+      <ng-template #directComparisonContent>
+      <section class="direct-comparison-view">
         <section class="scoreboard-heading">
           <div><p class="eyebrow blue">Confrontos diretos</p><h2>Comparar equipes <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2><p class="direct-comparison-intro">Escolha duas equipes para ver os jogos entre elas. Neste critério, somente vitórias contam.</p></div>
         </section>
@@ -156,6 +155,7 @@
           <ng-template #noDirectMatches><div class="empty-state direct-comparison-prompt">Ainda não há partidas finalizadas entre estas equipes.</div></ng-template>
         </ng-container>
       </section>
+      </ng-template>
 
       <section *ngIf="view === 'CRONOGRAMA'" class="schedule-view">
         <section class="scoreboard-heading schedule-heading"><div><p class="eyebrow blue">Programação dos jogos</p><h2>Cronograma <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div><button type="button" class="schedule-export-button" (click)="exportGeneralSchedulePdf()">Exportar</button></section>
@@ -217,11 +217,15 @@
       </section>
 
       <section *ngIf="view === 'CRONOGRAMA_EQUIPE'" class="team-view">
+        <nav class="team-view-mode" aria-label="Filtro por equipe"><button type="button" [class.active]="teamViewMode==='SCHEDULE'" (click)="setTeamViewMode('SCHEDULE')">Jogos da equipe</button><button type="button" [class.active]="teamViewMode==='DIRECT'" (click)="setTeamViewMode('DIRECT')">Confrontos diretos</button></nav>
+        <ng-container *ngIf="teamViewMode==='DIRECT'; else teamScheduleContent"><ng-container *ngTemplateOutlet="directComparisonContent"></ng-container></ng-container>
+        <ng-template #teamScheduleContent>
         <section class="scoreboard-heading schedule-heading"><div><p class="eyebrow blue">Programação por equipe</p><h2>Jogos da equipe <span class="classification-period">{{ periodName().toUpperCase() }}</span></h2></div></section>
         <nav class="schedule-days"><button *ngFor="let item of days" class="schedule-day" [class.active]="item.id === day" (click)="applyPublicFilter('day',item.id)">{{ item.name }}</button></nav>
         <section class="choice-panel team-schedule-picker"><div class="picker-heading"><p class="eyebrow blue">Torcida</p><h3>Equipes</h3><span>Selecione uma cor para filtrar</span></div><div class="team-picker-grid"><button class="team-picker-choice team-picker-all" [class.active]="!selectedTeam" (click)="selectTeam('')">Todos</button><button class="team-picker-choice" *ngFor="let item of teams" [class.active]="selectedTeam === item.id" (click)="selectTeam(item.id)"><span class="team-emblem mascot-image" [ngClass]="item.sprite"></span><strong>{{ item.color }}</strong></button></div></section>
         <section class="team-schedule-panel" *ngIf="selectedTeam; else teamPrompt"><section class="team-schedule-heading"><span class="team-emblem mascot-image" [ngClass]="team(selectedTeam)?.sprite"></span><div><span>{{ dayName(day) }}</span><h3>{{ team(selectedTeam)?.color }}</h3><small>{{ team(selectedTeam)?.mascot }} · {{ teamMatches().length }} jogos</small></div></section><div class="team-schedule-grid"><ng-container *ngIf="teamMatches() as teamScheduleMatches"><ng-container *ngFor="let match of teamScheduleMatches; let matchIndex = index"><div *ngIf="isGymTransitionBeforeMatch(teamScheduleMatches, matchIndex)" class="gym-transition-marker team-gym-transition-marker" role="note" aria-label="Momento de troca de ginásio"><span class="gym-transition-line"></span><div><strong>Troca de ginásio</strong><div class="time-stack"><span>{{ gymTransitionTime() }}</span><small class="time-label">Previsão</small></div></div><span class="gym-transition-line"></span></div><article class="team-schedule-card" [class.finished]="match.status==='FINALIZADO'" [class.happening]="isCurrentScheduleMatch(match)"><ng-container *ngIf="previousMatchForTeamMatch(match) as previous"><div class="team-before-notice"><span>Após</span><strong>{{ team(previous.teamAId)?.color }} × {{ team(previous.teamBId)?.color }}</strong></div></ng-container><div class="team-schedule-card-top"><span class="time-stack"><time>{{ match.time }}</time><small class="time-label">Previsão</small></span><span class="status" [class.waiting]="!isCurrentScheduleMatch(match)" [class.live]="isCurrentScheduleMatch(match)">{{ isCurrentScheduleMatch(match) ? 'Jogo acontecendo' : statusLabel(match.status) }}</span></div><div class="team-schedule-location"><strong>{{ courtName(match.court) }}</strong><span>{{ sportName(match.sportId) }} · {{ genderName(match.gender) }}</span></div><div class="team-schedule-versus"><div class="team-schedule-team team-schedule-team-home"><span><b>{{ team(match.teamAId)?.color }}</b><small>{{ team(match.teamAId)?.mascot }}</small></span><span class="team-emblem mascot-image" [ngClass]="team(match.teamAId)?.sprite"></span></div><strong class="team-schedule-score">{{ match.status === 'FINALIZADO' ? match.scoreA + ' × ' + match.scoreB : '×' }}</strong><div class="team-schedule-team team-schedule-team-away"><span class="team-emblem mascot-image" [ngClass]="team(match.teamBId)?.sprite"></span><span><b>{{ team(match.teamBId)?.color }}</b><small>{{ team(match.teamBId)?.mascot }}</small></span></div></div></article></ng-container></ng-container></div></section>
         <ng-template #teamPrompt><div class="empty-state team-selection-prompt">Selecione uma equipe para visualizar seus jogos.</div></ng-template>
+        </ng-template>
       </section>
 
       <section *ngIf="view === 'RESULTADOS'" class="results-section history-heading">
@@ -270,6 +274,7 @@
       <div class="public-brand"><button type="button" class="header-home" (click)="backHome()">Início</button></div>
       <nav class="public-main-nav admin-registration-nav" aria-label="Menu administrativo">
         <button type="button" [class.active]="adminSection==='RESULTS'" [disabled]="adminOverlayOpen()" (click)="showAdminResults()"><span class="nav-icon">▤</span><span>Resultados</span></button>
+        <button type="button" [class.active]="adminSection==='TEAM'" [disabled]="adminOverlayOpen()" (click)="openAdminTeams()"><span class="nav-icon">♟</span><span>Por equipe</span></button>
         <button type="button" [class.active]="adminSection==='FINAL'" [disabled]="adminOverlayOpen()" (click)="openAdminFinals()"><span class="nav-icon">★</span><span>Final</span></button>
         <button type="button" [class.active]="adminSection==='PENALTIES'" [disabled]="adminOverlayOpen()" (click)="openAdminPenalties()"><span class="nav-icon">−</span><span>Punições</span></button>
         <button type="button" [class.active]="adminFiltersOpen" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('filters')"><span class="nav-icon">⚙</span><span>Filtros</span></button>
@@ -286,12 +291,27 @@
     </nav>
     <nav class="admin-mobile-bottom-nav" aria-label="Resultados e edição">
       <button type="button" [class.active]="adminSection==='RESULTS'" [disabled]="adminOverlayOpen()" (click)="showAdminResults()"><span class="nav-icon">▤</span><span>Resultados</span></button>
+      <button type="button" [class.active]="adminSection==='TEAM'" [disabled]="adminOverlayOpen()" (click)="openAdminTeams()"><span class="nav-icon">♟</span><span>Por equipe</span></button>
       <button type="button" [class.active]="adminSection==='PENALTIES'" [disabled]="adminOverlayOpen()" (click)="openAdminPenalties()"><span class="nav-icon">−</span><span>Punições</span></button>
       <button type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('correction')"><span class="nav-icon">✎</span><span>Editar</span></button>
     </nav>
   </header>
 
   <main id="admin-app" class="page-shell">
+    <section class="admin-final-section" *ngIf="adminSection==='TEAM'">
+      <section class="scoreboard-heading"><div><p class="eyebrow blue">Área administrativa · Por equipe</p><h2>Confrontos diretos · {{ periodName(adminPeriod) }}</h2><p>Compare as vitórias entre duas equipes. Empates não contam como vitória.</p><div class="admin-final-periods"><button *ngFor="let item of periods" type="button" [class.active]="adminPeriod===item.id" (click)="setAdminFilter('period',item.id)">{{ item.name }}</button></div></div></section>
+      <section class="direct-comparison-view">
+        <section class="direct-comparison-picker panel">
+          <label class="direct-team-select"><span>Equipe 1</span><select [(ngModel)]="comparisonTeamA" aria-label="Escolha a primeira equipe"><option value="">Selecione uma equipe</option><option *ngFor="let item of teams" [value]="item.id" [disabled]="item.id === comparisonTeamB">{{ item.color }}</option></select></label><strong class="direct-versus">×</strong><label class="direct-team-select"><span>Equipe 2</span><select [(ngModel)]="comparisonTeamB" aria-label="Escolha a segunda equipe"><option value="">Selecione uma equipe</option><option *ngFor="let item of teams" [value]="item.id" [disabled]="item.id === comparisonTeamA">{{ item.color }}</option></select></label>
+        </section>
+        <div class="empty-state direct-comparison-prompt" *ngIf="!directComparisonReady()">Selecione duas equipes diferentes para comparar os confrontos.</div>
+        <ng-container *ngIf="directComparisonReady()">
+          <section class="direct-comparison-scoreboard"><article class="direct-comparison-team" [class.leader]="directWins(comparisonTeamA)>directWins(comparisonTeamB)"><span class="team-emblem mascot-image" [ngClass]="team(comparisonTeamA)?.sprite"></span><strong>{{ team(comparisonTeamA)?.color }}</strong><span class="direct-win-count">{{ directWins(comparisonTeamA) }}</span><small>vitórias diretas</small></article><div class="direct-comparison-summary"><strong>Confrontos diretos</strong><span>{{ directComparisonMatches().length }} jogos finalizados</span><small>Empates não contam como vitória.</small></div><article class="direct-comparison-team" [class.leader]="directWins(comparisonTeamB)>directWins(comparisonTeamA)"><span class="team-emblem mascot-image" [ngClass]="team(comparisonTeamB)?.sprite"></span><strong>{{ team(comparisonTeamB)?.color }}</strong><span class="direct-win-count">{{ directWins(comparisonTeamB) }}</span><small>vitórias diretas</small></article></section>
+          <section class="direct-comparison-history" *ngIf="directComparisonMatches().length; else noAdminDirectMatches"><h3>Jogos entre {{ team(comparisonTeamA)?.color }} e {{ team(comparisonTeamB)?.color }}</h3><article class="direct-match-row" *ngFor="let match of directComparisonMatches()"><div class="direct-match-meta"><strong>{{ dayName(match.day) }}</strong><span>{{ match.time }} · {{ courtName(match.court) }}</span><span>{{ sportName(match.sportId) }} · {{ genderName(match.gender) }}</span></div><div class="direct-match-result"><span [class.direct-match-winner]="winner(match,'A')">{{ team(match.teamAId)?.color }}</span><strong>{{ match.scoreA }} <small>×</small> {{ match.scoreB }}</strong><span [class.direct-match-winner]="winner(match,'B')">{{ team(match.teamBId)?.color }}</span></div><small class="direct-match-outcome" *ngIf="winner(match,'A')">Vitória de {{ team(match.teamAId)?.color }}</small><small class="direct-match-outcome" *ngIf="winner(match,'B')">Vitória de {{ team(match.teamBId)?.color }}</small><small class="direct-match-outcome draw" *ngIf="!winner(match,'A') && !winner(match,'B')">Empate · não soma vitória</small></article></section>
+          <ng-template #noAdminDirectMatches><div class="empty-state direct-comparison-prompt">Ainda não há partidas finalizadas entre estas equipes.</div></ng-template>
+        </ng-container>
+      </section>
+    </section>
     <section class="admin-final-section" *ngIf="adminSection==='FINAL'">
       <section class="scoreboard-heading"><div><p class="eyebrow blue">Área administrativa</p><h2>Finalistas · {{ periodName(adminPeriod) }}</h2><p>Os três primeiros classificados são separados por período.</p><div class="admin-final-periods"><button *ngFor="let item of periods" type="button" [class.active]="adminPeriod===item.id" (click)="setAdminFilter('period',item.id)">{{ item.name }}</button></div></div><button type="button" class="admin-final-refresh" (click)="loadAdminFinals()">Atualizar classificação</button></section>
       <section class="panel admin-final-panel">

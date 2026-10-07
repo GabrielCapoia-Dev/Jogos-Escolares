@@ -1,13 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, HostListener, OnDestroy, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { firstValueFrom, forkJoin } from 'rxjs';
 import { finalize, retry } from 'rxjs/operators';
 import { ApiService, Court, Day, FinalsState, LoginResponse, Match, Penalty, Period, RealtimeEvent, Sport, Standing, Team } from './api.service';
 
-type PublicView = 'CLASSIFICACAO' | 'CRONOGRAMA' | 'CRONOGRAMA_EQUIPE' | 'RESULTADOS' | 'CONFRONTOS_DIRETOS' | 'FINAL';
+type PublicView = 'CLASSIFICACAO' | 'CRONOGRAMA' | 'CRONOGRAMA_EQUIPE' | 'RESULTADOS' | 'FINAL';
 type Screen = 'PUBLIC' | 'ADMIN';
-type AdminSection = 'RESULTS' | 'FINAL' | 'PENALTIES';
+type AdminSection = 'RESULTS' | 'TEAM' | 'FINAL' | 'PENALTIES';
 type PublicResultsTab = 'GAMES' | 'PENALTIES';
 
 @Component({
@@ -57,6 +57,8 @@ export class AppComponent implements OnDestroy {
   selectedTeam = '';
   comparisonTeamA = '';
   comparisonTeamB = '';
+  teamViewMode: 'SCHEDULE' | 'DIRECT' = 'SCHEDULE';
+  adminTeamMatches: Match[] = [];
   loading = false;
   error = '';
   lastUpdated = '';
@@ -165,6 +167,7 @@ export class AppComponent implements OnDestroy {
 
   setView(view: PublicView): void {
     this.view = view;
+    if (view === 'CRONOGRAMA_EQUIPE') this.teamViewMode = 'SCHEDULE';
     this.publicFiltersOpen = false;
     if (view === 'FINAL') {
       this.finalsState = null;
@@ -180,6 +183,14 @@ export class AppComponent implements OnDestroy {
     }
     this.loadPublic();
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  setTeamViewMode(mode: 'SCHEDULE' | 'DIRECT'): void {
+    this.teamViewMode = mode;
+    this.selectedTeam = '';
+    this.loading = true;
+    this.renderNow();
+    this.loadPublic(true, true);
   }
 
   async loadFinals(): Promise<void> {
@@ -279,6 +290,30 @@ export class AppComponent implements OnDestroy {
   showAdminResults(): void {
     this.adminSection = 'RESULTS';
     void this.loadAdmin();
+  }
+
+  openAdminTeams(): void {
+    this.adminSection = 'TEAM';
+    this.comparisonTeamA = '';
+    this.comparisonTeamB = '';
+    void this.loadAdminTeamData();
+  }
+
+  async loadAdminTeamData(): Promise<void> {
+    const period = this.adminPeriod;
+    try {
+      const [teams, matches] = await Promise.all([
+        firstValueFrom(this.api.teams(period)),
+        firstValueFrom(this.api.matches(period))
+      ]);
+      if (this.screen !== 'ADMIN' || this.adminSection !== 'TEAM' || this.adminPeriod !== period) return;
+      this.teams = teams;
+      this.adminTeamMatches = matches;
+      this.renderNow();
+    } catch (error: any) {
+      if (error?.status === 401) this.expireAdminSession();
+      else this.showToast('Não foi possível carregar os confrontos da equipe.');
+    }
   }
 
   openAdminPenalties(): void {
@@ -389,8 +424,8 @@ export class AppComponent implements OnDestroy {
       return;
     }
 
-    const allDirectMatches = requestView === 'CONFRONTOS_DIRETOS';
-    const day = requestView === 'CRONOGRAMA' || requestView === 'CRONOGRAMA_EQUIPE' ? requestDay : '';
+    const allDirectMatches = requestView === 'CRONOGRAMA_EQUIPE' && this.teamViewMode === 'DIRECT';
+    const day = allDirectMatches ? '' : requestView === 'CRONOGRAMA' || requestView === 'CRONOGRAMA_EQUIPE' ? requestDay : '';
     const court = allDirectMatches || requestView === 'CRONOGRAMA_EQUIPE' || requestView === 'RESULTADOS' ? '' : requestCourt;
     const gender = allDirectMatches || requestGender === 'GERAL' ? '' : requestGender;
     const sport = allDirectMatches ? '' : requestSport;
@@ -674,6 +709,7 @@ export class AppComponent implements OnDestroy {
     if (kind === 'sport') this.adminSport = value;
     if (kind === 'gender') this.adminGender = value;
     if (kind === 'period' && this.adminSection === 'PENALTIES') void this.loadAdminPenalties();
+    if (kind === 'period' && this.adminSection === 'TEAM') void this.loadAdminTeamData();
 
     this.adminLoading = true;
     this.renderNow();
@@ -1111,7 +1147,8 @@ export class AppComponent implements OnDestroy {
   directComparisonMatches(): Match[] {
     if (!this.directComparisonReady()) return [];
     const dayOrder = new Map(this.days.map((item, index) => [item.id, index]));
-    return this.matches
+    const sourceMatches = this.screen === 'ADMIN' && this.adminSection === 'TEAM' ? this.adminTeamMatches : this.matches;
+    return sourceMatches
       .filter(item => item.status === 'FINALIZADO' && (
         (item.teamAId === this.comparisonTeamA && item.teamBId === this.comparisonTeamB) ||
         (item.teamAId === this.comparisonTeamB && item.teamBId === this.comparisonTeamA)
@@ -1139,7 +1176,7 @@ export class AppComponent implements OnDestroy {
 
   teamMatches(): Match[] {
     return this.sortMatchesFinalizedLast(
-      this.matches.filter(item => !this.selectedTeam || item.teamAId === this.selectedTeam || item.teamBId === this.selectedTeam)
+      (this.screen === 'ADMIN' ? this.adminTeamMatches : this.matches).filter(item => !this.selectedTeam || item.teamAId === this.selectedTeam || item.teamBId === this.selectedTeam)
     );
   }
 
@@ -1451,7 +1488,7 @@ export class AppComponent implements OnDestroy {
     const delta = end - this.touchStartX;
     this.touchStartX = null;
     if (Math.abs(delta) < 65) return;
-    const views: PublicView[] = ['CLASSIFICACAO', 'CRONOGRAMA', 'CRONOGRAMA_EQUIPE', 'RESULTADOS', 'CONFRONTOS_DIRETOS'];
+    const views: PublicView[] = ['CLASSIFICACAO', 'CRONOGRAMA', 'CRONOGRAMA_EQUIPE', 'RESULTADOS'];
     const index = views.indexOf(this.view);
     const next = views[index + (delta < 0 ? 1 : -1)];
     if (next) this.setView(next);
