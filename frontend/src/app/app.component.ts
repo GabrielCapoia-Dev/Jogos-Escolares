@@ -5,7 +5,7 @@ import { forkJoin } from 'rxjs';
 import { finalize, retry } from 'rxjs/operators';
 import { ApiService, Court, Day, FinalsState, LoginResponse, Match, Penalty, Period, RealtimeEvent, Sport, Standing, Team } from './api.service';
 
-type PublicView = 'CLASSIFICACAO' | 'CRONOGRAMA' | 'CRONOGRAMA_EQUIPE' | 'RESULTADOS' | 'FINAL';
+type PublicView = 'CLASSIFICACAO' | 'CRONOGRAMA' | 'CRONOGRAMA_EQUIPE' | 'RESULTADOS' | 'CONFRONTOS_DIRETOS' | 'FINAL';
 type Screen = 'PUBLIC' | 'ADMIN';
 type AdminSection = 'RESULTS' | 'FINAL' | 'PENALTIES';
 type PublicResultsTab = 'GAMES' | 'PENALTIES';
@@ -55,6 +55,8 @@ export class AppComponent implements OnDestroy {
   court = 'QUADRA_1';
   sport = '';
   selectedTeam = '';
+  comparisonTeamA = '';
+  comparisonTeamB = '';
   loading = false;
   error = '';
   lastUpdated = '';
@@ -144,6 +146,8 @@ export class AppComponent implements OnDestroy {
     this.finalsState = null;
     this.day = this.days[0]?.id ?? 'DIA_1';
     this.selectedTeam = sessionStorage.getItem(this.teamFilterKey(period.id)) ?? '';
+    this.comparisonTeamA = '';
+    this.comparisonTeamB = '';
     this.teams = this.fallbackTeams(period.id);
     this.standings = this.zeroStandings(this.teams);
     void this.loadGeneralDirect(period.id, true);
@@ -385,13 +389,15 @@ export class AppComponent implements OnDestroy {
       return;
     }
 
+    const allDirectMatches = requestView === 'CONFRONTOS_DIRETOS';
     const day = requestView === 'CRONOGRAMA' || requestView === 'CRONOGRAMA_EQUIPE' ? requestDay : '';
-    const court = requestView === 'CRONOGRAMA_EQUIPE' || requestView === 'RESULTADOS' ? '' : requestCourt;
-    const gender = requestGender === 'GERAL' ? '' : requestGender;
+    const court = allDirectMatches || requestView === 'CRONOGRAMA_EQUIPE' || requestView === 'RESULTADOS' ? '' : requestCourt;
+    const gender = allDirectMatches || requestGender === 'GERAL' ? '' : requestGender;
+    const sport = allDirectMatches ? '' : requestSport;
 
     forkJoin({
       teams: this.api.teams(requestPeriod).pipe(retry({ count: 1, delay: 300 })),
-      matches: this.api.matches(requestPeriod, day, court, requestSport, gender).pipe(retry({ count: 1, delay: 300 })),
+      matches: this.api.matches(requestPeriod, day, court, sport, gender).pipe(retry({ count: 1, delay: 300 })),
       penalties: this.api.penalties(requestPeriod).pipe(retry({ count: 1, delay: 300 }))
     })
       .pipe(finalize(complete))
@@ -1098,6 +1104,32 @@ export class AppComponent implements OnDestroy {
     return this.matches.filter(item => item.status === 'FINALIZADO').slice(-6).reverse();
   }
 
+  directComparisonReady(): boolean {
+    return !!this.comparisonTeamA && !!this.comparisonTeamB && this.comparisonTeamA !== this.comparisonTeamB;
+  }
+
+  directComparisonMatches(): Match[] {
+    if (!this.directComparisonReady()) return [];
+    const dayOrder = new Map(this.days.map((item, index) => [item.id, index]));
+    return this.matches
+      .filter(item => item.status === 'FINALIZADO' && (
+        (item.teamAId === this.comparisonTeamA && item.teamBId === this.comparisonTeamB) ||
+        (item.teamAId === this.comparisonTeamB && item.teamBId === this.comparisonTeamA)
+      ))
+      .sort((a, b) =>
+        (dayOrder.get(a.day) ?? 99) - (dayOrder.get(b.day) ?? 99) ||
+        a.time.localeCompare(b.time) ||
+        a.order - b.order
+      );
+  }
+
+  directWins(teamId: string): number {
+    return this.directComparisonMatches().filter(match =>
+      (match.teamAId === teamId && match.scoreA > match.scoreB) ||
+      (match.teamBId === teamId && match.scoreB > match.scoreA)
+    ).length;
+  }
+
   latestPenalties(): Penalty[] {
     return this.penaltiesForPeriod(this.period)
       .slice()
@@ -1419,7 +1451,7 @@ export class AppComponent implements OnDestroy {
     const delta = end - this.touchStartX;
     this.touchStartX = null;
     if (Math.abs(delta) < 65) return;
-    const views: PublicView[] = ['CLASSIFICACAO', 'CRONOGRAMA', 'CRONOGRAMA_EQUIPE', 'RESULTADOS'];
+    const views: PublicView[] = ['CLASSIFICACAO', 'CRONOGRAMA', 'CRONOGRAMA_EQUIPE', 'RESULTADOS', 'CONFRONTOS_DIRETOS'];
     const index = views.indexOf(this.view);
     const next = views[index + (delta < 0 ? 1 : -1)];
     if (next) this.setView(next);
