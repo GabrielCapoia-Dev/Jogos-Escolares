@@ -18,9 +18,9 @@ import (
 )
 
 type server struct {
-	store     *store.Store
-	events    *eventHub
-	matchesMu sync.RWMutex
+	store      *store.Store
+	events     *eventHub
+	matchesMu  sync.RWMutex
 	matchCache []domain.Match
 }
 
@@ -62,6 +62,7 @@ func (h *eventHub) publish(value any) {
 		}
 	}
 }
+
 type loginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -71,13 +72,13 @@ type resultRequest struct {
 	ScoreB int `json:"scoreB"`
 }
 type finalistConfirmationRequest struct {
-	Period     string   `json:"period"`
+	Period      string   `json:"period"`
 	FinalistIDs []string `json:"finalistIds"`
 }
 type penaltyRequest struct {
 	Period string `json:"period"`
 	TeamID string `json:"teamId"`
-	Points int `json:"points"`
+	Points int    `json:"points"`
 	Reason string `json:"reason"`
 }
 
@@ -119,6 +120,7 @@ func main() {
 	mux.HandleFunc("/api/v1/admin/penalties/", s.adminPenalties)
 	mux.HandleFunc("/api/v1/finals", s.finals)
 	mux.HandleFunc("/api/v1/admin/finals/confirm", s.confirmFinalists)
+	mux.HandleFunc("/api/v1/admin/final-matches/", s.finalResult)
 	mux.HandleFunc("/api/v1/admin/matches/", s.adminMatch)
 	addr := os.Getenv("HTTP_ADDR")
 	if addr == "" {
@@ -130,42 +132,72 @@ func main() {
 
 func (s *server) standingsFor(ctx context.Context, teams []domain.Team, matches []domain.Match, period, gender string) ([]domain.Standing, error) {
 	penalties, err := s.store.Penalties(ctx, period)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	return domain.CalculateStandingsWithPenalties(teams, matches, penalties, period, gender), nil
 }
 
 func (s *server) penalties(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet { http.Error(w, "method not allowed", http.StatusMethodNotAllowed); return }
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 	period := r.URL.Query().Get("period")
-	if period != "MANHA" && period != "TARDE" { http.Error(w, "period is required", http.StatusBadRequest); return }
+	if period != "MANHA" && period != "TARDE" {
+		http.Error(w, "period is required", http.StatusBadRequest)
+		return
+	}
 	items, err := s.store.Penalties(r.Context(), period)
-	if err != nil { serverError(w, err); return }
+	if err != nil {
+		serverError(w, err)
+		return
+	}
 	writeJSON(w, http.StatusOK, items)
 }
 
 func (s *server) adminPenalties(w http.ResponseWriter, r *http.Request) {
 	token := strings.TrimSpace(strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer"))
-	if token == "" { http.Error(w, "autenticação obrigatória", http.StatusUnauthorized); return }
+	if token == "" {
+		http.Error(w, "autenticação obrigatória", http.StatusUnauthorized)
+		return
+	}
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 	user, err := s.store.UserID(ctx, token)
-	if err != nil { http.Error(w, "não autorizado", http.StatusUnauthorized); return }
+	if err != nil {
+		http.Error(w, "não autorizado", http.StatusUnauthorized)
+		return
+	}
 	switch r.Method {
 	case http.MethodPost:
 		var input penaltyRequest
 		if json.NewDecoder(r.Body).Decode(&input) != nil || (input.Period != "MANHA" && input.Period != "TARDE") || input.TeamID == "" || input.Points < 1 || input.Points > 1000 || strings.TrimSpace(input.Reason) == "" || len(input.Reason) > 1000 {
-			http.Error(w, "informe período, equipe, pontos e motivo válidos", http.StatusBadRequest); return
+			http.Error(w, "informe período, equipe, pontos e motivo válidos", http.StatusBadRequest)
+			return
 		}
 		item, err := s.store.CreatePenalty(ctx, input.Period, input.TeamID, input.Points, input.Reason, user)
-		if err != nil { http.Error(w, err.Error(), http.StatusBadRequest); return }
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		writeJSON(w, http.StatusCreated, item)
 		s.broadcastScoreboard(item.Period)
 	case http.MethodDelete:
 		id, err := strconv.ParseInt(strings.TrimPrefix(r.URL.Path, "/api/v1/admin/penalties/"), 10, 64)
-		if err != nil || id < 1 { http.Error(w, "penalização inválida", http.StatusBadRequest); return }
+		if err != nil || id < 1 {
+			http.Error(w, "penalização inválida", http.StatusBadRequest)
+			return
+		}
 		period, err := s.store.DeletePenalty(ctx, id)
-		if errors.Is(err, store.ErrNotFound) { http.Error(w, "penalização não encontrada", http.StatusNotFound); return }
-		if err != nil { serverError(w, err); return }
+		if errors.Is(err, store.ErrNotFound) {
+			http.Error(w, "penalização não encontrada", http.StatusNotFound)
+			return
+		}
+		if err != nil {
+			serverError(w, err)
+			return
+		}
 		writeJSON(w, http.StatusOK, map[string]bool{"deleted": true})
 		s.broadcastScoreboard(period)
 	default:
@@ -194,12 +226,12 @@ func (s *server) finals(w http.ResponseWriter, r *http.Request) {
 			dayThreeFinished++
 		}
 	}
-	confirmedIDs, err := s.store.FinalistIDs(r.Context(), period)
+	confirmedIDs, needsReview, err := s.store.FinalistConfirmation(r.Context(), period)
 	if err != nil {
 		serverError(w, err)
 		return
 	}
-	confirmed := dayThreeCount > 0 && dayThreeFinished == dayThreeCount && len(confirmedIDs) == 3
+	confirmed := dayThreeCount > 0 && dayThreeFinished == dayThreeCount && len(confirmedIDs) == 3 && !needsReview
 	teams, err := s.store.Teams(r.Context(), period)
 	if err != nil {
 		serverError(w, err)
@@ -222,13 +254,34 @@ func (s *server) finals(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	standings, err := s.standingsFor(r.Context(), teams, matches, period, domain.GeneroGeral)
-	if err != nil { serverError(w, err); return }
+	if err != nil {
+		serverError(w, err)
+		return
+	}
+	if confirmed && !domain.ValidFinalistSelection(standings, confirmedIDs) {
+		confirmed, needsReview = false, true
+		finalists = []domain.Team{}
+	}
+	finalMatches := []domain.Match{}
+	finalStandings := []domain.Standing{}
+	if confirmed {
+		finalMatches, err = s.store.FinalMatches(r.Context(), period)
+		if err != nil {
+			serverError(w, err)
+			return
+		}
+		finalStandings = domain.CalculateStandings(finalists, finalMatches, period, domain.GeneroGeral)
+	}
 	writeJSON(w, http.StatusOK, map[string]any{
-		"period": period,
-		"day3Complete": dayThreeCount > 0 && dayThreeFinished == dayThreeCount,
-		"confirmed": confirmed,
-		"finalists": finalists,
-		"standings": standings,
+		"period":         period,
+		"day3Complete":   dayThreeCount > 0 && dayThreeFinished == dayThreeCount,
+		"confirmed":      confirmed,
+		"finalists":      finalists,
+		"standings":      standings,
+		"needsReview":    needsReview,
+		"finalStandings": finalStandings,
+		"matches":        finalMatches,
+		"schedule":       domain.FinalSchedule(period),
 	})
 }
 
@@ -275,24 +328,17 @@ func (s *server) confirmFinalists(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	standings, err := s.standingsFor(ctx, teams, matches, input.Period, domain.GeneroGeral)
-	if err != nil { serverError(w, err); return }
-	eligible := make(map[string]bool)
-	for _, row := range standings {
-		if row.Position <= 3 {
-			eligible[row.TeamID] = true
-		}
+	if err != nil {
+		serverError(w, err)
+		return
+	}
+	if !domain.ValidFinalistSelection(standings, input.FinalistIDs) {
+		http.Error(w, "mantenha os classificados garantidos e escolha apenas entre as equipes empatadas no corte", http.StatusBadRequest)
+		return
 	}
 	seen := make(map[string]bool)
 	for _, id := range input.FinalistIDs {
-		if !eligible[id] || seen[id] {
-			http.Error(w, "selecione três equipes entre as classificadas e os empates no corte", http.StatusBadRequest)
-			return
-		}
 		seen[id] = true
-	}
-	if len(seen) != 3 {
-		http.Error(w, "selecione exatamente três equipes classificadas", http.StatusBadRequest)
-		return
 	}
 	orderedIDs := make([]string, 0, 3)
 	for _, row := range standings {
@@ -305,21 +351,47 @@ func (s *server) confirmFinalists(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.events.publish(map[string]any{"type": "FINALS_CONFIRMED", "period": input.Period})
-	byID := make(map[string]domain.Team, len(teams))
-	for _, team := range teams {
-		byID[team.ID] = team
+	query := r.URL.Query()
+	query.Set("period", input.Period)
+	r.URL.RawQuery = query.Encode()
+	r.Method = http.MethodGet
+	s.finals(w, r)
+}
+
+func (s *server) finalResult(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost && r.Method != http.MethodPut {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
 	}
-	finalists := make([]domain.Team, 0, 3)
-	for _, id := range orderedIDs {
-		finalists = append(finalists, byID[id])
+	ctx, cancel := context.WithTimeout(r.Context(), 8*time.Second)
+	defer cancel()
+	token := strings.TrimSpace(strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer"))
+	user, err := s.store.UserID(ctx, token)
+	if token == "" || err != nil {
+		http.Error(w, "não autorizado", http.StatusUnauthorized)
+		return
 	}
-	writeJSON(w, http.StatusOK, map[string]any{
-		"period": input.Period,
-		"day3Complete": true,
-		"confirmed": true,
-		"finalists": finalists,
-		"standings": standings,
-	})
+	if !strings.HasSuffix(r.URL.Path, "/result") {
+		http.NotFound(w, r)
+		return
+	}
+	id := strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, "/api/v1/admin/final-matches/"), "/result")
+	var input resultRequest
+	if json.NewDecoder(r.Body).Decode(&input) != nil || input.ScoreA < 0 || input.ScoreB < 0 {
+		http.Error(w, "placar inválido", http.StatusBadRequest)
+		return
+	}
+	match, err := s.store.SaveFinalResult(ctx, id, input.ScoreA, input.ScoreB, user, r.Method == http.MethodPut)
+	if errors.Is(err, store.ErrProtected) {
+		http.Error(w, "confirme os finalistas e use a opção de correção para resultados já finalizados", http.StatusConflict)
+		return
+	}
+	if err != nil {
+		serverError(w, err)
+		return
+	}
+	s.events.publish(map[string]any{"type": "FINAL_RESULT_UPDATED", "period": match.Period, "match": match})
+	writeJSON(w, http.StatusOK, match)
 }
 
 func (s *server) adminMatch(w http.ResponseWriter, r *http.Request) {
@@ -346,6 +418,7 @@ func (s *server) health(w http.ResponseWriter, _ *http.Request) {
 func (s *server) config(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, 200, map[string]any{"year": 2026, "points": map[string]int{"win": 3, "draw": 1, "loss": 0}, "refreshSeconds": 10})
 }
+
 var wsUpgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
@@ -465,11 +538,21 @@ func (s *server) cachedMatches(period, day, court, sport, gender string) []domai
 	defer s.matchesMu.RUnlock()
 	out := make([]domain.Match, 0)
 	for _, match := range s.matchCache {
-		if period != "" && match.Period != period { continue }
-		if day != "" && match.Day != day { continue }
-		if court != "" && match.Court != court { continue }
-		if sport != "" && match.SportID != sport { continue }
-		if gender != "" && match.Gender != gender { continue }
+		if period != "" && match.Period != period {
+			continue
+		}
+		if day != "" && match.Day != day {
+			continue
+		}
+		if court != "" && match.Court != court {
+			continue
+		}
+		if sport != "" && match.SportID != sport {
+			continue
+		}
+		if gender != "" && match.Gender != gender {
+			continue
+		}
 		out = append(out, match)
 	}
 	return out
@@ -510,7 +593,10 @@ func (s *server) standings(w http.ResponseWriter, r *http.Request) {
 	teams := teamsForPeriod(period)
 	matches := s.cachedMatches(period, "", "", "", "")
 	standings, err := s.standingsFor(r.Context(), teams, matches, period, r.URL.Query().Get("gender"))
-	if err != nil { serverError(w, err); return }
+	if err != nil {
+		serverError(w, err)
+		return
+	}
 	writeJSON(w, 200, standings)
 }
 func (s *server) snapshot(w http.ResponseWriter, r *http.Request) {
@@ -529,7 +615,10 @@ func (s *server) snapshot(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	standings, err := s.standingsFor(r.Context(), teams, matches, period, gender)
-	if err != nil { serverError(w, err); return }
+	if err != nil {
+		serverError(w, err)
+		return
+	}
 	writeJSON(w, 200, map[string]any{
 		"teams":     teams,
 		"standings": standings,
@@ -548,19 +637,30 @@ func (s *server) adminState(w http.ResponseWriter, r *http.Request) {
 	all := s.cachedMatches(period, "", "", "", "")
 	filtered := make([]domain.Match, 0)
 	for _, match := range all {
-		if q.Get("day") != "" && match.Day != q.Get("day") { continue }
-		if q.Get("court") != "" && match.Court != q.Get("court") { continue }
-		if q.Get("sport") != "" && match.SportID != q.Get("sport") { continue }
-		if q.Get("gender") != "" && match.Gender != q.Get("gender") { continue }
+		if q.Get("day") != "" && match.Day != q.Get("day") {
+			continue
+		}
+		if q.Get("court") != "" && match.Court != q.Get("court") {
+			continue
+		}
+		if q.Get("sport") != "" && match.SportID != q.Get("sport") {
+			continue
+		}
+		if q.Get("gender") != "" && match.Gender != q.Get("gender") {
+			continue
+		}
 		filtered = append(filtered, match)
 	}
 	teams := teamsForPeriod(period)
 	standings, err := s.standingsFor(r.Context(), teams, all, period, domain.GeneroGeral)
-	if err != nil { serverError(w, err); return }
+	if err != nil {
+		serverError(w, err)
+		return
+	}
 	writeJSON(w, 200, map[string]any{
-		"teams": teams,
+		"teams":     teams,
 		"standings": standings,
-		"matches": filtered,
+		"matches":   filtered,
 	})
 }
 func (s *server) result(w http.ResponseWriter, r *http.Request) {
@@ -702,7 +802,10 @@ func (s *server) broadcastScoreboard(period string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	standings, err := s.standingsFor(ctx, teams, matches, period, domain.GeneroGeral)
-	if err != nil { log.Printf("refresh standings for %s: %v", period, err); return }
+	if err != nil {
+		log.Printf("refresh standings for %s: %v", period, err)
+		return
+	}
 	s.events.publish(map[string]any{
 		"type":      "SCOREBOARD_UPDATED",
 		"period":    period,
@@ -734,7 +837,7 @@ func withCORS(next http.Handler) http.Handler {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 		}
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(204)
 			return

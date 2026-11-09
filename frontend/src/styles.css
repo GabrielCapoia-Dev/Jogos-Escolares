@@ -5989,3 +5989,15 @@ body:has(#admin-app) .admin-registration-nav button.active{
   body:not(:has(#admin-app)) .mobile-filter-fab{bottom:calc(128px + env(safe-area-inset-bottom))!important}
   .mobile-filter-sheet .mobile-filter-actions{margin:14px -12px 0!important;box-sizing:border-box!important}
 }
+
+/* Finals share the existing match controls and keep gender scores distinct. */
+.final-results { display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:10px; font-size:.72rem; color:#607c98; }
+.final-results b { margin-left:5px; color:#003b82; }
+.admin-final-games { margin-top:20px; }
+.admin-final-games .admin-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; padding:12px; }
+.admin-final-scoreboard { padding:12px; }
+.final-result-card .match-card-top { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px 12px; }
+.final-result-card .match-card-top > span { font-size:.72rem; color:#607c98; }
+.final-result-card > p { margin:0 0 12px; font-size:.75rem; color:#607c98; }
+@media(max-width:900px) { .admin-final-games .admin-grid { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:699px) { .desktop-team-filters { display:none !important; } }

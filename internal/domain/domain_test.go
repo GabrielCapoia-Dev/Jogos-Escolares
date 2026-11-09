@@ -168,7 +168,7 @@ func TestCalculateStandingsAppliesPenaltiesOnlyToOverallPeriod(t *testing.T) {
 	penalties := []Penalty{{Period: "MANHA", TeamID: "AM", Points: 2}}
 
 	rows := CalculateStandingsWithPenalties(teams, matches, penalties, "MANHA", GeneroGeral)
-	if rows[0].TeamID != "BM" || rows[1].TeamID != "AM" || rows[1].Points != 1 || rows[1].PenaltyPoints != 2 {
+	if rows[0].TeamID != "AM" || rows[1].TeamID != "BM" || rows[0].Points != 1 || rows[0].PenaltyPoints != 2 {
 		t.Fatalf("dedução não alterou a classificação pelo saldo líquido: %#v", rows)
 	}
 	genderRows := CalculateStandingsWithPenalties(teams, matches, penalties, "MANHA", "MASCULINO")

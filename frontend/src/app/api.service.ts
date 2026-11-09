@@ -12,10 +12,11 @@ export interface Match { id: string; period: string; day: string; court: string;
 export interface Standing { teamId: string; color: string; hex: string; mascot: string; sprite: string; points: number; penaltyPoints?: number; games: number; wins: number; draws: number; losses: number; position: number; tiebreaker?: string; tied?: boolean; }
 export interface Penalty { id: number; period: string; teamId: string; points: number; reason: string; createdAt: string; }
 export interface LoginResponse { accessToken: string; tokenType: string; expiresIn: string; }
-export interface RealtimeEvent { type: 'RESULT_UPDATED' | 'SCOREBOARD_UPDATED' | 'FINALS_CONFIRMED'; period: string; match?: Match; matchId?: string; day?: string; court?: string; sportId?: string; gender?: string; scoreA?: number; scoreB?: number; status?: string; teams?: Team[]; standings?: Standing[]; matches?: Match[]; updatedAt?: string; }
+export interface RealtimeEvent { type: 'RESULT_UPDATED' | 'SCOREBOARD_UPDATED' | 'FINALS_CONFIRMED' | 'FINAL_RESULT_UPDATED'; period: string; match?: Match; matchId?: string; day?: string; court?: string; sportId?: string; gender?: string; scoreA?: number; scoreB?: number; status?: string; teams?: Team[]; standings?: Standing[]; matches?: Match[]; updatedAt?: string; }
 export interface PublicSnapshot { teams: Team[]; standings: Standing[]; matches: Match[]; updatedAt: string; }
 export interface AdminState { teams: Team[]; standings: Standing[]; matches: Match[]; }
-export interface FinalsState { period: string; day3Complete: boolean; confirmed: boolean; finalists: Team[]; standings: Standing[]; }
+export interface FinalScheduleEntry { order: number; sportId: string; court: string; time: string; a: number; b: number; }
+export interface FinalsState { period: string; day3Complete: boolean; confirmed: boolean; needsReview: boolean; finalists: Team[]; standings: Standing[]; finalStandings: Standing[]; matches: Match[]; schedule: FinalScheduleEntry[]; }
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -73,6 +74,14 @@ export class ApiService {
       },
       8000
     );
+  }
+
+  saveFinalResultAsync(id: string, scoreA: number, scoreB: number, token: string, correction = false): Promise<Match> {
+    return this.fetchJson<Match>(`${this.base}/admin/final-matches/${encodeURIComponent(id)}/result`, {
+      method: correction ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ scoreA, scoreB })
+    });
   }
 
   advanceMatchAsync(id: string, token: string): Promise<Match> {
@@ -174,7 +183,7 @@ export class ApiService {
         socket.onmessage = message => {
           try {
             const event = JSON.parse(String(message.data)) as { type?: string } & Partial<RealtimeEvent>;
-            if (event.type === 'RESULT_UPDATED' || event.type === 'SCOREBOARD_UPDATED') subscriber.next(event as RealtimeEvent);
+            if (event.type === 'RESULT_UPDATED' || event.type === 'SCOREBOARD_UPDATED' || event.type === 'FINALS_CONFIRMED' || event.type === 'FINAL_RESULT_UPDATED') subscriber.next(event as RealtimeEvent);
           } catch {
             // Mensagens de heartbeat/controle não alteram a interface.
           }

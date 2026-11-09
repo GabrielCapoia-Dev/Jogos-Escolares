@@ -94,8 +94,13 @@ func (s *Store) initialize(ctx context.Context) error {
 		`ALTER TABLE result_reset_backups ADD COLUMN IF NOT EXISTS penalty_count integer NOT NULL DEFAULT 0`,
 		`ALTER TABLE result_reset_backups ADD COLUMN IF NOT EXISTS penalties jsonb NOT NULL DEFAULT '[]'::jsonb`,
 		`ALTER TABLE result_reset_backups ADD COLUMN IF NOT EXISTS finals_confirmations jsonb NOT NULL DEFAULT '[]'::jsonb`,
+		`ALTER TABLE result_reset_backups ADD COLUMN IF NOT EXISTS final_matches jsonb NOT NULL DEFAULT '[]'::jsonb`,
 		`CREATE TABLE IF NOT EXISTS penalties (id bigserial PRIMARY KEY, period_id text NOT NULL REFERENCES periods(id), team_id text NOT NULL REFERENCES teams(id), points integer NOT NULL CHECK (points > 0), reason text NOT NULL CHECK (length(trim(reason)) > 0), created_by uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT now())`,
 		`CREATE TABLE IF NOT EXISTS finals_confirmations (period_id text PRIMARY KEY REFERENCES periods(id), team_a_id text NOT NULL REFERENCES teams(id), team_b_id text NOT NULL REFERENCES teams(id), team_c_id text NOT NULL REFERENCES teams(id), confirmed_by uuid NOT NULL REFERENCES users(id), confirmed_at timestamptz NOT NULL DEFAULT now())`,
+		`ALTER TABLE finals_confirmations ADD COLUMN IF NOT EXISTS needs_review boolean NOT NULL DEFAULT false`,
+		`CREATE TABLE IF NOT EXISTS final_matches (id text PRIMARY KEY, period_id text NOT NULL REFERENCES periods(id), court_id text NOT NULL REFERENCES courts(id), scheduled_time time NOT NULL, sport_id text NOT NULL REFERENCES sports(id), gender text NOT NULL, team_a_id text NOT NULL REFERENCES teams(id), team_b_id text NOT NULL REFERENCES teams(id), status text NOT NULL, sort_order integer NOT NULL, score_a integer NOT NULL DEFAULT 0 CHECK(score_a>=0), score_b integer NOT NULL DEFAULT 0 CHECK(score_b>=0), updated_at timestamptz)`,
+		`CREATE TABLE IF NOT EXISTS final_result_audit (id bigserial PRIMARY KEY, user_id uuid NOT NULL REFERENCES users(id), match_id text NOT NULL, before_state jsonb NOT NULL, after_state jsonb NOT NULL, created_at timestamptz NOT NULL DEFAULT now())`,
+		`CREATE TABLE IF NOT EXISTS final_draw_backups (id bigserial PRIMARY KEY, period_id text NOT NULL, saved_at timestamptz NOT NULL DEFAULT now(), user_id uuid NOT NULL REFERENCES users(id), matches jsonb NOT NULL)`,
 	}
 	for _, statement := range statements {
 		if _, err := s.DB.ExecContext(ctx, statement); err != nil {
@@ -459,13 +464,17 @@ func (s *Store) Teams(ctx context.Context, period string) ([]domain.Team, error)
 
 func (s *Store) Penalties(ctx context.Context, period string) ([]domain.Penalty, error) {
 	rows, err := s.DB.QueryContext(ctx, `SELECT id,period_id,team_id,points,reason,created_at FROM penalties WHERE period_id=$1 ORDER BY created_at DESC,id DESC`, period)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 	out := []domain.Penalty{}
 	for rows.Next() {
 		var item domain.Penalty
-		if err := rows.Scan(&item.ID,&item.Period,&item.TeamID,&item.Points,&item.Reason,&item.CreatedAt); err != nil { return nil, err }
-		out = append(out,item)
+		if err := rows.Scan(&item.ID, &item.Period, &item.TeamID, &item.Points, &item.Reason, &item.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, item)
 	}
 	return out, rows.Err()
 }
@@ -473,40 +482,36 @@ func (s *Store) Penalties(ctx context.Context, period string) ([]domain.Penalty,
 func (s *Store) CreatePenalty(ctx context.Context, period, teamID string, points int, reason, user string) (domain.Penalty, error) {
 	var item domain.Penalty
 	err := s.DB.QueryRowContext(ctx, `
-		INSERT INTO penalties(period_id,team_id,points,reason,created_by)
+		WITH inserted AS (INSERT INTO penalties(period_id,team_id,points,reason,created_by)
 		SELECT $1,t.id,$3,$4,$5 FROM teams t WHERE t.id=$2 AND t.period_id=$1 AND t.active
-		RETURNING id,period_id,team_id,points,reason,created_at`, period,teamID,points,strings.TrimSpace(reason),user).
-		Scan(&item.ID,&item.Period,&item.TeamID,&item.Points,&item.Reason,&item.CreatedAt)
-	if err == sql.ErrNoRows { return domain.Penalty{}, errors.New("equipe não pertence ao período selecionado") }
+		RETURNING id,period_id,team_id,points,reason,created_at),
+		reviewed AS (UPDATE finals_confirmations f SET needs_review=true FROM inserted i WHERE f.period_id=i.period_id)
+		SELECT id,period_id,team_id,points,reason,created_at FROM inserted`, period, teamID, points, strings.TrimSpace(reason), user).
+		Scan(&item.ID, &item.Period, &item.TeamID, &item.Points, &item.Reason, &item.CreatedAt)
+	if err == sql.ErrNoRows {
+		return domain.Penalty{}, errors.New("equipe não pertence ao período selecionado")
+	}
 	return item, err
 }
 
 func (s *Store) DeletePenalty(ctx context.Context, id int64) (string, error) {
 	var period string
-	err := s.DB.QueryRowContext(ctx, `DELETE FROM penalties WHERE id=$1 RETURNING period_id`, id).Scan(&period)
-	if err == sql.ErrNoRows { return "", ErrNotFound }
+	err := s.DB.QueryRowContext(ctx, `WITH removed AS (DELETE FROM penalties WHERE id=$1 RETURNING period_id),
+		reviewed AS (UPDATE finals_confirmations f SET needs_review=true FROM removed r WHERE f.period_id=r.period_id)
+		SELECT period_id FROM removed`, id).Scan(&period)
+	if err == sql.ErrNoRows {
+		return "", ErrNotFound
+	}
 	return period, err
 }
 
 func (s *Store) FinalistIDs(ctx context.Context, period string) ([]string, error) {
-	var a, b, c string
-	err := s.DB.QueryRowContext(ctx, `SELECT team_a_id,team_b_id,team_c_id FROM finals_confirmations WHERE period_id=$1`, period).Scan(&a, &b, &c)
-	if err == sql.ErrNoRows {
-		return []string{}, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	return []string{a, b, c}, nil
+	ids, _, err := s.FinalistConfirmation(ctx, period)
+	return ids, err
 }
 
 func (s *Store) ConfirmFinalists(ctx context.Context, period string, ids []string, user string) error {
-	if len(ids) != 3 {
-		return errors.New("selecione exatamente três equipes")
-	}
-	_, err := s.DB.ExecContext(ctx, `INSERT INTO finals_confirmations(period_id,team_a_id,team_b_id,team_c_id,confirmed_by,confirmed_at)
-		VALUES($1,$2,$3,$4,$5,now()) ON CONFLICT(period_id) DO UPDATE SET team_a_id=EXCLUDED.team_a_id,team_b_id=EXCLUDED.team_b_id,team_c_id=EXCLUDED.team_c_id,confirmed_by=EXCLUDED.confirmed_by,confirmed_at=now()`, period, ids[0], ids[1], ids[2], user)
-	return err
+	return s.confirmFinalistsWithMatches(ctx, period, ids, user)
 }
 
 func (s *Store) Matches(ctx context.Context, period, day, court, sport, gender string) ([]domain.Match, error) {
@@ -530,8 +535,8 @@ func (s *Store) Login(ctx context.Context, email, password string) (string, erro
 	login := strings.ToLower(strings.TrimSpace(email))
 	fixed := map[string]string{
 		"vinicius cerezuela": "99c90ab6c33c1f3b0674dba8da7674ce96139162d1c9d16c376de365dcda4a27",
-		"gabriel capoia":      "1ce1e488e98e66b63fa8e2266aef8a1f06ab4d0a00fab329174e95f1d31435fe",
-		"smel":                "e42e62ee56f9065356e413c3402d7b7c95b71a038368a03224f84f5e6842707c",
+		"gabriel capoia":     "1ce1e488e98e66b63fa8e2266aef8a1f06ab4d0a00fab329174e95f1d31435fe",
+		"smel":               "e42e62ee56f9065356e413c3402d7b7c95b71a038368a03224f84f5e6842707c",
 	}
 	if expected, ok := fixed[login]; ok {
 		sum := sha256.Sum256([]byte(password))
@@ -622,13 +627,17 @@ func (s *Store) SaveResult(ctx context.Context, id string, a, b int, user string
 			         'status',updated.status,'order',updated.sort_order,'scoreA',updated.score_a,'scoreB',updated.score_b
 			       )
 			  FROM old JOIN updated ON updated.id=old.id
+		),
+		reviewed AS (
+			UPDATE finals_confirmations f SET needs_review=true
+			FROM updated WHERE f.period_id=updated.period_id
 		)
 		SELECT id,period_id,day_id,court_id,to_char(scheduled_time,'HH24:MI'),sport_id,gender,
 		       team_a_id,team_b_id,status,sort_order,score_a,score_b
 		  FROM updated
-	`, a,b,user,id,domain.StatusFinalizado,correction,action).Scan(
-		&m.ID,&m.Period,&m.Day,&m.Court,&m.Time,&m.SportID,&m.Gender,
-		&m.TeamAID,&m.TeamBID,&m.Status,&m.Order,&m.ScoreA,&m.ScoreB,
+	`, a, b, user, id, domain.StatusFinalizado, correction, action).Scan(
+		&m.ID, &m.Period, &m.Day, &m.Court, &m.Time, &m.SportID, &m.Gender,
+		&m.TeamAID, &m.TeamBID, &m.Status, &m.Order, &m.ScoreA, &m.ScoreB,
 	)
 	if err == sql.ErrNoRows {
 		return domain.Match{}, ErrProtected
@@ -672,18 +681,16 @@ func (s *Store) AdvanceMatch(ctx context.Context, id string, user string) (domai
 			       )
 			  FROM old JOIN updated ON updated.id=old.id
 		),
-		invalidated AS (
-			DELETE FROM finals_confirmations f
-			 USING updated
-			 WHERE f.period_id=updated.period_id AND updated.day_id='DIA_3'
-			 RETURNING f.period_id
+		reviewed AS (
+			UPDATE finals_confirmations f SET needs_review=true
+			FROM updated WHERE f.period_id=updated.period_id
 		)
 		SELECT id,period_id,day_id,court_id,to_char(scheduled_time,'HH24:MI'),sport_id,gender,
 		       team_a_id,team_b_id,status,sort_order,score_a,score_b
-		  FROM updated LEFT JOIN invalidated ON invalidated.period_id=updated.period_id
+		  FROM updated
 	`, domain.StatusEmAndamento, id, domain.StatusAguardando, user).Scan(
-		&m.ID,&m.Period,&m.Day,&m.Court,&m.Time,&m.SportID,&m.Gender,
-		&m.TeamAID,&m.TeamBID,&m.Status,&m.Order,&m.ScoreA,&m.ScoreB,
+		&m.ID, &m.Period, &m.Day, &m.Court, &m.Time, &m.SportID, &m.Gender,
+		&m.TeamAID, &m.TeamBID, &m.Status, &m.Order, &m.ScoreA, &m.ScoreB,
 	)
 	if err == sql.ErrNoRows {
 		return domain.Match{}, ErrProtected
@@ -703,22 +710,26 @@ func (s *Store) ResetAllResults(ctx context.Context, user string) (int64, int64,
 		return 0, 0, err
 	}
 	defer tx.Rollback()
-	if _, err = tx.ExecContext(ctx, `LOCK TABLE matches, penalties, finals_confirmations IN SHARE ROW EXCLUSIVE MODE`); err != nil {
+	if _, err = tx.ExecContext(ctx, `LOCK TABLE matches, penalties, finals_confirmations, final_matches IN SHARE ROW EXCLUSIVE MODE`); err != nil {
 		return 0, 0, err
 	}
 
 	if _, err = tx.ExecContext(ctx, `
-		INSERT INTO result_reset_backups(user_id, match_count, matches, penalty_count, penalties, finals_confirmations)
+		INSERT INTO result_reset_backups(user_id, match_count, matches, penalty_count, penalties, finals_confirmations, final_matches)
 		SELECT $1,
 			(SELECT COUNT(*)::integer FROM matches),
 			COALESCE((SELECT jsonb_agg(to_jsonb(m) ORDER BY m.sort_order) FROM matches m), '[]'::jsonb),
 			(SELECT COUNT(*)::integer FROM penalties),
 			COALESCE((SELECT jsonb_agg(to_jsonb(p) ORDER BY p.id) FROM penalties p), '[]'::jsonb),
-			COALESCE((SELECT jsonb_agg(to_jsonb(f) ORDER BY f.period_id) FROM finals_confirmations f), '[]'::jsonb)
+			COALESCE((SELECT jsonb_agg(to_jsonb(f) ORDER BY f.period_id) FROM finals_confirmations f), '[]'::jsonb),
+			COALESCE((SELECT jsonb_agg(to_jsonb(f) ORDER BY f.id) FROM final_matches f), '[]'::jsonb)
 	`, user); err != nil {
 		return 0, 0, err
 	}
 	if _, err = tx.ExecContext(ctx, `DELETE FROM finals_confirmations`); err != nil {
+		return 0, 0, err
+	}
+	if _, err = tx.ExecContext(ctx, `DELETE FROM final_matches`); err != nil {
 		return 0, 0, err
 	}
 	penaltyResult, err := tx.ExecContext(ctx, `DELETE FROM penalties`)
