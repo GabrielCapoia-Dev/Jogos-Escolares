@@ -21,3 +21,7 @@ frontend/.angular/
 
 # Assets copied for local Angular builds
 frontend/jogos-assets/
+
+# Database copies may contain administrative credentials and access tokens.
+output/backups/
+.deploy/backups/

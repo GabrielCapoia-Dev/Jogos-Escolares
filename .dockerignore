@@ -1,0 +1,10 @@
+.git
+.deploy/backups
+output
+outputs
+tmp
+.pnpm-store
+frontend/node_modules
+frontend/dist
+frontend/.angular
+**/__pycache__

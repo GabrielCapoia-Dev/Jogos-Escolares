@@ -16,6 +16,32 @@ services:
       retries: 10
     restart: unless-stopped
 
+  backup:
+    image: postgres:16-alpine
+    container_name: jogos-escolares-backup
+    entrypoint: ["/bin/sh", "/backup/run.sh"]
+    environment:
+      TZ: America/Sao_Paulo
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGDATABASE: jogos_escolares
+      PGUSER: jogos
+      PGPASSWORD: jogos_dev
+      BACKUP_DIR: /backups
+    volumes:
+      - ../scripts/backups:/backup:ro
+      - ./backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "/bin/sh", "/backup/run.sh", "--check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
   api:
     image: jogos-escolares-api:latest
     build:
