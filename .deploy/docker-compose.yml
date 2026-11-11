@@ -53,13 +53,16 @@ services:
       DATABASE_URL: postgres://jogos:jogos_dev@postgres:5432/jogos_escolares?sslmode=disable
       ADMIN_EMAIL: ""
       ADMIN_PASSWORD: ""
+      BACKUP_DIR: /backups
+    volumes:
+      - ./backups:/backups:ro
     ports:
       - "18080:8080"
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/healthz >/dev/null || exit 1"]
+      test: ["CMD-SHELL", "pg_restore --version >/dev/null && curl -fsS http://localhost:8080/healthz >/dev/null || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 20

@@ -1,5 +1,15 @@
 # Backups dos Jogos Escolares
 
+## Tela administrativa
+
+O menu **Backups**, disponível somente na área administrativa no desktop e no celular, lista os snapshots e os arquivos diários por data. Permite filtrar por tipo e intervalo de datas, baixar cada cópia e restaurar após digitar `RESTAURAR` na confirmação. Datas são exibidas no horário de Brasília.
+
+A recuperação pela tela substitui **jogos, punições e finais dos dois períodos**. Mesmo ao escolher um arquivo completo do banco, mantém as contas de acesso, os tokens, o histórico de auditoria, as configurações e todas as cópias existentes. O sorteio e os horários devem ser compatíveis; snapshots antigos incompatíveis são identificados e bloqueados. Não há upload de arquivos arbitrários.
+
+Antes de aplicar a cópia, salva um snapshot **Antes de restaurar**, que aparece na lista e pode ser usado para desfazer a operação. Uma falha nessa gravação impede a restauração. A alteração é transacional e auditada, o cache da API é atualizado e as telas conectadas são avisadas por WebSocket. Os lançamentos ficam temporariamente bloqueados durante a operação; não é necessário reiniciar o sistema após uma recuperação pela tela.
+
+Downloads e restaurações exigem sessão administrativa ativa e não vencida. Os arquivos diários são montados somente para leitura na API e têm SHA-256 verificado antes de baixar/restaurar. A extração do arquivo usa `pg_restore` somente para produzir dados das quatro tabelas operacionais; nenhum SQL do arquivo é executado.
+
 ## Antes de zerar
 
 A API salva, na mesma transação, partidas, punições, confirmações de finalistas e partidas finais em `result_reset_backups`. Uma falha no backup aborta o zeramento. A rotina de recuperação de placares em `scripts/restore_results_backup.sql` preserva outro snapshot antes de restaurar e recusa um sorteio/horário diferente. Antes de uma recuperação real, impedir novos lançamentos; depois, reiniciar a API para recarregar seu cache.

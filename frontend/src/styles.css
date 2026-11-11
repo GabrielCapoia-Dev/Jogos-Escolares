@@ -6001,3 +6001,47 @@ body:has(#admin-app) .admin-registration-nav button.active{
 .final-result-card > p { margin:0 0 12px; font-size:.75rem; color:#607c98; }
 @media(max-width:900px) { .admin-final-games .admin-grid { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:699px) { .desktop-team-filters { display:none !important; } }
+
+/* Administrative backup management */
+.backup-notice { padding:14px 18px; margin:12px 0; border:1px solid #c8def4; border-radius:12px; color:#073b78; background:#eef6ff; }
+.backup-notice.overdue { color:#865500; background:#fff8e9; border-color:#f0dba6; }
+.backup-filters { display:flex; align-items:end; flex-wrap:wrap; gap:14px; padding:18px; margin-bottom:16px; }
+.backup-filters label,.backup-confirm-label { display:grid; gap:6px; font-size:.8rem; font-weight:700; color:#073b78; }
+.backup-filters input,.backup-filters select,.backup-confirm-label input { min-height:42px; padding:8px 12px; border:1px solid #c8def4; border-radius:9px; color:#073b78; background:#fff; max-width:100%; }
+.backup-filters button,.backup-actions button { min-height:42px; padding:9px 16px; border:1px solid #c8def4; border-radius:9px; color:#073b78; background:#f3f8fe; font-weight:700; }
+.backup-list { display:grid; gap:12px; }
+.backup-card { display:flex; align-items:center; gap:24px; padding:20px; }
+.backup-date,.backup-copy { display:grid; gap:5px; }
+.backup-date strong { font-size:1.05rem; color:#073b78; }
+.backup-date span,.backup-copy span { color:#607c98; font-size:.8rem; }
+.backup-copy { flex:1; min-width:0; }
+.backup-copy strong { color:#073b78; }
+.backup-incompatible { color:#8b6500; font-size:.75rem; }
+.backup-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.backup-actions .backup-restore-button { color:#fff; background:#126ccb; border-color:#126ccb; }
+.backup-actions button:disabled { opacity:.45; cursor:not-allowed; }
+.backup-error { color:#a12424; font-size:.85rem; }
+.backup-confirm-label { margin:18px 0; }
+@media(max-width:699px) {
+  body:has(#admin-app) .admin-header .admin-mobile-top-nav { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
+  .backup-card { flex-wrap:wrap; gap:12px; padding:16px; }
+  .backup-date { min-width:100px; }
+  .backup-actions { width:100%; }
+  .backup-actions button { flex:1; }
+  .backup-filters { display:grid; grid-template-columns:minmax(0,1fr); padding:14px; }
+}
+
+@media(min-width:1200px) {
+  body:has(#admin-app) .admin-header .header-inner { display:grid!important; grid-template-columns:90px minmax(0,1fr) 140px!important; }
+  body:has(#admin-app) .admin-header .header-home { width:100%!important; min-width:0!important; max-width:90px!important; }
+  body:has(#admin-app) .admin-header .admin-registration-nav { display:grid!important; grid-template-columns:repeat(9,minmax(0,1fr))!important; width:100%!important; min-width:0!important; }
+  body:has(#admin-app) .admin-header .admin-registration-nav button { width:auto!important; min-width:0!important; max-width:none!important; padding:4px!important; }
+}
+@media(min-width:700px) and (max-width:1199px) {
+  body:has(#admin-app) .admin-header .admin-registration-nav { grid-template-columns:repeat(5,minmax(0,1fr))!important; }
+}
+body:has(#admin-app) .admin-header .admin-registration-nav button.active { background:#126ccb!important; color:#fff!important; -webkit-text-fill-color:#fff!important; }
+@media(max-width:699px) {
+  .admin-backups-section .scoreboard-heading { flex-direction:column!important; align-items:stretch!important; gap:12px; }
+  .admin-backups-section .scoreboard-heading > button { align-self:flex-start; }
+}

@@ -3,13 +3,13 @@ import { ChangeDetectorRef, Component, HostListener, OnDestroy, inject } from '@
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom, forkJoin } from 'rxjs';
 import { finalize, retry } from 'rxjs/operators';
-import { ApiService, Court, Day, FinalsState, FinalScheduleEntry, LoginResponse, Match, Penalty, Period, RealtimeEvent, Sport, Standing, Team } from './api.service';
+import { ApiService, BackupInfo, Court, Day, FinalsState, FinalScheduleEntry, LoginResponse, Match, Penalty, Period, RealtimeEvent, Sport, Standing, Team } from './api.service';
 
 import { finalistEligible, finalistRequired, initialFinalists } from './finalists';
 
 type PublicView = 'CLASSIFICACAO' | 'CRONOGRAMA' | 'CRONOGRAMA_EQUIPE' | 'RESULTADOS' | 'FINAL';
 type Screen = 'PUBLIC' | 'ADMIN';
-type AdminSection = 'RESULTS' | 'TEAM' | 'FINAL' | 'PENALTIES';
+type AdminSection = 'RESULTS' | 'TEAM' | 'FINAL' | 'PENALTIES' | 'BACKUPS';
 type PublicResultsTab = 'GAMES' | 'PENALTIES';
 
 @Component({
@@ -119,6 +119,88 @@ export class AppComponent implements OnDestroy {
   adminPenaltyReason = '';
   adminPenaltyLoading = false;
   pendingPenaltyDelete: Penalty | null = null;
+
+  backups: BackupInfo[] = [];
+  backupsLoading = false;
+  backupsError = '';
+  backupKind = '';
+  backupFrom = '';
+  backupUntil = '';
+  downloadBackupKey = '';
+  pendingBackupRestore: BackupInfo | null = null;
+  backupRestoreText = '';
+  backupRestoreLoading = false;
+  backupRestoreError = '';
+
+  async openAdminBackups(): Promise<void> {
+    this.adminSection = 'BACKUPS';
+    await this.loadBackups();
+  }
+
+  async loadBackups(): Promise<void> {
+    this.backupsLoading = true; this.backupsError = '';
+    try { this.backups = (await this.api.backupsAsync(this.adminToken)).items; }
+    catch (error: any) {
+      if (error?.status === 401) this.expireAdminSession();
+      else this.backupsError = error?.message || 'Não foi possível carregar os backups.';
+    } finally { this.backupsLoading = false; this.renderNow(); }
+  }
+
+  filteredBackups(): BackupInfo[] {
+    return this.backups.filter(item => {
+      const date = new Date(item.createdAt).toLocaleDateString('sv-SE', {timeZone: 'America/Sao_Paulo'});
+      return (!this.backupKind || item.kind === this.backupKind) && (!this.backupFrom || date >= this.backupFrom) && (!this.backupUntil || date <= this.backupUntil);
+    });
+  }
+
+  backupKindLabel(kind: string): string {
+    return kind === 'DAILY' ? 'Diário · banco completo' : kind === 'BEFORE_RESTORE' ? 'Antes de restaurar' : 'Antes de zerar';
+  }
+
+  backupSize(size: number): string {
+    return size < 1024*1024 ? (size/1024).toFixed(1) + ' KB' : (size/(1024*1024)).toFixed(1) + ' MB';
+  }
+
+  dailyBackupOverdue(): boolean {
+    const last = this.backups.find(item => item.kind === 'DAILY');
+    return !last || Date.now() - new Date(last.createdAt).getTime() > 25*60*60*1000;
+  }
+
+  async downloadAdminBackup(item: BackupInfo): Promise<void> {
+    if (this.downloadBackupKey || this.backupRestoreLoading) return;
+    this.downloadBackupKey = item.key;
+    try {
+      const blob = await this.api.downloadBackupAsync(item.key, this.adminToken);
+      const url = URL.createObjectURL(blob); const a = document.createElement('a');
+      a.href = url; a.download = item.fileName; a.click(); window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      this.showToast('Download do backup iniciado.');
+    } catch (error: any) {
+      if (error?.status === 401) this.expireAdminSession(); else this.showToast(error?.message || 'Falha no download.');
+    } finally { this.downloadBackupKey = ''; this.renderNow(); }
+  }
+
+  requestBackupRestore(item: BackupInfo): void {
+    if (!item.canRestore || this.backupRestoreLoading) return;
+    this.pendingBackupRestore = item; this.backupRestoreText = ''; this.backupRestoreError = '';
+  }
+
+  cancelBackupRestore(): void {
+    if (!this.backupRestoreLoading) this.pendingBackupRestore = null;
+  }
+
+  async confirmBackupRestore(): Promise<void> {
+    if (!this.pendingBackupRestore || this.backupRestoreText !== 'RESTAURAR' || this.backupRestoreLoading) return;
+    this.backupRestoreLoading = true; this.backupRestoreError = '';
+    try {
+      const result = await this.api.restoreBackupAsync(this.pendingBackupRestore.key, this.adminToken, this.backupRestoreText);
+      this.pendingBackupRestore = null; this.scoreDrafts = {}; this.queuedCorrections.clear();
+      this.showToast('Dados restaurados. Cópia de segurança anterior: #' + result.safetyBackupId + '.');
+      await this.loadBackups(); await this.loadAdmin();
+    } catch (error: any) {
+      if (error?.status === 401) this.expireAdminSession();
+      else this.backupRestoreError = error?.status ? error.message : 'A conexão foi interrompida. Atualize a lista e confira o estado do sistema antes de tentar novamente.';
+    } finally { this.backupRestoreLoading = false; this.renderNow(); }
+  }
 
   constructor() {
     this.api.periods().subscribe({ next: value => this.periods = value, error: () => undefined });
@@ -621,6 +703,7 @@ export class AppComponent implements OnDestroy {
 
     this.loginPassword = '';
     this.loginLoading = false;
+    this.pendingBackupRestore = null;
     this.loginError = 'Sua sessão expirou. Faça login novamente para continuar.';
     this.loginOpen = true;
     this.screen = 'ADMIN';
@@ -998,7 +1081,7 @@ export class AppComponent implements OnDestroy {
   }
 
   adminOverlayOpen(): boolean {
-    return this.adminFiltersOpen || this.adminRankingOpen || this.correctionOpen || this.saveConfirmOpen || this.resetConfirmOpen || !!this.pendingPenaltyDelete;
+    return !!this.pendingBackupRestore || this.backupRestoreLoading || this.adminFiltersOpen || this.adminRankingOpen || this.correctionOpen || this.saveConfirmOpen || this.resetConfirmOpen || !!this.pendingPenaltyDelete;
   }
 
   openAdminOverlay(kind: 'filters' | 'ranking' | 'correction'): void {
@@ -1038,6 +1121,7 @@ export class AppComponent implements OnDestroy {
   }
 
   closeAdminOverlays(): void {
+    if (!this.backupRestoreLoading) this.pendingBackupRestore = null;
     this.adminFiltersOpen = false;
     this.adminRankingOpen = false;
     this.correctionOpen = false;
@@ -1289,6 +1373,18 @@ export class AppComponent implements OnDestroy {
   }
 
   private handleRealtimeEvent(event: RealtimeEvent): void {
+    if (event.type === 'BACKUP_RESTORED') {
+      if (this.screen === 'ADMIN' && this.adminPeriod === event.period && !this.backupRestoreLoading) {
+        this.scoreDrafts = {}; this.queuedCorrections.clear(); this.closeAdminOverlays();
+        void this.loadAdmin();
+        if (this.adminSection === 'FINAL') void this.loadAdminFinals();
+        if (this.adminSection === 'PENALTIES') void this.loadAdminPenalties();
+        if (this.adminSection === 'BACKUPS') void this.loadBackups();
+        this.showToast('Os dados foram restaurados por um administrador.');
+      }
+      if (this.screen === 'PUBLIC' && this.period === event.period) this.loadPublic(false, true);
+      return;
+    }
     if (this.screen === 'ADMIN' && this.adminSection === 'FINAL' && this.adminPeriod === event.period) {
       const dirty = this.finalsState?.matches.some(match => {
         const draft = this.scoreDrafts[match.id];

@@ -20,13 +20,13 @@ BEGIN
      ROW(old.period_id,old.day_id,old.court_id,old.scheduled_time,old.sport_id,old.gender,old.team_a_id,old.team_b_id,old.sort_order)
  ) THEN RAISE EXCEPTION 'O sorteio/horário deste backup difere do cronograma atual. Restauração recusada'; END IF;
 END $$;
-INSERT INTO result_reset_backups(user_id,match_count,matches,penalty_count,penalties,finals_confirmations,final_matches)
+INSERT INTO result_reset_backups(user_id,match_count,matches,penalty_count,penalties,finals_confirmations,final_matches,backup_kind)
 SELECT s.user_id,(SELECT count(*) FROM matches),
  (SELECT coalesce(jsonb_agg(to_jsonb(m) ORDER BY m.id),'[]') FROM matches m),
  (SELECT count(*) FROM penalties),
  (SELECT coalesce(jsonb_agg(to_jsonb(p) ORDER BY p.id),'[]') FROM penalties p),
  (SELECT coalesce(jsonb_agg(to_jsonb(f) ORDER BY f.period_id),'[]') FROM finals_confirmations f),
- (SELECT coalesce(jsonb_agg(to_jsonb(f) ORDER BY f.id),'[]') FROM final_matches f)
+ (SELECT coalesce(jsonb_agg(to_jsonb(f) ORDER BY f.id),'[]') FROM final_matches f),'BEFORE_RESTORE'
 FROM restore_source s;
 UPDATE matches m SET status=o.status,score_a=o.score_a,score_b=o.score_b,updated_at=o.updated_at
  FROM restore_source s,jsonb_populate_recordset(NULL::matches,s.matches) o WHERE m.id=o.id;

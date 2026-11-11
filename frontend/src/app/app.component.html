@@ -280,14 +280,16 @@
         <button type="button" [class.active]="adminFiltersOpen" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('filters')"><span class="nav-icon">⚙</span><span>Filtros</span></button>
         <button type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('ranking')"><span class="nav-icon">▥</span><span>Placar</span></button>
         <button type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('correction')"><span class="nav-icon">✎</span><span>Editar</span></button>
+        <button type="button" [class.active]="adminSection==='BACKUPS'" [disabled]="adminOverlayOpen()" (click)="openAdminBackups()"><span class="nav-icon">▣</span><span>Backups</span></button>
         <button type="button" class="admin-reset-button" [disabled]="adminOverlayOpen()" (click)="requestResetResults()"><span class="nav-icon">↺</span><span>Zerar</span></button>
       </nav>
       <button type="button" class="admin-button">Área administrativa</button>
     </div>
-    <nav class="admin-mobile-top-nav" aria-label="Placar, filtros e finais">
+    <nav class="admin-mobile-top-nav" aria-label="Placar, filtros, finais e backups">
       <button type="button" [class.active]="adminSection==='FINAL'" [disabled]="adminOverlayOpen()" (click)="openAdminFinals()"><span class="nav-icon">★</span><span>Final</span></button>
       <button type="button" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('ranking')"><span class="nav-icon">▥</span><span>Placar</span></button>
       <button type="button" [class.active]="adminFiltersOpen" [disabled]="adminOverlayOpen()" (click)="openAdminOverlay('filters')"><span class="nav-icon">⚙</span><span>Filtros</span></button>
+      <button type="button" [class.active]="adminSection==='BACKUPS'" [disabled]="adminOverlayOpen()" (click)="openAdminBackups()"><span class="nav-icon">▣</span><span>Backups</span></button>
     </nav>
     <nav class="admin-mobile-bottom-nav" aria-label="Resultados e edição">
       <button type="button" [class.active]="adminSection==='RESULTS'" [disabled]="adminOverlayOpen()" (click)="showAdminResults()"><span class="nav-icon">▤</span><span>Resultados</span></button>
@@ -298,6 +300,22 @@
   </header>
 
   <main id="admin-app" class="page-shell">
+    <section *ngIf="adminSection==='BACKUPS'" class="admin-backups-section">
+      <section class="scoreboard-heading"><div><p class="eyebrow blue">Área administrativa</p><h2>Backups</h2><p>Cópias por data. Horários de Brasília.</p></div><button type="button" class="admin-final-refresh" [disabled]="backupsLoading" (click)="loadBackups()">Atualizar lista</button></section>
+      <div class="backup-notice" [class.overdue]="dailyBackupOverdue()" *ngIf="!backupsLoading && !backupsError">{{ dailyBackupOverdue() ? 'Atenção: não há cópia diária recente nas últimas 25 horas. Confira o serviço de backup.' : 'Backup completo diário à meia-noite, no horário de Brasília.' }}</div>
+      <section class="panel backup-filters"><label>Tipo<select aria-label="Tipo" [(ngModel)]="backupKind"><option value="">Todos</option><option value="DAILY">Diários</option><option value="RESET">Antes de zerar</option><option value="BEFORE_RESTORE">Antes de restaurar</option></select></label><label>De<input type="date" [(ngModel)]="backupFrom"></label><label>Até<input type="date" [(ngModel)]="backupUntil"></label><button type="button" (click)="backupKind='';backupFrom='';backupUntil=''">Limpar filtros</button></section>
+      <p class="backup-error" role="alert" *ngIf="backupsError">{{ backupsError }}</p>
+      <div class="empty-state" *ngIf="backupsLoading">Carregando cópias...</div>
+      <div class="backup-list" *ngIf="!backupsLoading">
+        <article class="panel backup-card" *ngFor="let item of filteredBackups()">
+          <div class="backup-date"><strong>{{ item.createdAt | date:'dd/MM/yyyy':'-0300' }}</strong><span>{{ item.createdAt | date:'HH:mm:ss':'-0300' }}</span></div>
+          <div class="backup-copy"><strong>{{ backupKindLabel(item.kind) }}</strong><span *ngIf="item.matchCount">{{ item.matchCount }} partidas</span><span *ngIf="item.sizeBytes">{{ backupSize(item.sizeBytes) }}</span><small class="backup-incompatible" *ngIf="!item.canRestore">{{ item.reason }}</small></div>
+          <div class="backup-actions"><button type="button" [disabled]="!!downloadBackupKey || backupRestoreLoading" (click)="downloadAdminBackup(item)">{{ downloadBackupKey===item.key ? 'Baixando...' : 'Baixar' }}</button><button type="button" class="backup-restore-button" [disabled]="!item.canRestore || backupRestoreLoading || !!downloadBackupKey" (click)="requestBackupRestore(item)">Restaurar</button></div>
+        </article>
+        <div class="empty-state" *ngIf="!filteredBackups().length && !backupsError">Nenhuma cópia encontrada para estes filtros.</div>
+      </div>
+    </section>
+
     <section class="admin-final-section" *ngIf="adminSection==='TEAM'">
       <section class="scoreboard-heading"><div><p class="eyebrow blue">Área administrativa · Por equipe</p><h2>Confrontos diretos · {{ periodName(adminPeriod) }}</h2><p>Compare as vitórias entre duas equipes. Empates não contam como vitória.</p><div class="admin-final-periods"><button *ngFor="let item of periods" type="button" [class.active]="adminPeriod===item.id" (click)="setAdminFilter('period',item.id)">{{ item.name }}</button></div></div></section>
       <section class="direct-comparison-view">
@@ -614,5 +632,18 @@
     {{ saveLoading ? 'Salvando...' : 'Confirmar' }}
   </button>
 </div>
+  </section>
+</div>
+
+<div *ngIf="pendingBackupRestore" class="save-confirm-modal">
+  <div class="save-confirm-backdrop" (click)="cancelBackupRestore()"></div>
+  <section class="save-confirm-sheet" role="dialog" aria-modal="true" aria-label="Restaurar backup">
+    <p class="eyebrow blue">Recuperação de dados</p><h2>Restaurar esta cópia?</h2>
+    <p><strong>{{ pendingBackupRestore.createdAt | date:'dd/MM/yyyy HH:mm:ss':'-0300' }}</strong> · {{ backupKindLabel(pendingBackupRestore.kind) }}</p>
+    <p>Substitui os resultados, as punições e os dados das finais de <strong>manhã e tarde</strong> pelo estado desta cópia.</p>
+    <p>O sorteio, os horários, as contas de acesso e o histórico serão preservados. Uma cópia do estado atual será salva antes da restauração.</p>
+    <label class="backup-confirm-label">Digite RESTAURAR para confirmar<input type="text" autocomplete="off" [(ngModel)]="backupRestoreText" [disabled]="backupRestoreLoading" aria-label="Digite RESTAURAR para confirmar"></label>
+    <p class="backup-error" role="alert" *ngIf="backupRestoreError">{{ backupRestoreError }}</p>
+    <div class="save-confirm-actions"><button type="button" class="save-confirm-primary" [disabled]="backupRestoreText!=='RESTAURAR' || backupRestoreLoading" (click)="confirmBackupRestore()">{{ backupRestoreLoading ? 'Restaurando, aguarde...' : 'Restaurar dados' }}</button><button type="button" class="save-confirm-secondary" [disabled]="backupRestoreLoading" (click)="cancelBackupRestore()">Cancelar</button></div>
   </section>
 </div>

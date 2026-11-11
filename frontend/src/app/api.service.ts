@@ -12,16 +12,38 @@ export interface Match { id: string; period: string; day: string; court: string;
 export interface Standing { teamId: string; color: string; hex: string; mascot: string; sprite: string; points: number; penaltyPoints?: number; games: number; wins: number; draws: number; losses: number; position: number; tiebreaker?: string; tied?: boolean; }
 export interface Penalty { id: number; period: string; teamId: string; points: number; reason: string; createdAt: string; }
 export interface LoginResponse { accessToken: string; tokenType: string; expiresIn: string; }
-export interface RealtimeEvent { type: 'RESULT_UPDATED' | 'SCOREBOARD_UPDATED' | 'FINALS_CONFIRMED' | 'FINAL_RESULT_UPDATED'; period: string; match?: Match; matchId?: string; day?: string; court?: string; sportId?: string; gender?: string; scoreA?: number; scoreB?: number; status?: string; teams?: Team[]; standings?: Standing[]; matches?: Match[]; updatedAt?: string; }
+export interface RealtimeEvent { type: 'RESULT_UPDATED' | 'SCOREBOARD_UPDATED' | 'FINALS_CONFIRMED' | 'FINAL_RESULT_UPDATED' | 'BACKUP_RESTORED'; period: string; match?: Match; matchId?: string; day?: string; court?: string; sportId?: string; gender?: string; scoreA?: number; scoreB?: number; status?: string; teams?: Team[]; standings?: Standing[]; matches?: Match[]; updatedAt?: string; }
 export interface PublicSnapshot { teams: Team[]; standings: Standing[]; matches: Match[]; updatedAt: string; }
 export interface AdminState { teams: Team[]; standings: Standing[]; matches: Match[]; }
 export interface FinalScheduleEntry { order: number; sportId: string; court: string; time: string; a: number; b: number; }
 export interface FinalsState { period: string; day3Complete: boolean; confirmed: boolean; needsReview: boolean; finalists: Team[]; standings: Standing[]; finalStandings: Standing[]; matches: Match[]; schedule: FinalScheduleEntry[]; }
+export interface BackupInfo { key: string; kind: 'DAILY' | 'RESET' | 'BEFORE_RESTORE'; createdAt: string; fileName: string; sizeBytes: number; matchCount: number; canRestore: boolean; reason?: string; }
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly http = inject(HttpClient);
   private readonly base = '/api/v1';
+
+  backupsAsync(token: string): Promise<{items: BackupInfo[]}> {
+    return this.fetchJson(`${this.base}/admin/backups`, { headers: { Authorization: `Bearer ${token}` } }, 30000);
+  }
+
+  restoreBackupAsync(key: string, token: string, confirmation: string): Promise<{restored: boolean; safetyBackupId: number}> {
+    const path = key.split('/').map(encodeURIComponent).join('/');
+    return this.fetchJson(`${this.base}/admin/backups/${path}/restore`, {
+      method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({confirmation})
+    }, 180000);
+  }
+
+  async downloadBackupAsync(key: string, token: string): Promise<Blob> {
+    const path = key.split('/').map(encodeURIComponent).join('/');
+    const response = await fetch(`${this.base}/admin/backups/${path}/download`, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
+    if (!response.ok) {
+      const error = new Error(await response.text()) as Error & {status: number}; error.status = response.status; throw error;
+    }
+    return response.blob();
+  }
 
   private async fetchJson<T>(url: string, init: RequestInit = {}, timeoutMs = 8000): Promise<T> {
     const controller = new AbortController();
@@ -183,7 +205,7 @@ export class ApiService {
         socket.onmessage = message => {
           try {
             const event = JSON.parse(String(message.data)) as { type?: string } & Partial<RealtimeEvent>;
-            if (event.type === 'RESULT_UPDATED' || event.type === 'SCOREBOARD_UPDATED' || event.type === 'FINALS_CONFIRMED' || event.type === 'FINAL_RESULT_UPDATED') subscriber.next(event as RealtimeEvent);
+            if (event.type === 'RESULT_UPDATED' || event.type === 'SCOREBOARD_UPDATED' || event.type === 'FINALS_CONFIRMED' || event.type === 'FINAL_RESULT_UPDATED' || event.type === 'BACKUP_RESTORED') subscriber.next(event as RealtimeEvent);
           } catch {
             // Mensagens de heartbeat/controle não alteram a interface.
           }

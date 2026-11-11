@@ -22,6 +22,7 @@ type server struct {
 	events     *eventHub
 	matchesMu  sync.RWMutex
 	matchCache []domain.Match
+	backupOps  sync.RWMutex
 }
 
 type eventHub struct {
@@ -122,12 +123,14 @@ func main() {
 	mux.HandleFunc("/api/v1/admin/finals/confirm", s.confirmFinalists)
 	mux.HandleFunc("/api/v1/admin/final-matches/", s.finalResult)
 	mux.HandleFunc("/api/v1/admin/matches/", s.adminMatch)
+	mux.HandleFunc("/api/v1/admin/backups", s.adminBackups)
+	mux.HandleFunc("/api/v1/admin/backups/", s.adminBackups)
 	addr := os.Getenv("HTTP_ADDR")
 	if addr == "" {
 		addr = ":8080"
 	}
 	log.Printf("api listening on %s", addr)
-	log.Fatal(http.ListenAndServe(addr, withCORS(mux)))
+	log.Fatal(http.ListenAndServe(addr, withCORS(s.backupGuard(mux))))
 }
 
 func (s *server) standingsFor(ctx context.Context, teams []domain.Team, matches []domain.Match, period, gender string) ([]domain.Standing, error) {

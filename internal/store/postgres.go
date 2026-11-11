@@ -95,6 +95,8 @@ func (s *Store) initialize(ctx context.Context) error {
 		`ALTER TABLE result_reset_backups ADD COLUMN IF NOT EXISTS penalties jsonb NOT NULL DEFAULT '[]'::jsonb`,
 		`ALTER TABLE result_reset_backups ADD COLUMN IF NOT EXISTS finals_confirmations jsonb NOT NULL DEFAULT '[]'::jsonb`,
 		`ALTER TABLE result_reset_backups ADD COLUMN IF NOT EXISTS final_matches jsonb NOT NULL DEFAULT '[]'::jsonb`,
+		`ALTER TABLE result_reset_backups ADD COLUMN IF NOT EXISTS backup_kind text NOT NULL DEFAULT 'RESET'`,
+		`CREATE TABLE IF NOT EXISTS backup_restore_audit (id bigserial PRIMARY KEY,user_id uuid NOT NULL REFERENCES users(id),source text NOT NULL,safety_backup_id bigint NOT NULL REFERENCES result_reset_backups(id),created_at timestamptz NOT NULL DEFAULT now())`,
 		`CREATE TABLE IF NOT EXISTS penalties (id bigserial PRIMARY KEY, period_id text NOT NULL REFERENCES periods(id), team_id text NOT NULL REFERENCES teams(id), points integer NOT NULL CHECK (points > 0), reason text NOT NULL CHECK (length(trim(reason)) > 0), created_by uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT now())`,
 		`CREATE TABLE IF NOT EXISTS finals_confirmations (period_id text PRIMARY KEY REFERENCES periods(id), team_a_id text NOT NULL REFERENCES teams(id), team_b_id text NOT NULL REFERENCES teams(id), team_c_id text NOT NULL REFERENCES teams(id), confirmed_by uuid NOT NULL REFERENCES users(id), confirmed_at timestamptz NOT NULL DEFAULT now())`,
 		`ALTER TABLE finals_confirmations ADD COLUMN IF NOT EXISTS needs_review boolean NOT NULL DEFAULT false`,
